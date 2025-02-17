@@ -1,0 +1,16 @@
+recursive-exclude tests *
+recursive-include oarepo_rdm *.yaml
+recursive-include oarepo_rdm *.json
+recursive-include oarepo_rdm *.po
+recursive-include oarepo_rdm *.pot
+recursive-include oarepo_rdm *.mo
+recursive-include oarepo_rdm *.js
+recursive-include oarepo_rdm *.jsx
+recursive-include oarepo_rdm *.less
+recursive-include oarepo_rdm *.jinja
+recursive-include oarepo_rdm *.overrides
+recursive-include oarepo_rdm *.variables
+recursive-include oarepo_rdm *.scss
+recursive-include oarepo_rdm *.png *.svg
+recursive-include oarepo_rdm *.css
+recursive-include oarepo_rdm *.jinja2

@@ -1,0 +1,13 @@
+from invenio_access.permissions import system_identity
+from modelc.proxies import current_service as modelc_service
+from modelc.records.api import ModelcDraft
+from invenio_rdm_records.records.api import RDMDraft
+
+def test_pid(search_clear):
+    modelc_record1 = modelc_service.create(
+        system_identity,
+        {"metadata": {"title": "blah", "cdescription": "kch"}},
+    )
+    id_ = modelc_record1["id"]
+    draft = RDMDraft.pid.resolve(id_)
+    assert isinstance(draft, ModelcDraft)

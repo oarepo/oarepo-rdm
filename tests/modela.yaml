@@ -1,0 +1,32 @@
+record:
+  properties:
+    metadata:
+      properties:
+          title: keyword
+          adescription: keyword
+  module:
+    qualified: modela
+  permissions:
+    presets: [ 'everyone' ]
+  use:
+  - invenio
+  - rdm
+  files:
+    properties:
+      metadata:
+        properties:
+          title:
+            type: keyword
+    permissions:
+      presets: ['authenticated']
+
+  draft: { }
+
+  draft-files:
+    permissions:
+      presets: ['authenticated']
+profiles:
+  - record
+  - draft
+  - files
+  - draft_files
