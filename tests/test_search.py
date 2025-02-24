@@ -1,10 +1,7 @@
-from invenio_access.permissions import system_identity
 from modela.proxies import current_service as modela_service
 from modela.records.api import ModelaRecord
 from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbRecord
-
-from oarepo_global_search.services.records.service import GlobalSearchService
 
 
 def test_description_search(rdm_records_service, identity_simple, search_clear):

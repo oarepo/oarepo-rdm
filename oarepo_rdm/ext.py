@@ -51,6 +51,7 @@ from sqlalchemy import inspect
 from oarepo_communities.utils import get_service_from_schema_type
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_pidstore.errors import PIDDoesNotExistError
+from oarepo_global_search.proxies import current_global_search
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -135,8 +136,8 @@ def finalize_app(app: Flask) -> None:
     )
     RDMRecord.pid = OARepoPIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = OARepoPIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(current_global_search_service.indices())
-    RDMDraft.index = IndexField(current_global_search_service.indices())
+    RDMRecord.index = IndexField(current_global_search.indices)
+    RDMDraft.index = IndexField(current_global_search.indices)
 
     rdm.records_service = oarepo_service
 

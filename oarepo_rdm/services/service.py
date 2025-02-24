@@ -5,7 +5,7 @@ from oarepo_rdm.proxies import current_oarepo_rdm
 
 class OARepoRDMService(RDMRecordService):
     """"""
-    def _get_specialized_service(self, id_, is_draft=False):
+    def _get_specialized_service(self, id_):
         pid_type = current_oarepo_rdm.get_pid_type_from_pid(id_)
         return current_oarepo_rdm.record_service_from_pid_type(pid_type)
 
@@ -19,8 +19,16 @@ class OARepoRDMService(RDMRecordService):
         return self._get_specialized_service(id_).delete_record(identity, id_, expand=expand, uow=uow, revision_id=revision_id)
 
     @unit_of_work()
-    def lift_embargo(self, identity, id_, uow=None):
-        return self._get_specialized_service(id_).lift_embargo(identity, id_, uow=uow)
+    def delete_draft(self, identity, id_, revision_id=None, uow=None, **kwargs):
+        return self._get_specialized_service(id_).delete_draft(identity, id_, revision_id=revision_id, uow=uow, **kwargs)
+
+    @unit_of_work()
+    def lift_embargo(self, identity, _id, uow=None):
+        return self._get_specialized_service(_id).lift_embargo(identity, _id, uow=uow)
+
+    @unit_of_work()
+    def import_files(self, identity, id_, uow=None, **kwargs):
+        return self._get_specialized_service(id_).import_files(identity, id_, uow=uow, **kwargs)
 
     @unit_of_work()
     def mark_record_for_purge(self, identity, id_, expand=False, uow=None):
@@ -36,6 +44,14 @@ class OARepoRDMService(RDMRecordService):
 
     def read_draft(self, identity, id_, expand=False):
         return self._get_specialized_service(id_).read_draft(identity, id_, expand=expand)
+
+    def read_latest(self, identity, id_, expand=False, **kwargs):
+        return self._get_specialized_service(id_).read_latest(identity, id_, expand=expand, **kwargs)
+
+    @unit_of_work()
+    def update(self, identity, id_, data, revision_id=None, uow=None, expand=False, **kwargs):
+        return self._get_specialized_service(id_).update(identity, id_, data,
+                                                         revision_id=revision_id, uow=uow, expand=expand, **kwargs)
 
     @unit_of_work()
     def update_draft(
@@ -95,6 +111,17 @@ class OARepoRDMService(RDMRecordService):
     def update_tombstone(self, identity, id_, data, expand=False, uow=None):
         return self._get_specialized_service(id_).update_tombstone(identity,  id_, data=data, expand=expand, uow=uow)
 
+    def validate_draft(self, identity, id_, ignore_field_permissions=False):
+        return self._get_specialized_service(id_).validate_draft(identity,  id_,
+                                                                 ignore_field_permissions=ignore_field_permissions)
+
+    @unit_of_work()
+    def edit(self, identity, id_, uow=None, expand=False, **kwargs):
+        return self._get_specialized_service(id_).edit(identity,  id_, uow=uow, expand=expand, **kwargs)
+
+    @unit_of_work()
+    def new_version(self, identity, id_, uow=None, expand=False, **kwargs):
+        return self._get_specialized_service(id_).new_version(identity,  id_, uow=uow, expand=expand, **kwargs)
 
     def search(self, identity, params, *args, extra_filter=None, ** kwargs):
         return current_global_search_service.search(identity, params, *args, extra_filter=extra_filter, **kwargs)

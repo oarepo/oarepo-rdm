@@ -46,5 +46,6 @@ pip install -e model-c
 pip install oarepo-workflows
 pip install oarepo-requests
 pip install oarepo-communities
+pip install ".[tests]"
 
 pytest tests

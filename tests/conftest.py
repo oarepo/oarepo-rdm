@@ -3,8 +3,29 @@ import os
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
+from invenio_rdm_records.records import RDMRecord
 from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 from invenio_rdm_records.proxies import current_rdm_records_service
+from modela.proxies import current_service as modela_service
+
+
+from collections import namedtuple
+from copy import deepcopy
+from datetime import datetime
+from io import BytesIO
+from unittest import mock
+
+import arrow
+import pytest
+from dateutil import tz
+from flask_principal import Identity, Need, RoleNeed, UserNeed
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records.api import RDMRecord
+
+pytest_plugins = [
+    "pytest_oarepo.fixtures",
+]
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
@@ -14,6 +35,10 @@ def create_app(instance_path, entry_points):
 @pytest.fixture(scope="module", autouse=True)
 def location(location):
     return location
+
+@pytest.fixture(autouse=True)
+def vocab_cf(vocab_cf):
+    return vocab_cf
 
 @pytest.fixture(scope="module")
 def identity_simple():
@@ -70,8 +95,8 @@ def app_config(app_config):
     app_config["FILES_REST_DEFAULT_STORAGE_CLASS"] = "L"
 
     app_config["RDM_PERSISTENT_IDENTIFIERS"] = {}
-    app_config["RDM_USER_MODERATION_ENABLED"] =False
-    app_config["RDM_RECORDS_ALLOW_RESTRICTION_AFTER_GRACE_PERIOD"] =False
+    app_config["RDM_USER_MODERATION_ENABLED"] = False
+    app_config["RDM_RECORDS_ALLOW_RESTRICTION_AFTER_GRACE_PERIOD"] = False
     app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
     app_config["RDM_DEFAULT_FILES_ENABLED"] = False
     app_config["RDM_SEARCH_SORT_BY_VERIFIED"] = False
@@ -80,11 +105,38 @@ def app_config(app_config):
         "pool_recycle": 3600,
     },
     app_config["REST_CSRF_ENABLED"] = False
-
     return app_config
 
 
 @pytest.fixture()
 def custom_fields():
     prepare_cf_indices()
+
+# from invenio_rdm_records
+@pytest.fixture()
+def embargoed_files_record(rdm_records_service, identity_simple, ):
+    def _record(records_service):
+        today = arrow.utcnow().date().isoformat()
+        # Add embargo to record
+        with mock.patch("arrow.utcnow") as mock_arrow:
+            data = {"metadata": {"title": "aaaaa", "adescription": "jej"}, "files": {"enabled": False},
+                    "access": {"record": "public", "files": "restricted", "status": "embargoed", "embargo": dict(
+                active=True, until=today, reason=None
+            )}}
+
+            # We need to set the current date in the past to pass the validations
+            mock_arrow.return_value = arrow.get(datetime(1954, 9, 29), tz.gettz("UTC"))
+            draft = records_service.create(
+                identity_simple,
+                data
+            )
+            record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
+
+            RDMRecord.index.refresh()
+
+            # Recover current date
+            mock_arrow.return_value = arrow.get(datetime.utcnow())
+        return record
+
+    return _record
 
