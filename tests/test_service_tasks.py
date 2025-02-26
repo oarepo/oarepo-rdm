@@ -1,11 +1,12 @@
-from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.records.api import RDMDraft
 from invenio_rdm_records.services.tasks import update_expired_embargos
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 
 
-def test_embargo_lift_without_draft(rdm_records_service, embargoed_files_record, search_clear):
+def test_embargo_lift_without_draft(
+    rdm_records_service, embargoed_files_record, search_clear
+):
     record = embargoed_files_record(modela_service)
     update_expired_embargos()
     record_lifted = rdm_records_service.record_cls.pid.resolve(record["id"])
@@ -70,6 +71,7 @@ def test_embargo_lift_with_updated_draft(
     assert draft_lifted.access.embargo.active is False
     assert draft_lifted.access.protection.files == "restricted"
     assert draft_lifted.access.protection.record == "public"
+
 
 def test_multiple_models(rdm_records_service, embargoed_files_record, search_clear):
     record1 = embargoed_files_record(modela_service)

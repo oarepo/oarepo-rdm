@@ -1,7 +1,8 @@
 from invenio_access.permissions import system_identity
+from invenio_rdm_records.records.api import RDMDraft
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
-from invenio_rdm_records.records.api import RDMDraft
+
 
 def test_pid(search_clear):
     modelc_record1 = modelc_service.create(

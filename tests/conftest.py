@@ -1,54 +1,52 @@
 import os
-
-import pytest
-from flask_principal import Identity, Need, UserNeed
-from invenio_app.factory import create_api
-from invenio_rdm_records.records import RDMRecord
-from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
-from invenio_rdm_records.proxies import current_rdm_records_service
-from modela.proxies import current_service as modela_service
-
-
-from collections import namedtuple
-from copy import deepcopy
 from datetime import datetime
-from io import BytesIO
 from unittest import mock
 
 import arrow
 import pytest
 from dateutil import tz
-from flask_principal import Identity, Need, RoleNeed, UserNeed
+from flask_principal import Identity, Need, UserNeed
+from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records import RDMRecord
 from invenio_rdm_records.records.api import RDMRecord
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
-
+from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
     "pytest_oarepo.records",
 ]
 
+
 @pytest.fixture()
 def record_services(record_services):
-    record_services.update({"local://modela-1.0.0.json": modela_service,
-                            "local://modelb-1.0.0.json": modelb_service,
-                            "local://modelc-1.0.0.json": modelc_service})
+    record_services.update(
+        {
+            "local://modela-1.0.0.json": modela_service,
+            "local://modelb-1.0.0.json": modelb_service,
+            "local://modelc-1.0.0.json": modelc_service,
+        }
+    )
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
     """Application factory fixture."""
     return create_api
 
+
 @pytest.fixture(scope="module", autouse=True)
 def location(location):
     return location
 
+
 @pytest.fixture(autouse=True)
 def vocab_cf(vocab_cf):
     return vocab_cf
+
 
 @pytest.fixture(scope="module")
 def identity_simple():
@@ -58,6 +56,7 @@ def identity_simple():
     i.provides.add(Need(method="system_role", value="any_user"))
     i.provides.add(Need(method="system_role", value="authenticated_user"))
     return i
+
 
 @pytest.fixture()
 def rdm_records_service():
@@ -110,10 +109,12 @@ def app_config(app_config):
     app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
     app_config["RDM_DEFAULT_FILES_ENABLED"] = False
     app_config["RDM_SEARCH_SORT_BY_VERIFIED"] = False
-    app_config["SQLALCHEMY_ENGINE_OPTIONS"] = {  # hack to avoid pool_timeout set in invenio_app_rdm
-        "pool_pre_ping": False,
-        "pool_recycle": 3600,
-    },
+    app_config["SQLALCHEMY_ENGINE_OPTIONS"] = (
+        {  # hack to avoid pool_timeout set in invenio_app_rdm
+            "pool_pre_ping": False,
+            "pool_recycle": 3600,
+        },
+    )
     app_config["REST_CSRF_ENABLED"] = False
     return app_config
 
@@ -122,24 +123,31 @@ def app_config(app_config):
 def custom_fields():
     prepare_cf_indices()
 
+
 # from invenio_rdm_records
 @pytest.fixture()
-def embargoed_files_record(rdm_records_service, identity_simple, ):
+def embargoed_files_record(
+    rdm_records_service,
+    identity_simple,
+):
     def _record(records_service):
         today = arrow.utcnow().date().isoformat()
         # Add embargo to record
         with mock.patch("arrow.utcnow") as mock_arrow:
-            data = {"metadata": {"title": "aaaaa", "adescription": "jej"}, "files": {"enabled": False},
-                    "access": {"record": "public", "files": "restricted", "status": "embargoed", "embargo": dict(
-                active=True, until=today, reason=None
-            )}}
+            data = {
+                "metadata": {"title": "aaaaa", "adescription": "jej"},
+                "files": {"enabled": False},
+                "access": {
+                    "record": "public",
+                    "files": "restricted",
+                    "status": "embargoed",
+                    "embargo": dict(active=True, until=today, reason=None),
+                },
+            }
 
             # We need to set the current date in the past to pass the validations
             mock_arrow.return_value = arrow.get(datetime(1954, 9, 29), tz.gettz("UTC"))
-            draft = records_service.create(
-                identity_simple,
-                data
-            )
+            draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
 
             RDMRecord.index.refresh()
@@ -149,4 +157,3 @@ def embargoed_files_record(rdm_records_service, identity_simple, ):
         return record
 
     return _record
-

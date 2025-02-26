@@ -11,47 +11,27 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from invenio_records_resources.records.systemfields import IndexField
-
-from oarepo_rdm.records.systemfields.pid import OARepoPIDFieldContext, OARepoDraftPIDFieldContext
-from oarepo_rdm.services.config import OARepoRDMServiceConfig
-from oarepo_rdm.services.service import OARepoRDMService
+from invenio_base.utils import obj_or_import_string
+from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_pidstore.models import PersistentIdentifier
 from invenio_rdm_records.services import (
-    CommunityRecordsService,
-    IIIFService,
-    RDMCommunityRecordsConfig,
     RDMFileDraftServiceConfig,
     RDMFileRecordServiceConfig,
-    RDMRecordCommunitiesConfig,
-    RDMRecordRequestsConfig,
-    RDMRecordService,
-    RDMRecordServiceConfig,
-    RecordAccessService,
-    RecordRequestsService,
 )
 from invenio_rdm_records.services.files.service import RDMFileService
-from invenio_rdm_records.services.review.service import ReviewService
-from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_rdm_records.services.pids.manager import PIDManager
-from oarepo_global_search.proxies import current_global_search_service
-from invenio_base.utils import obj_or_import_string
+from invenio_rdm_records.services.pids.service import PIDsService
+from invenio_records_resources.records.systemfields import IndexField
+from invenio_records_resources.records.systemfields.pid import PIDField
+from oarepo_global_search.proxies import current_global_search
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
 
-from invenio_db import db
-from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_pidstore.models import PersistentIdentifier
-from invenio_pidstore.resolver import Resolver
-from invenio_records.systemfields import (
-    ModelField,
-    RelatedModelField,
-    RelatedModelFieldContext,
+from oarepo_rdm.records.systemfields.pid import (
+    OARepoDraftPIDFieldContext,
+    OARepoPIDFieldContext,
 )
-from invenio_records_resources.records.systemfields.pid import PIDFieldContext, PIDField
-from sqlalchemy import inspect
-from oarepo_communities.utils import get_service_from_schema_type
-from invenio_pidstore.models import PersistentIdentifier
-from invenio_pidstore.errors import PIDDoesNotExistError
-from oarepo_global_search.proxies import current_global_search
+from oarepo_rdm.services.config import OARepoRDMServiceConfig
+from oarepo_rdm.services.service import OARepoRDMService
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -90,11 +70,13 @@ class OARepoRDM(object):
         pids = PersistentIdentifier.query.filter_by(pid_value=pid_value).all()
         if not pids:
             raise PIDDoesNotExistError("", pid_value)
-        if len(pids)>1:
+        if len(pids) > 1:
             raise ValueError("Multiple PIDs found")
         return pids[0].pid_type
 
-    def record_service_from_pid_type(self, pid_type, is_draft: bool = False): # there isn't specialized draft service for now
+    def record_service_from_pid_type(
+        self, pid_type, is_draft: bool = False
+    ):  # there isn't specialized draft service for now
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
 
@@ -107,18 +89,18 @@ def _service_configs(app):
         file = RDMFileRecordServiceConfig.build(app)
         file_draft = RDMFileDraftServiceConfig.build(app)
 
-
     return ServiceConfigs
+
 
 def api_finalize_app(app: Flask) -> None:
     """Finalize app."""
     finalize_app(app)
 
+
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
     rdm = app.extensions["invenio-rdm-records"]
-    from invenio_rdm_records.records.api import RDMRecord, RDMDraft
-
+    from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 
     service_configs = _service_configs(app)
 

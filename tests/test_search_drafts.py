@@ -1,9 +1,8 @@
 from invenio_access.permissions import system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
 
-from oarepo_global_search.services.records.service import GlobalSearchService
-from invenio_rdm_records.proxies import current_rdm_records_service
 
 def test_description_search(app, db, search_clear, custom_fields, identity_simple):
     modelc_record0 = modelc_service.create(
@@ -27,7 +26,13 @@ def test_description_search(app, db, search_clear, custom_fields, identity_simpl
     results = result.to_dict()
     assert len(results["hits"]["hits"]) == 1
 
-    rec_id = modelc_record2.data['id']
-    assert rec_id == results["hits"]["hits"][0]['id']
-    assert results['links']['self'] == 'http://localhost/user/search?page=1&q=jej&size=10&sort=bestmatch'
-    assert results['hits']['hits'][0]['links']['self'] == f'http://localhost/modelc/{rec_id}/draft'
+    rec_id = modelc_record2.data["id"]
+    assert rec_id == results["hits"]["hits"][0]["id"]
+    assert (
+        results["links"]["self"]
+        == "http://localhost/user/search?page=1&q=jej&size=10&sort=bestmatch"
+    )
+    assert (
+        results["hits"]["hits"][0]["links"]["self"]
+        == f"http://localhost/modelc/{rec_id}/draft"
+    )
