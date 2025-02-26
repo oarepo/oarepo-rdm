@@ -103,12 +103,9 @@ def _service_configs(app):
     """Customized service configs."""
 
     class ServiceConfigs:
-        record = OARepoRDMServiceConfig()
+        record = OARepoRDMServiceConfig.build(app)
         file = RDMFileRecordServiceConfig.build(app)
         file_draft = RDMFileDraftServiceConfig.build(app)
-        record_communities = RDMRecordCommunitiesConfig.build(app)
-        community_records = RDMCommunityRecordsConfig.build(app)
-        record_requests = RDMRecordRequestsConfig.build(app)
 
 
     return ServiceConfigs
@@ -121,7 +118,6 @@ def finalize_app(app: Flask) -> None:
     """Finalize app."""
     rdm = app.extensions["invenio-rdm-records"]
     from invenio_rdm_records.records.api import RDMRecord, RDMDraft
-    from oarepo_rdm.records.systemfields.pid import OARepoPIDField
 
 
     service_configs = _service_configs(app)
@@ -130,45 +126,13 @@ def finalize_app(app: Flask) -> None:
         service_configs.record,
         files_service=RDMFileService(service_configs.file),
         draft_files_service=RDMFileService(service_configs.file_draft),
-        access_service=RecordAccessService(service_configs.record),
+        # access_service=RecordAccessService(service_configs.record),
         pids_service=PIDsService(service_configs.record, PIDManager),
-        review_service=ReviewService(service_configs.record),
+        # review_service=ReviewService(service_configs.record),
     )
-    RDMRecord.pid = OARepoPIDField(context_cls=OARepoPIDFieldContext)
-    RDMDraft.pid = OARepoPIDField(context_cls=OARepoDraftPIDFieldContext)
+    RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
+    RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
     RDMRecord.index = IndexField(current_global_search.indices)
     RDMDraft.index = IndexField(current_global_search.indices)
 
     rdm.records_service = oarepo_service
-
-
-    """
-    rdm.records_service = OARepoRDMService(OARepoRDMServiceConfig())
-
-
-
-
-
-    from invenio_requests.proxies import current_event_type_registry
-
-    # Register services - cannot be done in extension because
-    # Invenio-Records-Resources might not have been initialized.
-    rr_ext = app.extensions["invenio-records-resources"]
-    # idx_ext = app.extensions["invenio-indexer"]
-    ext = app.extensions["oarepo-requests"]
-
-    # services
-    rr_ext.registry.register(
-        ext.requests_service,
-        service_id=ext.requests_service.config.service_id,
-    )
-
-    # todo i have to do this cause there is bug in invenio-requests for events
-    # but imo this is better than entrypoints
-    for type in app.config["REQUESTS_REGISTERED_EVENT_TYPES"]:
-        current_event_type_registry.register_type(type)
-
-    ext.notification_recipients_resolvers_registry = app.config[
-        "NOTIFICATION_RECIPIENTS_RESOLVERS"
-    ]
-    """

@@ -22,7 +22,7 @@ def test_embargo_lift_with_draft(
     service = rdm_records_service
 
     # Edit a draft
-    ongoing_draft = service.edit(id_=record["id"], identity=identity_simple)
+    ongoing_draft = service.edit(identity=identity_simple, id_=record["id"])
     RDMDraft.index.refresh()
 
     update_expired_embargos()

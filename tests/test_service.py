@@ -2,6 +2,22 @@ import pytest
 from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDoesNotExistError
 from modelc.proxies import current_service as modelc_service
+from oarepo_rdm.errors import UndefinedModelError
+from modela.records.api import ModelaDraft
+from modelb.records.api import ModelbDraft
+
+
+def test_create(
+        rdm_records_service, identity_simple, search_clear
+):
+    with pytest.raises(UndefinedModelError):
+        rdm_records_service.create(identity_simple, data={})
+    recorda = rdm_records_service.create(identity_simple, data={"$schema": "local://modela-1.0.0.json"})
+    recordb = rdm_records_service.create(identity_simple, data={"$schema": "local://modelb-1.0.0.json"})
+    with pytest.raises(UndefinedModelError):
+        rdm_records_service.create(identity_simple, data={"$schema": "local://modeld-1.0.0.json"})
+    assert isinstance(recorda._record, ModelaDraft)
+    assert isinstance(recordb._record, ModelbDraft)
 
 def test_read(
         rdm_records_service, identity_simple, search_clear
@@ -75,23 +91,3 @@ def test_publish(rdm_records_service, identity_simple, search_clear):
 
     publish = rdm_records_service.publish(identity_simple, sample_draft["id"])
     record = rdm_records_service.read(identity_simple, sample_draft["id"])
-
-
-
-"""
-def test_create(app, db, record_service, sample_metadata_list, search_clear):
-    created_records = []
-    for sample_metadata_point in sample_metadata_list:
-        created_records.append(
-            record_service.create(system_identity, sample_metadata_point)
-        )
-    for sample_metadata_point, created_record in zip(
-        sample_metadata_list, created_records
-    ):
-        created_record_reread = record_service.read_draft(
-            system_identity, created_record["id"]
-        )
-        assert (
-            created_record_reread.data["metadata"] == sample_metadata_point["metadata"]
-        )
-"""

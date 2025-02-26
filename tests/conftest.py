@@ -21,11 +21,21 @@ from dateutil import tz
 from flask_principal import Identity, Need, RoleNeed, UserNeed
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records.api import RDMRecord
+from modela.proxies import current_service as modela_service
+from modelb.proxies import current_service as modelb_service
+from modelc.proxies import current_service as modelc_service
+
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
+    "pytest_oarepo.records",
 ]
 
+@pytest.fixture()
+def record_services(record_services):
+    record_services.update({"local://modela-1.0.0.json": modela_service,
+                            "local://modelb-1.0.0.json": modelb_service,
+                            "local://modelc-1.0.0.json": modelc_service})
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):

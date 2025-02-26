@@ -1,6 +1,8 @@
 from invenio_rdm_records.services.services import RDMRecordService
 from invenio_records_resources.services.uow import unit_of_work
-from oarepo_global_search.proxies import current_global_search_service
+from oarepo_global_search.proxies import current_global_search, current_global_search_service
+
+from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.proxies import current_oarepo_rdm
 
 class OARepoRDMService(RDMRecordService):
@@ -8,6 +10,27 @@ class OARepoRDMService(RDMRecordService):
     def _get_specialized_service(self, id_):
         pid_type = current_oarepo_rdm.get_pid_type_from_pid(id_)
         return current_oarepo_rdm.record_service_from_pid_type(pid_type)
+
+    @unit_of_work()
+    def create(self, identity, data, schema=None, uow=None, expand=False, **kwargs):
+        """Create a draft for a new record.
+
+        It does NOT eagerly create the associated record.
+        """
+        if "$schema" in data:
+            schema = data["$schema"]
+        services = current_global_search.model_services
+        if len(services) > 1 and not schema:
+            raise UndefinedModelError("Cannot create a draft without specifying its type.")
+        if len(services) == 1:
+            service = services[0]
+        else:
+            for service in services:
+                if service.record_cls.schema.value == schema:
+                    break
+            else:
+                raise UndefinedModelError(f"Service for record with schema {schema} does not exist.")
+        return service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs)
 
     def read(self, identity, id_, expand=False, include_deleted=False):
         return self._get_specialized_service(id_).read(identity, id_, expand=expand, include_deleted=include_deleted)
