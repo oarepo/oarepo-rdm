@@ -16,7 +16,7 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_rdm_records.services import (
     RDMFileDraftServiceConfig,
-    RDMFileRecordServiceConfig,
+    RDMFileRecordServiceConfig, RecordAccessService,
 )
 from invenio_rdm_records.services.files.service import RDMFileService
 from invenio_rdm_records.services.pids.manager import PIDManager
@@ -108,13 +108,19 @@ def finalize_app(app: Flask) -> None:
         service_configs.record,
         files_service=RDMFileService(service_configs.file),
         draft_files_service=RDMFileService(service_configs.file_draft),
-        # access_service=RecordAccessService(service_configs.record),
+        access_service=RecordAccessService(service_configs.record),
         pids_service=PIDsService(service_configs.record, PIDManager),
         # review_service=ReviewService(service_configs.record),
     )
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(current_global_search.indices)
-    RDMDraft.index = IndexField(current_global_search.indices)
-
+    RDMRecord.index = IndexField(None, search_alias=current_global_search.indices)
+    RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
     rdm.records_service = oarepo_service
+
+
+    sregistry = app.extensions["invenio-records-resources"].registry
+
+    sregistry.register(rdm.records_service, service_id="records")
+    sregistry.register(rdm.records_service.files, service_id="files")
+    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")

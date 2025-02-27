@@ -150,7 +150,8 @@ def embargoed_files_record(
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
 
-            RDMRecord.index.refresh()
+            records_service.config.record_cls.index.refresh()
+            records_service.config.draft_cls.index.refresh()
 
             # Recover current date
             mock_arrow.return_value = arrow.get(datetime.utcnow())
