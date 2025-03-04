@@ -38,7 +38,6 @@ def restricted_record(rdm_records_service, identity_simple):
 
     return record
 
-@pytest.skip()
 def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
     """Test invalid permission level."""
     service = rdm_records_service
@@ -96,7 +95,7 @@ def test_permission_levels(rdm_records_service, restricted_record, identity_simp
     pytest.raises(PermissionDeniedError, service.new_version, anon, id_)
     pytest.raises(PermissionDeniedError, service.publish, anon, id_)
     with pytest.raises(PermissionDeniedError):
-        service.draft_files.init_files(anon, id_, {})
+        service.draft_files.init_files(anon, id_, [{"key": "test.pdf"}])
     with pytest.raises(PermissionDeniedError):
         service.draft_files.update_file_metadata(anon, id_, "test.pdf", {})
     with pytest.raises(PermissionDeniedError):

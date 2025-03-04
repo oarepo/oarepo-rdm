@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
+from invenio_rdm_records.resources import RDMRecordFilesResourceConfig, RDMDraftFilesResourceConfig
 from invenio_rdm_records.services import (
     RDMFileDraftServiceConfig,
     RDMFileRecordServiceConfig, RecordAccessService,
@@ -23,15 +24,23 @@ from invenio_rdm_records.services.pids.manager import PIDManager
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
+from invenio_records_resources.resources.files.resource import FileResource
+
+
 from oarepo_global_search.proxies import current_global_search
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
 
+from oarepo_rdm import config
 from oarepo_rdm.records.systemfields.pid import (
     OARepoDraftPIDFieldContext,
     OARepoPIDFieldContext,
 )
+from oarepo_rdm.resources.config import OARepoRDMRecordResourceConfig
+from oarepo_rdm.resources.resources import OARepoRDMRecordResource
+from oarepo_rdm.services.access.service import OARepoRecordAccessService
 from oarepo_rdm.services.config import OARepoRDMServiceConfig
 from oarepo_rdm.services.service import OARepoRDMService
+from invenio_requests.proxies import current_requests
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -47,7 +56,16 @@ class OARepoRDM(object):
 
     def init_app(self, app: Flask) -> None:
         self.app = app
+        self.init_config(app)
         app.extensions["oarepo-rdm"] = self
+
+    def init_config(self, app):
+        requests_registered_resolvers = app.config.setdefault(
+            "REQUESTS_REGISTERED_RESOLVERS", []
+        )
+        for event_type in config.REQUESTS_REGISTERED_RESOLVERS:
+            if event_type not in requests_registered_resolvers:
+                requests_registered_resolvers.append(event_type)
 
     def record_cls_from_pid_type(self, pid_type, is_draft: bool):
         for model in self.app.config["GLOBAL_SEARCH_MODELS"]:
@@ -101,14 +119,12 @@ def finalize_app(app: Flask) -> None:
     """Finalize app."""
     rdm = app.extensions["invenio-rdm-records"]
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
-
     service_configs = _service_configs(app)
-
     oarepo_service = OARepoRDMService(
         service_configs.record,
         files_service=RDMFileService(service_configs.file),
         draft_files_service=RDMFileService(service_configs.file_draft),
-        access_service=RecordAccessService(service_configs.record),
+        access_service=OARepoRecordAccessService(service_configs.record),
         pids_service=PIDsService(service_configs.record, PIDManager),
         # review_service=ReviewService(service_configs.record),
     )
@@ -119,8 +135,26 @@ def finalize_app(app: Flask) -> None:
     rdm.records_service = oarepo_service
 
 
-    sregistry = app.extensions["invenio-records-resources"].registry
+    rdm.records_resource = OARepoRDMRecordResource(
+        service=oarepo_service,
+        config=OARepoRDMRecordResourceConfig.build(app),
+    )
+    # Record files resource
+    rdm.record_files_resource = FileResource(
+        service=rdm.records_service.files,
+        config=RDMRecordFilesResourceConfig.build(app),
+    )
+    # Draft files resource
+    rdm.draft_files_resource = FileResource(
+        service=rdm.records_service.draft_files,
+        config=RDMDraftFilesResourceConfig.build(app),
+    )
 
+    for type in app.config["REQUESTS_REGISTERED_RESOLVERS"]:
+        current_requests.entity_resolvers_registry.register_type(type)
+
+
+    sregistry = app.extensions["invenio-records-resources"].registry
     sregistry.register(rdm.records_service, service_id="records")
     sregistry.register(rdm.records_service.files, service_id="files")
     sregistry.register(rdm.records_service.draft_files, service_id="draft-files")

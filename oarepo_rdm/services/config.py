@@ -3,8 +3,7 @@ from oarepo_runtime.services.config.service import PermissionsPresetsConfigMixin
 from oarepo_runtime.services.results import RecordItem, RecordList
 
 
-class OARepoRDMServiceConfig(PermissionsPresetsConfigMixin, RDMRecordServiceConfig):
-
-    PERMISSIONS_PRESETS = ["everyone"]
+class OARepoRDMServiceConfig(RDMRecordServiceConfig): #OARepoRDMServiceConfig(PermissionsPresetsConfigMixin, RDMRecordServiceConfig):
+    # PERMISSIONS_PRESETS = ["everyone"]
     result_item_cls = RecordItem
     result_list_cls = RecordList

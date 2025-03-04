@@ -7,9 +7,15 @@ import pytest
 from dateutil import tz
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
+from invenio_notifications.backends import EmailNotificationBackend
+from invenio_rdm_records.notifications.builders import GuestAccessRequestTokenCreateNotificationBuilder, \
+    GuestAccessRequestSubmitNotificationBuilder, UserAccessRequestAcceptNotificationBuilder, \
+    GuestAccessRequestAcceptNotificationBuilder, UserAccessRequestSubmitNotificationBuilder, \
+    GrantUserAccessNotificationBuilder, GuestAccessRequestSubmittedNotificationBuilder
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.records import RDMRecord
-from invenio_rdm_records.records.api import RDMRecord
+from invenio_rdm_records.requests.entity_resolvers import EmailResolver, RDMRecordServiceResultResolver
+from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
+from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
@@ -18,6 +24,7 @@ from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 pytest_plugins = [
     "pytest_oarepo.fixtures",
     "pytest_oarepo.records",
+    "pytest_oarepo.users"
 ]
 
 
@@ -46,7 +53,6 @@ def location(location):
 @pytest.fixture(autouse=True)
 def vocab_cf(vocab_cf):
     return vocab_cf
-
 
 @pytest.fixture(scope="module")
 def identity_simple():
@@ -116,12 +122,49 @@ def app_config(app_config):
         },
     )
     app_config["REST_CSRF_ENABLED"] = False
+
+    #-----
+    app_config["APP_RDM_ROUTES"] = {
+        "record_detail": "/records/<pid_value>",
+        "record_file_download": "/records/<pid_value>/files/<path:filename>",
+    }
+    app_config["REQUESTS_PERMISSION_POLICY"] = RDMRequestsPermissionPolicy
+    app_config["MAIL_DEFAULT_SENDER"] = "test@invenio-rdm-records.org"
+    # Specifying backend for notifications. Only used in specific testcases.
+    app_config["NOTIFICATIONS_BACKENDS"] = {
+        EmailNotificationBackend.id: EmailNotificationBackend(),
+    }
+    # Specifying dummy builders to avoid raising errors for most tests. Extend as needed.
+    app_config["NOTIFICATIONS_BUILDERS"] = {
+        GuestAccessRequestTokenCreateNotificationBuilder.type: GuestAccessRequestTokenCreateNotificationBuilder,
+        GuestAccessRequestAcceptNotificationBuilder.type: GuestAccessRequestAcceptNotificationBuilder,
+        GuestAccessRequestSubmitNotificationBuilder.type: GuestAccessRequestSubmitNotificationBuilder,
+        GuestAccessRequestSubmittedNotificationBuilder.type: GuestAccessRequestSubmittedNotificationBuilder,
+        UserAccessRequestAcceptNotificationBuilder.type: UserAccessRequestAcceptNotificationBuilder,
+        UserAccessRequestSubmitNotificationBuilder.type: UserAccessRequestSubmitNotificationBuilder,
+        GrantUserAccessNotificationBuilder.type: GrantUserAccessNotificationBuilder,
+    }
+    # Specifying default resolvers. Will only be used in specific test cases.
+    app_config["NOTIFICATIONS_ENTITY_RESOLVERS"] = [
+        EmailResolver(),
+        RDMRecordServiceResultResolver(),
+        ServiceResultResolver(service_id="users", type_key="user"),
+        ServiceResultResolver(service_id="communities", type_key="community"),
+        ServiceResultResolver(service_id="requests", type_key="request"),
+        ServiceResultResolver(service_id="request_events", type_key="request_event"),
+    ]
+
     return app_config
 
 
 @pytest.fixture()
 def custom_fields():
     prepare_cf_indices()
+
+@pytest.fixture()
+def minimal_record():
+    return {"$schema": "local://modela-1.0.0.json", "metadata": {"title": "blah", "cdescription": "bbb"},
+            "files": {"enabled": False}, "access": {"record": "public", "files": "public"}}
 
 
 # from invenio_rdm_records
