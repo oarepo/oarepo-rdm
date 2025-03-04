@@ -114,7 +114,7 @@ def finalize_app(app: Flask) -> None:
     )
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(None, search_alias=current_global_search.indices)
+    RDMRecord.index = IndexField(None, search_alias=current_global_search.indices) # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
     rdm.records_service = oarepo_service
 
