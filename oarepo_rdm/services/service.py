@@ -223,4 +223,6 @@ class OARepoRDMService(RDMRecordService):
         )
 
     def scan(self, identity, params=None, search_preference=None, expand=False, **kwargs):
-        raise NotImplementedError("not implemented yet")
+        return current_global_search_service.scan(
+            identity, params, search_preference=search_preference, expand=expand, **kwargs
+        )

@@ -72,7 +72,7 @@ def test_embargo_lift_with_updated_draft(
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_multiple_models(rdm_records_service, embargoed_files_record, search_clear):
+def test_embargo_lift_multiple_models(rdm_records_service, embargoed_files_record, search_clear):
     record1 = embargoed_files_record(modela_service)
     record2 = embargoed_files_record(modelb_service)
 
