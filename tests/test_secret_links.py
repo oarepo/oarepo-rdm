@@ -38,7 +38,7 @@ def restricted_record(rdm_records_service, identity_simple):
 
     return record
 
-@pytest.skip()
+@pytest.mark.skip(reason="not used for now")
 def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
     """Test invalid permission level."""
     service = rdm_records_service
