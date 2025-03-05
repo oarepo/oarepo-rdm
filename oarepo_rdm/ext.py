@@ -16,7 +16,8 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_rdm_records.services import (
     RDMFileDraftServiceConfig,
-    RDMFileRecordServiceConfig, RecordAccessService,
+    RDMFileRecordServiceConfig,
+    RecordAccessService,
 )
 from invenio_rdm_records.services.files.service import RDMFileService
 from invenio_rdm_records.services.pids.manager import PIDManager
@@ -96,6 +97,13 @@ def api_finalize_app(app: Flask) -> None:
     """Finalize app."""
     finalize_app(app)
 
+    rdm = app.extensions["invenio-rdm-records"]
+    sregistry = app.extensions["invenio-records-resources"].registry
+
+    sregistry.register(rdm.records_service, service_id="records")
+    sregistry.register(rdm.records_service.files, service_id="files")
+    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")
+
 
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
@@ -114,13 +122,8 @@ def finalize_app(app: Flask) -> None:
     )
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(None, search_alias=current_global_search.indices) # todo - should be just published indices, not all
+    RDMRecord.index = IndexField(
+        None, search_alias=current_global_search.indices
+    )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
     rdm.records_service = oarepo_service
-
-
-    sregistry = app.extensions["invenio-records-resources"].registry
-
-    sregistry.register(rdm.records_service, service_id="records")
-    sregistry.register(rdm.records_service.files, service_id="files")
-    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")
