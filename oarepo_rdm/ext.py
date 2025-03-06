@@ -114,12 +114,21 @@ def api_finalize_app(app: Flask) -> None:
     """Finalize app."""
     finalize_app(app)
 
+    rdm = app.extensions["invenio-rdm-records"]
+    sregistry = app.extensions["invenio-records-resources"].registry
+
+    sregistry.register(rdm.records_service, service_id="records")
+    sregistry.register(rdm.records_service.files, service_id="files")
+    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")
+
 
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
     rdm = app.extensions["invenio-rdm-records"]
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
+
     service_configs = _service_configs(app)
+
     oarepo_service = OARepoRDMService(
         service_configs.record,
         files_service=RDMFileService(service_configs.file),
@@ -130,7 +139,9 @@ def finalize_app(app: Flask) -> None:
     )
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(None, search_alias=current_global_search.indices)
+    RDMRecord.index = IndexField(
+        None, search_alias=current_global_search.indices
+    )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
     rdm.records_service = oarepo_service
 
@@ -153,8 +164,3 @@ def finalize_app(app: Flask) -> None:
     for type in app.config["REQUESTS_REGISTERED_RESOLVERS"]:
         current_requests.entity_resolvers_registry.register_type(type)
 
-
-    sregistry = app.extensions["invenio-records-resources"].registry
-    sregistry.register(rdm.records_service, service_id="records")
-    sregistry.register(rdm.records_service.files, service_id="files")
-    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")
