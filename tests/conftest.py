@@ -120,9 +120,6 @@ def app_config(app_config):
         "record_detail": "/records/<pid_value>",
         "record_file_download": "/records/<pid_value>/files/<path:filename>",
     }
-    app_config["RECORDS_REST_ENDPOINTS"] = (
-        []
-    )  # rule /records/<pid(recid):pid_value> is in race condition with /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
     return app_config
 
 

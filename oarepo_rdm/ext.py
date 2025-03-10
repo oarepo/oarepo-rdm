@@ -62,3 +62,14 @@ class OARepoRDM(object):
     ):  # there isn't specialized draft service for now
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
+
+
+def api_finalize_app(app: Flask) -> None:
+    """Finalize app."""
+    finalize_app(app)
+
+
+def finalize_app(app: Flask) -> None:
+    """Finalize app."""
+    app.config["RECORDS_REST_ENDPOINTS"] = []  # rule /records/<pid(recid):pid_value> is in race condition with
+    #/records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
