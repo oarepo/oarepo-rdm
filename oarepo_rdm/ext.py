@@ -14,10 +14,7 @@ from typing import TYPE_CHECKING
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
-from invenio_requests.proxies import current_requests
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
-
-
 
 if TYPE_CHECKING:
     from flask import Flask

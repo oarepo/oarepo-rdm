@@ -8,7 +8,8 @@ from invenio_rdm_records.services import (
     CommunityRecordsService,
     IIIFService,
     RDMRecordService,
-    RecordRequestsService, RecordAccessService,
+    RecordAccessService,
+    RecordRequestsService,
 )
 from invenio_rdm_records.services.communities.service import RecordCommunitiesService
 from invenio_rdm_records.services.community_inclusion.service import (

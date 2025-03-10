@@ -8,8 +8,6 @@ from dateutil import tz
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.records import RDMRecord
-from invenio_rdm_records.records.api import RDMRecord
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
