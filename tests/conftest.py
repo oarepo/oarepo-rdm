@@ -152,8 +152,14 @@ def app_config(app_config):
         ServiceResultResolver(service_id="communities", type_key="community"),
         ServiceResultResolver(service_id="requests", type_key="request"),
         ServiceResultResolver(service_id="request_events", type_key="request_event"),
+
+        ServiceResultResolver(service_id="modela", type_key="modela"),
+        ServiceResultResolver(service_id="modelb", type_key="modelb"),
+        ServiceResultResolver(service_id="modelc", type_key="modelc")
     ]
 
+
+    app_config["RECORDS_REST_ENDPOINTS"] = [] # rule /records/<pid(recid):pid_value> is in race condition with /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
     return app_config
 
 

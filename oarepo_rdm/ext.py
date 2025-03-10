@@ -14,32 +14,8 @@ from typing import TYPE_CHECKING
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
-from invenio_rdm_records.resources import RDMRecordFilesResourceConfig, RDMDraftFilesResourceConfig
-from invenio_rdm_records.services import (
-    RDMFileDraftServiceConfig,
-    RDMFileRecordServiceConfig, RecordAccessService,
-)
-from invenio_rdm_records.services.files.service import RDMFileService
-from invenio_rdm_records.services.pids.manager import PIDManager
-from invenio_rdm_records.services.pids.service import PIDsService
-from invenio_records_resources.records.systemfields import IndexField
-from invenio_records_resources.records.systemfields.pid import PIDField
-from invenio_records_resources.resources.files.resource import FileResource
-
-
-from oarepo_global_search.proxies import current_global_search
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
-
 from oarepo_rdm import config
-from oarepo_rdm.records.systemfields.pid import (
-    OARepoDraftPIDFieldContext,
-    OARepoPIDFieldContext,
-)
-from oarepo_rdm.resources.config import OARepoRDMRecordResourceConfig
-from oarepo_rdm.resources.resources import OARepoRDMRecordResource
-from oarepo_rdm.services.access.service import OARepoRecordAccessService
-from oarepo_rdm.services.config import OARepoRDMServiceConfig
-from oarepo_rdm.services.service import OARepoRDMService
 from invenio_requests.proxies import current_requests
 
 if TYPE_CHECKING:
@@ -99,68 +75,11 @@ class OARepoRDM(object):
         return get_record_service_for_record_class(record_cls)
 
 
-def _service_configs(app):
-    """Customized service configs."""
-
-    class ServiceConfigs:
-        record = OARepoRDMServiceConfig.build(app)
-        file = RDMFileRecordServiceConfig.build(app)
-        file_draft = RDMFileDraftServiceConfig.build(app)
-
-    return ServiceConfigs
-
-
 def api_finalize_app(app: Flask) -> None:
     """Finalize app."""
     finalize_app(app)
 
-    rdm = app.extensions["invenio-rdm-records"]
-    sregistry = app.extensions["invenio-records-resources"].registry
-
-    sregistry.register(rdm.records_service, service_id="records")
-    sregistry.register(rdm.records_service.files, service_id="files")
-    sregistry.register(rdm.records_service.draft_files, service_id="draft-files")
-
-
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
-    rdm = app.extensions["invenio-rdm-records"]
-    from invenio_rdm_records.records.api import RDMDraft, RDMRecord
-
-    service_configs = _service_configs(app)
-
-    oarepo_service = OARepoRDMService(
-        service_configs.record,
-        files_service=RDMFileService(service_configs.file),
-        draft_files_service=RDMFileService(service_configs.file_draft),
-        access_service=OARepoRecordAccessService(service_configs.record),
-        pids_service=PIDsService(service_configs.record, PIDManager),
-        # review_service=ReviewService(service_configs.record),
-    )
-    RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
-    RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    RDMRecord.index = IndexField(
-        None, search_alias=current_global_search.indices
-    )  # todo - should be just published indices, not all
-    RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
-    rdm.records_service = oarepo_service
-
-
-    rdm.records_resource = OARepoRDMRecordResource(
-        service=oarepo_service,
-        config=OARepoRDMRecordResourceConfig.build(app),
-    )
-    # Record files resource
-    rdm.record_files_resource = FileResource(
-        service=rdm.records_service.files,
-        config=RDMRecordFilesResourceConfig.build(app),
-    )
-    # Draft files resource
-    rdm.draft_files_resource = FileResource(
-        service=rdm.records_service.draft_files,
-        config=RDMDraftFilesResourceConfig.build(app),
-    )
-
     for type in app.config["REQUESTS_REGISTERED_RESOLVERS"]:
         current_requests.entity_resolvers_registry.register_type(type)
-

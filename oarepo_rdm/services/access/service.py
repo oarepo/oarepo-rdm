@@ -28,7 +28,8 @@ from invenio_rdm_records.secret_links.errors import InvalidPermissionLevelError
 from invenio_rdm_records.services.decorators import groups_enabled
 from invenio_rdm_records.services.errors import AccessRequestExistsError, GrantExistsError
 from invenio_rdm_records.services.results import GrantSubjectExpandableField
-from oarepo_rdm.requests.guest_access import OARepoGuestAccessRequest
+from oarepo_rdm.requests.guest_access import OARepoGuestAccessRequest, OARepoUserAccessRequest
+
 
 class OARepoRecordAccessService(RecordAccessService):
 
@@ -80,11 +81,11 @@ class OARepoRecordAccessService(RecordAccessService):
         request = current_requests_service.create(
             system_identity,
             data,
-            OARepoGuestAccessRequest,
+            OARepoGuestAccessRequest, # todo - this is the only change needed - for now the only change in request type is that we need it work with our topic types
             receiver,
             creator=data["payload"]["email"],
             topic=record,
-            expires_at=None,  # TODO expire request ?
+            expires_at=None,
             expand=expand,
             uow=uow,
         )
@@ -94,6 +95,70 @@ class OARepoRecordAccessService(RecordAccessService):
         if message:
             comment = {"payload": {"content": message}}
 
+        return current_requests_service.execute_action(
+            identity,
+            request.id,
+            "submit",
+            data=comment,
+            uow=uow,
+        )
+
+    @unit_of_work()
+    def create_user_access_request(self, identity, id_, data, expand=False, uow=None):
+        """Create a user access request for the given record."""
+        record = self.record_cls.pid.resolve(id_)
+
+        # Permissions
+        # fail early if record fully restricted
+        self.require_permission(identity, "read", record=record)
+
+        can_read_files = self.check_permission(identity, "read_files", record=record)
+
+        if can_read_files:
+            raise PermissionDeniedError(
+                "You already have access to files of this record."
+            )
+
+        existing_access_request = self._exists(
+            created_by={"user": str(identity.id)},
+            record_id=id_,
+            request_type=UserAccessRequest.type_id,
+        )
+
+        if existing_access_request:
+            raise AccessRequestExistsError(existing_access_request["id"])
+
+        data, __ = self.schema_request_access.load(
+            data, context={"identity": identity}, raise_errors=True
+        )
+
+        data = {"payload": data}
+
+        # Determine the request's receiver
+        receiver = None
+        record_owner = record.parent.access.owner.resolve()
+        if record_owner:
+            receiver = record_owner
+
+        request = current_requests_service.create(
+            identity,
+            data,
+            OARepoUserAccessRequest,
+            receiver,
+            topic=record,
+            expires_at=None,
+            expand=expand,
+            uow=uow,
+        )
+
+        message = data["payload"].get("message")
+        comment = None
+        if message:
+            comment = {
+                "payload": {
+                    "content": message,
+                }
+            }
         return current_requests_service.execute_action(
             identity,
             request.id,

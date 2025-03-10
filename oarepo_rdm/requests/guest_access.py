@@ -1,4 +1,4 @@
-from invenio_rdm_records.requests.access.requests import GuestAccessRequest
+from invenio_rdm_records.requests.access.requests import GuestAccessRequest, UserAccessRequest
 from oarepo_requests.types.ref_types import ModelRefTypes, ReceiverRefTypes
 from datetime import datetime, timedelta
 from invenio_access.permissions import authenticated_user, system_identity
@@ -25,7 +25,7 @@ class OARepoGuestAcceptAction(actions.AcceptAction):
 
     def execute(self, identity, uow):
         """Accept guest access request."""
-        id_ = list(self.request.topic.reference_dict.values())[0]
+        id_ = list(self.request.topic.reference_dict.values())[0] # needs to be changed bc invenio has hardcoded "record" as topic type
         record = service.read(
             id_=id_, identity=system_identity
         )
@@ -82,6 +82,7 @@ class OARepoGuestAcceptAction(actions.AcceptAction):
             notify=False,
         )
 
+
 class OARepoGuestAccessRequest(GuestAccessRequest):
     """"""
     allowed_topic_ref_types = ModelRefTypes(published=True, draft=True)
@@ -92,3 +93,6 @@ class OARepoGuestAccessRequest(GuestAccessRequest):
         "accept": OARepoGuestAcceptAction,
     }
 
+class OARepoUserAccessRequest(UserAccessRequest):
+    allowed_topic_ref_types = ModelRefTypes(published=True, draft=True)
+    allowed_receiver_ref_types = ReceiverRefTypes()
