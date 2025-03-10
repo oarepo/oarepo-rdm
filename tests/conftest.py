@@ -18,6 +18,7 @@ from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 pytest_plugins = [
     "pytest_oarepo.fixtures",
     "pytest_oarepo.records",
+    "pytest_oarepo.users",
 ]
 
 
@@ -116,6 +117,14 @@ def app_config(app_config):
         },
     )
     app_config["REST_CSRF_ENABLED"] = False
+
+    app_config["APP_RDM_ROUTES"] = {
+        "record_detail": "/records/<pid_value>",
+        "record_file_download": "/records/<pid_value>/files/<path:filename>",
+    }
+    app_config["RECORDS_REST_ENDPOINTS"] = (
+        []
+    )  # rule /records/<pid(recid):pid_value> is in race condition with /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
     return app_config
 
 
