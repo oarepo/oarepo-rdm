@@ -2,26 +2,20 @@ import copy
 import io
 import re
 import urllib
-from modela.proxies import current_service as modela_service
-from flask_principal import UserNeed
-from invenio_access.permissions import (
-    Identity,
-    any_user,
-    authenticated_user
-)
-from invenio_requests.proxies import current_requests_service
 
-from invenio_rdm_records.proxies import current_rdm_records_service as service
-from invenio_rdm_records.requests.access import AccessRequestTokenNeed
+from flask_principal import UserNeed
 from flask_security import login_user
 from invenio_access.permissions import (
     Identity,
     any_user,
     authenticated_user,
-    system_identity,
 )
-from invenio_accounts.proxies import current_datastore
 from invenio_accounts.testutils import login_user_via_session
+from invenio_rdm_records.proxies import current_rdm_records_service as service
+from invenio_rdm_records.requests.access import AccessRequestTokenNeed
+from invenio_requests.proxies import current_requests_service
+from modela.proxies import current_service as modela_service
+
 
 def test_simple_guest_access_request_flow(app, client, users, minimal_record):
     """Test a the simple guest-based access request flow."""
@@ -54,14 +48,13 @@ def test_simple_guest_access_request_flow(app, client, users, minimal_record):
         modela_service.config.record_cls.index.refresh()
 
         # The user can access the record, but not the files
-        assert client.get(f"/modela/{record.id}").status_code == 200 # todo discuss how to correctly use PIDConverter with multiple models
+        assert (
+            client.get(f"/modela/{record.id}").status_code == 200
+        )  # todo discuss how to correctly use PIDConverter with multiple models
         assert client.get(f"/modela/{record.id}/files").status_code == 403
         assert (
-            client.get(f"/modela/{record.id}/files/test.txt/content").status_code
-            == 403
+            client.get(f"/modela/{record.id}/files/test.txt/content").status_code == 403
         )
-
-
 
         # The guest creates an access request
         response = client.post(
@@ -95,7 +88,9 @@ def test_simple_guest_access_request_flow(app, client, users, minimal_record):
             identity=guest_identity, token=args["access_request_token"]
         )
 
-        assert len(outbox) == 3 # GuestAccessRequestSubmittedNotificationBuilder is not dummy unlike in invenio
+        assert (
+            len(outbox) == 3
+        )  # GuestAccessRequestSubmittedNotificationBuilder is not dummy unlike in invenio
         submit_message = outbox[1]
         assert "/me/requests/{}".format(request.id) in submit_message.html
 
@@ -113,11 +108,22 @@ def test_simple_guest_access_request_flow(app, client, users, minimal_record):
 
         # The user can now access the record and its files via the secret link
         assert client.get(f"/modela/{record.id}/files").status_code == 403
-        assert client.get(f"/modela/{record.id}?token={args['token']}").status_code == 200
-        assert client.get(f"/modela/{record.id}/files").status_code == 200 # todo is this correct - is it ok that the token is cached somewhere?
-        assert client.get(f"/modela/{record.id}/files?token={args['token']}").status_code == 200
-        assert client.get(f"/modela/{record.id}/files/test.txt/content?token={args['token']}").status_code == 200
-
+        assert (
+            client.get(f"/modela/{record.id}?token={args['token']}").status_code == 200
+        )
+        assert (
+            client.get(f"/modela/{record.id}/files").status_code == 200
+        )  # todo is this correct - is it ok that the token is cached somewhere?
+        assert (
+            client.get(f"/modela/{record.id}/files?token={args['token']}").status_code
+            == 200
+        )
+        assert (
+            client.get(
+                f"/modela/{record.id}/files/test.txt/content?token={args['token']}"
+            ).status_code
+            == 200
+        )
 
         # Make sure that the secret link for the record was created
         record = service.read(identity=identity, id_=record.id)
@@ -127,7 +133,6 @@ def test_simple_guest_access_request_flow(app, client, users, minimal_record):
         assert secret_link.token == args["token"]
         assert secret_link.permission_level == "view"
         assert secret_link.origin == f"request:{request.id}"
-
 
 
 def test_with_rdm_service(app, client, users, minimal_record):
@@ -168,8 +173,6 @@ def test_with_rdm_service(app, client, users, minimal_record):
             == 403
         )
 
-
-
         # The guest creates an access request
         response = client.post(
             f"/records/{record.id}/access/request",
@@ -202,7 +205,9 @@ def test_with_rdm_service(app, client, users, minimal_record):
             identity=guest_identity, token=args["access_request_token"]
         )
 
-        assert len(outbox) == 3 # GuestAccessRequestSubmittedNotificationBuilder is not dummy unlike in invenio
+        assert (
+            len(outbox) == 3
+        )  # GuestAccessRequestSubmittedNotificationBuilder is not dummy unlike in invenio
         submit_message = outbox[1]
         assert "/me/requests/{}".format(request.id) in submit_message.html
 
@@ -220,11 +225,22 @@ def test_with_rdm_service(app, client, users, minimal_record):
 
         # The user can now access the record and its files via the secret link
         assert client.get(f"/records/{record.id}/files").status_code == 403
-        assert client.get(f"/records/{record.id}?token={args['token']}").status_code == 200
-        assert client.get(f"/records/{record.id}/files").status_code == 200 # todo is this correct - is it ok that the token is cached somewhere?
-        assert client.get(f"/records/{record.id}/files?token={args['token']}").status_code == 200
-        assert client.get(f"/records/{record.id}/files/test.txt/content?token={args['token']}").status_code == 200
-
+        assert (
+            client.get(f"/records/{record.id}?token={args['token']}").status_code == 200
+        )
+        assert (
+            client.get(f"/records/{record.id}/files").status_code == 200
+        )  # todo is this correct - is it ok that the token is cached somewhere?
+        assert (
+            client.get(f"/records/{record.id}/files?token={args['token']}").status_code
+            == 200
+        )
+        assert (
+            client.get(
+                f"/records/{record.id}/files/test.txt/content?token={args['token']}"
+            ).status_code
+            == 200
+        )
 
         # Make sure that the secret link for the record was created
         record = service.read(identity=identity, id_=record.id)
@@ -234,7 +250,6 @@ def test_with_rdm_service(app, client, users, minimal_record):
         assert secret_link.token == args["token"]
         assert secret_link.permission_level == "view"
         assert secret_link.origin == f"request:{request.id}"
-
 
 
 def test_simple_user_access_request_flow(app, client, users, minimal_record):
@@ -272,8 +287,7 @@ def test_simple_user_access_request_flow(app, client, users, minimal_record):
         assert client.get(f"/modela/{record.id}").status_code == 200
         assert client.get(f"/modela/{record.id}/files").status_code == 403
         assert (
-            client.get(f"/modela/{record.id}/files/test.txt/content").status_code
-            == 403
+            client.get(f"/modela/{record.id}/files/test.txt/content").status_code == 403
         )
 
         # The user creates an access request
@@ -301,8 +315,7 @@ def test_simple_user_access_request_flow(app, client, users, minimal_record):
         assert client.get(f"/modela/{record.id}").status_code == 200
         assert client.get(f"/modela/{record.id}/files").status_code == 200
         assert (
-            client.get(f"/modela/{record.id}/files/test.txt/content").status_code
-            == 200
+            client.get(f"/modela/{record.id}/files/test.txt/content").status_code == 200
         )
 
         # Verify the created access grant

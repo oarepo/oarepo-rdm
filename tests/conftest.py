@@ -8,12 +8,20 @@ from dateutil import tz
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
 from invenio_notifications.backends import EmailNotificationBackend
-from invenio_rdm_records.notifications.builders import GuestAccessRequestTokenCreateNotificationBuilder, \
-    GuestAccessRequestSubmitNotificationBuilder, UserAccessRequestAcceptNotificationBuilder, \
-    GuestAccessRequestAcceptNotificationBuilder, UserAccessRequestSubmitNotificationBuilder, \
-    GrantUserAccessNotificationBuilder, GuestAccessRequestSubmittedNotificationBuilder
+from invenio_rdm_records.notifications.builders import (
+    GrantUserAccessNotificationBuilder,
+    GuestAccessRequestAcceptNotificationBuilder,
+    GuestAccessRequestSubmitNotificationBuilder,
+    GuestAccessRequestSubmittedNotificationBuilder,
+    GuestAccessRequestTokenCreateNotificationBuilder,
+    UserAccessRequestAcceptNotificationBuilder,
+    UserAccessRequestSubmitNotificationBuilder,
+)
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.requests.entity_resolvers import EmailResolver, RDMRecordServiceResultResolver
+from invenio_rdm_records.requests.entity_resolvers import (
+    EmailResolver,
+    RDMRecordServiceResultResolver,
+)
 from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
 from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
 from modela.proxies import current_service as modela_service
@@ -24,7 +32,7 @@ from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 pytest_plugins = [
     "pytest_oarepo.fixtures",
     "pytest_oarepo.records",
-    "pytest_oarepo.users"
+    "pytest_oarepo.users",
 ]
 
 
@@ -53,6 +61,7 @@ def location(location):
 @pytest.fixture(autouse=True)
 def vocab_cf(vocab_cf):
     return vocab_cf
+
 
 @pytest.fixture(scope="module")
 def identity_simple():
@@ -123,7 +132,7 @@ def app_config(app_config):
     )
     app_config["REST_CSRF_ENABLED"] = False
 
-    #-----
+    # -----
     app_config["APP_RDM_ROUTES"] = {
         "record_detail": "/records/<pid_value>",
         "record_file_download": "/records/<pid_value>/files/<path:filename>",
@@ -152,14 +161,14 @@ def app_config(app_config):
         ServiceResultResolver(service_id="communities", type_key="community"),
         ServiceResultResolver(service_id="requests", type_key="request"),
         ServiceResultResolver(service_id="request_events", type_key="request_event"),
-
         ServiceResultResolver(service_id="modela", type_key="modela"),
         ServiceResultResolver(service_id="modelb", type_key="modelb"),
-        ServiceResultResolver(service_id="modelc", type_key="modelc")
+        ServiceResultResolver(service_id="modelc", type_key="modelc"),
     ]
 
-
-    app_config["RECORDS_REST_ENDPOINTS"] = [] # rule /records/<pid(recid):pid_value> is in race condition with /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    app_config["RECORDS_REST_ENDPOINTS"] = (
+        []
+    )  # rule /records/<pid(recid):pid_value> is in race condition with /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
     return app_config
 
 
@@ -167,10 +176,15 @@ def app_config(app_config):
 def custom_fields():
     prepare_cf_indices()
 
+
 @pytest.fixture()
 def minimal_record():
-    return {"$schema": "local://modela-1.0.0.json", "metadata": {"title": "blah", "cdescription": "bbb"},
-            "files": {"enabled": False}, "access": {"record": "public", "files": "public"}}
+    return {
+        "$schema": "local://modela-1.0.0.json",
+        "metadata": {"title": "blah", "cdescription": "bbb"},
+        "files": {"enabled": False},
+        "access": {"record": "public", "files": "public"},
+    }
 
 
 # from invenio_rdm_records

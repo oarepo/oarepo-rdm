@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from invenio_rdm_records import InvenioRDMRecords
 from invenio_rdm_records.oaiserver.services.services import OAIPMHServerService
 from invenio_rdm_records.services import (
@@ -8,25 +11,22 @@ from invenio_rdm_records.services import (
     RecordRequestsService,
 )
 from invenio_rdm_records.services.communities.service import RecordCommunitiesService
-from invenio_rdm_records.services.community_inclusion.service import CommunityInclusionService
-
-
-
-from typing import TYPE_CHECKING
-
+from invenio_rdm_records.services.community_inclusion.service import (
+    CommunityInclusionService,
+)
 from invenio_rdm_records.services.files.service import RDMFileService
 from invenio_rdm_records.services.pids.manager import PIDManager
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
 from oarepo_global_search.proxies import current_global_search
+
 from oarepo_rdm.records.systemfields.pid import (
     OARepoDraftPIDFieldContext,
     OARepoPIDFieldContext,
 )
 from oarepo_rdm.services.access.service import OARepoRecordAccessService
 from oarepo_rdm.services.service import OARepoRDMService
-from invenio_requests.proxies import current_requests
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -93,6 +93,7 @@ def api_finalize_app(app: Flask) -> None:
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
+
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
     RDMRecord.index = IndexField(

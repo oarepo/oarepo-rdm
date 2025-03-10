@@ -1,34 +1,20 @@
-from invenio_rdm_records.services.access.service import RecordAccessService
-from datetime import datetime, timedelta
-
-import arrow
-from flask import current_app
-from flask_login import current_user
 from invenio_access.permissions import authenticated_user, system_identity
-from invenio_drafts_resources.services.records import RecordService
-from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
-from invenio_i18n import lazy_gettext as _
-from invenio_notifications.services.uow import NotificationOp
+from invenio_rdm_records.requests.access import (
+    AccessRequestToken,
+    UserAccessRequest,
+)
+from invenio_rdm_records.services.access.service import RecordAccessService
+from invenio_rdm_records.services.errors import (
+    AccessRequestExistsError,
+)
 from invenio_records_resources.services.errors import PermissionDeniedError
-from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from invenio_records_resources.services.uow import unit_of_work
 from invenio_requests.proxies import current_requests_service
-from invenio_search.engine import dsl
-from invenio_users_resources.proxies import current_user_resources
-from marshmallow.exceptions import ValidationError
-from sqlalchemy.orm.exc import NoResultFound
 
-from invenio_rdm_records.notifications.builders import (
-    GrantUserAccessNotificationBuilder,
-    GuestAccessRequestTokenCreateNotificationBuilder,
+from oarepo_rdm.requests.guest_access import (
+    OARepoGuestAccessRequest,
+    OARepoUserAccessRequest,
 )
-
-from invenio_rdm_records.requests.access import AccessRequestToken, GuestAccessRequest, UserAccessRequest
-from invenio_rdm_records.secret_links.errors import InvalidPermissionLevelError
-from invenio_rdm_records.services.decorators import groups_enabled
-from invenio_rdm_records.services.errors import AccessRequestExistsError, GrantExistsError
-from invenio_rdm_records.services.results import GrantSubjectExpandableField
-from oarepo_rdm.requests.guest_access import OARepoGuestAccessRequest, OARepoUserAccessRequest
 
 
 class OARepoRecordAccessService(RecordAccessService):
@@ -81,7 +67,7 @@ class OARepoRecordAccessService(RecordAccessService):
         request = current_requests_service.create(
             system_identity,
             data,
-            OARepoGuestAccessRequest, # todo - this is the only change needed - for now the only change in request type is that we need it work with our topic types
+            OARepoGuestAccessRequest,  # todo - this is the only change needed - for now the only change in request type is that we need it work with our topic types
             receiver,
             creator=data["payload"]["email"],
             topic=record,

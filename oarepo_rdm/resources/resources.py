@@ -15,6 +15,7 @@ from functools import wraps
 from flask import abort, current_app, g, redirect, url_for
 from flask_resources import Resource, resource_requestctx, response_handler, route
 from invenio_drafts_resources.resources import RecordResource
+from invenio_rdm_records.resources.urls import record_url_for
 from invenio_records_resources.resources.errors import ErrorHandlersMixin
 from invenio_records_resources.resources.records.resource import (
     request_data,
@@ -27,8 +28,6 @@ from invenio_records_resources.resources.records.resource import (
 from invenio_records_resources.resources.records.utils import search_preference
 from invenio_stats import current_stats
 from sqlalchemy.exc import NoResultFound
-
-from invenio_rdm_records.resources.urls import record_url_for
 
 
 def response_header_signposting(f):

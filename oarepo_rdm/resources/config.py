@@ -10,7 +10,6 @@
 
 """Resources configuration."""
 
-from copy import deepcopy
 
 import marshmallow as ma
 from citeproc_styles import StyleNotFoundError
@@ -18,37 +17,19 @@ from flask_resources import (
     JSONDeserializer,
     JSONSerializer,
     RequestBodyParser,
-    ResourceConfig,
     ResponseHandler,
     create_error_handler,
     resource_requestctx,
 )
-from invenio_communities.communities.resources import CommunityResourceConfig
-from invenio_communities.communities.resources.config import community_error_handlers
 from invenio_drafts_resources.resources import RecordResourceConfig
 from invenio_i18n import lazy_gettext as _
-from invenio_records.systemfields.relations import InvalidRelationValue
-from invenio_records_resources.resources.errors import ErrorHandlersMixin
-from invenio_records_resources.resources.files import FileResourceConfig
-from invenio_records_resources.resources.records.headers import etag_headers
-from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
-from invenio_requests.resources.requests.config import RequestSearchRequestArgsSchema
-
-from invenio_rdm_records.services.errors import (
-    AccessRequestExistsError,
-    CommunityRequiredError,
-    GrantExistsError,
-    InvalidAccessRestrictions,
-    RecordDeletedException,
-    ReviewExistsError,
-    ReviewNotFoundError,
-    ReviewStateError,
-    ValidationErrorWithMessageAsList,
-)
 from invenio_rdm_records.resources.args import RDMSearchRequestArgsSchema
 from invenio_rdm_records.resources.deserializers import ROCrateJSONDeserializer
 from invenio_rdm_records.resources.deserializers.errors import DeserializerError
-from invenio_rdm_records.resources.errors import HTTPJSONException, HTTPJSONValidationWithMessageAsListException
+from invenio_rdm_records.resources.errors import (
+    HTTPJSONException,
+    HTTPJSONValidationWithMessageAsListException,
+)
 from invenio_rdm_records.resources.serializers import (
     BibtexSerializer,
     CSLJSONSerializer,
@@ -64,6 +45,20 @@ from invenio_rdm_records.resources.serializers import (
     StringCitationSerializer,
     UIJSONSerializer,
 )
+from invenio_rdm_records.services.errors import (
+    AccessRequestExistsError,
+    CommunityRequiredError,
+    InvalidAccessRestrictions,
+    RecordDeletedException,
+    ReviewExistsError,
+    ReviewNotFoundError,
+    ReviewStateError,
+    ValidationErrorWithMessageAsList,
+)
+from invenio_records.systemfields.relations import InvalidRelationValue
+from invenio_records_resources.resources.errors import ErrorHandlersMixin
+from invenio_records_resources.resources.records.headers import etag_headers
+from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 
 
 def csl_url_args_retriever():
@@ -254,6 +249,7 @@ class OARepoRDMRecordResourceConfig(RecordResourceConfig, ConfiguratorMixin):
             )
         ),
     }
+
 
 """
 #
