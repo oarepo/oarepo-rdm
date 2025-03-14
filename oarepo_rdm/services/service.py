@@ -56,7 +56,9 @@ class OARepoRDMService(RDMRecordService):
         """
         if "$schema" in data:
             schema = data["$schema"]
-        services = current_global_search.global_search_model_services
+        services = (
+            current_global_search.global_search_model_services
+        )  # eventually there might be non-global search service that should work with this?
         if len(services) > 1 and not schema:
             raise UndefinedModelError(
                 "Cannot create a draft without specifying its type."

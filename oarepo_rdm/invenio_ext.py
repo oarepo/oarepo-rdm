@@ -8,7 +8,7 @@ from invenio_rdm_records.services import (
     CommunityRecordsService,
     IIIFService,
     RDMRecordService,
-    RecordRequestsService,
+    RecordRequestsService, RecordAccessService,
 )
 from invenio_rdm_records.services.communities.service import RecordCommunitiesService
 from invenio_rdm_records.services.community_inclusion.service import (
@@ -44,7 +44,7 @@ class InvenioRDMRecords(InvenioRDMRecords):
             service_configs.record,
             files_service=RDMFileService(service_configs.file),
             draft_files_service=RDMFileService(service_configs.file_draft),
-            access_service=OARepoRecordAccessService(service_configs.record),
+            access_service=RecordAccessService(service_configs.record),
             pids_service=PIDsService(service_configs.record, PIDManager),
             # review_service=ReviewService(service_configs.record),
         )

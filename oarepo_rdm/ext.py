@@ -83,5 +83,13 @@ def api_finalize_app(app: Flask) -> None:
 
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
+
+    app.config["RECORDS_REST_ENDPOINTS"] = []  # rule /records/<pid(recid):pid_value> is in race condition with
+    #/records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    app.config["APP_RDM_ROUTES"] = {
+        "record_detail": "/records/<pid_value>",
+        "record_file_download": "/records/<pid_value>/files/<path:filename>",
+    }
+
     for type in app.config["REQUESTS_REGISTERED_RESOLVERS"]:
         current_requests.entity_resolvers_registry.register_type(type)
