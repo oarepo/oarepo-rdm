@@ -11,12 +11,13 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
+from oarepo_runtime.i18n import lazy_gettext as _
 from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 from oarepo_workflows.base import Workflow
-from oarepo_runtime.i18n import lazy_gettext as _
-
-from oarepo_workflows.services.permissions.workflow_permissions import DefaultWorkflowPermissions
 from oarepo_workflows.requests.policy import WorkflowRequestPolicy
+from oarepo_workflows.services.permissions.workflow_permissions import (
+    DefaultWorkflowPermissions,
+)
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -66,9 +67,11 @@ def identity_simple():
 def rdm_records_service():
     return current_rdm_records_service
 
+
 @pytest.fixture()
 def workflow_data():
     return {"parent": {"workflow": "default"}}
+
 
 WORKFLOWS = {
     "default": Workflow(
@@ -149,11 +152,7 @@ def custom_fields():
 
 # from invenio_rdm_records
 @pytest.fixture()
-def embargoed_files_record(
-    rdm_records_service,
-    identity_simple,
-    workflow_data
-):
+def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
     def _record(records_service):
         today = arrow.utcnow().date().isoformat()
         # Add embargo to record

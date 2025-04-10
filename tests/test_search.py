@@ -4,25 +4,30 @@ from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbDraft, ModelbRecord
 
 
-def test_description_search(rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_description_search(
+    rdm_records_service, identity_simple, workflow_data, search_clear
+):
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "jej"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "jej"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "bdescription": "blah"}, **workflow_data,
+            "metadata": {"title": "blah", "bdescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -50,25 +55,30 @@ def test_description_search(rdm_records_service, identity_simple, workflow_data,
     assert modela_record1["id"] not in hit_ids
 
 
-def test_basic_search(rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_basic_search(
+    rdm_records_service, identity_simple, workflow_data, search_clear
+):
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "jej"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "jej"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "bdescription": "blah"}, **workflow_data,
+            "metadata": {"title": "blah", "bdescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -96,25 +106,30 @@ def test_basic_search(rdm_records_service, identity_simple, workflow_data, searc
     assert modela_record1["id"] in hit_ids
 
 
-def test_mixed_with_drafts(rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_mixed_with_drafts(
+    rdm_records_service, identity_simple, workflow_data, search_clear
+):
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "jej"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "jej"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "bdescription": "blah"}, **workflow_data,
+            "metadata": {"title": "blah", "bdescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -141,13 +156,16 @@ def test_mixed_with_drafts(rdm_records_service, identity_simple, workflow_data, 
     assert modela_record1["id"] in hit_ids
 
 
-def test_record_and_edited_draft(rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_record_and_edited_draft(
+    rdm_records_service, identity_simple, workflow_data, search_clear
+):
     # should we find both record and draft?
     # edited draft is not found bc it does not have $schema in opensearch
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -176,7 +194,8 @@ def test_links(rdm_records_service, identity_simple, workflow_data, search_clear
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "bdescription": "blah"}, **workflow_data,
+            "metadata": {"title": "blah", "bdescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -205,7 +224,8 @@ def test_second_page(rdm_records_service, identity_simple, workflow_data, search
         draft = modelb_service.create(
             identity_simple,
             {
-                "metadata": {"title": f"blah {r}", "bdescription": "blah"}, **workflow_data,
+                "metadata": {"title": f"blah {r}", "bdescription": "blah"},
+                **workflow_data,
                 "files": {"enabled": False},
             },
         )
@@ -248,21 +268,24 @@ def test_zero_hits(rdm_records_service, identity_simple, workflow_data, search_c
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "blah"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "bdescription": "blah"}, **workflow_data,
+            "metadata": {"title": "blah", "bdescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -282,25 +305,30 @@ def test_zero_hits(rdm_records_service, identity_simple, workflow_data, search_c
     assert len(results["hits"]["hits"]) == 0
 
 
-def test_multiple_from_one_schema(rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_multiple_from_one_schema(
+    rdm_records_service, identity_simple, workflow_data, search_clear
+):
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "blah"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "blah"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "kkkkkkkkk", "bdescription": "kkkkk"}, **workflow_data,
+            "metadata": {"title": "kkkkkkkkk", "bdescription": "kkkkk"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
@@ -328,21 +356,24 @@ def test_facets(rdm_records_service, identity_simple, workflow_data, search_clea
     modela_record1 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "adescription": "1"}, **workflow_data,
+            "metadata": {"title": "blah", "adescription": "1"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modela_record2 = modela_service.create(
         identity_simple,
         {
-            "metadata": {"title": "aaaaa", "adescription": "2"}, **workflow_data,
+            "metadata": {"title": "aaaaa", "adescription": "2"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {"title": "kkkkkkkkk", "bdescription": "3"}, **workflow_data,
+            "metadata": {"title": "kkkkkkkkk", "bdescription": "3"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )

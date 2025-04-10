@@ -4,7 +4,9 @@ from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
 
 
-def test_description_search(app, db, search_clear, custom_fields, workflow_data, identity_simple):
+def test_description_search(
+    app, db, search_clear, custom_fields, workflow_data, identity_simple
+):
     modelc_record0 = modelc_service.create(
         system_identity,
         {"metadata": {"title": "blah", "cdescription": "bbb"}, **workflow_data},

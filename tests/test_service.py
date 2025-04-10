@@ -18,7 +18,8 @@ def test_create(rdm_records_service, identity_simple, workflow_data, search_clea
     )
     with pytest.raises(UndefinedModelError):
         rdm_records_service.create(
-            identity_simple, data={"$schema": "local://modeld-1.0.0.json", **workflow_data}
+            identity_simple,
+            data={"$schema": "local://modeld-1.0.0.json", **workflow_data},
         )
     assert isinstance(recorda._record, ModelaDraft)
     assert isinstance(recordb._record, ModelbDraft)
@@ -97,7 +98,8 @@ def test_publish(rdm_records_service, identity_simple, workflow_data, search_cle
     sample_draft = modelc_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "cdescription": "kch"}, **workflow_data,
+            "metadata": {"title": "blah", "cdescription": "kch"},
+            **workflow_data,
             "files": {"enabled": False},
         },
     )
