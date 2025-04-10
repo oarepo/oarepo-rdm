@@ -27,10 +27,20 @@ class OARepoRDM(object):
         """Extension initialization."""
         if app:
             self.init_app(app)
+            self.init_config(app)
 
     def init_app(self, app: Flask) -> None:
         self.app = app
         app.extensions["oarepo-rdm"] = self
+
+    def init_config(self, app: Flask) -> None:
+        app.config.setdefault(
+            "APP_RDM_ROUTES",
+            {
+                "record_detail": "/records/<pid_value>",
+                "record_file_download": "/records/<pid_value>/files/<path:filename>",
+            },
+        )
 
     def record_cls_from_pid_type(self, pid_type, is_draft: bool):
         for model in self.app.config["GLOBAL_SEARCH_MODELS"]:
