@@ -8,18 +8,35 @@ from oarepo_global_search.proxies import (
 from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.proxies import current_oarepo_rdm
 
+
 def check_fully_overridden(cls):
-    exceptions = {"create_search", "search_request", "check_revision_id", "read_many", "read_all", "delete",
-                  "permission_policy", "check_permission", "require_permission", "run_components", "result_item",
-                  "result_list", "record_to_index", "scan_expired_embargos", "exists", "cleanup_record"}
-    #what to do with delete? rdm uses delete_record but does not ban it
-    #perhaps it's simpler to just list exceptions than explicitly call super(), it does the same thing?
+    exceptions = {
+        "create_search",
+        "search_request",
+        "check_revision_id",
+        "read_many",
+        "read_all",
+        "delete",
+        "permission_policy",
+        "check_permission",
+        "require_permission",
+        "run_components",
+        "result_item",
+        "result_list",
+        "record_to_index",
+        "scan_expired_embargos",
+        "exists",
+        "cleanup_record",
+    }
+    # what to do with delete? rdm uses delete_record but does not ban it
+    # perhaps it's simpler to just list exceptions than explicitly call super(), it does the same thing?
 
     for m in cls.mro():
         for name, value in m.__dict__.items():
-            if callable(value) and not name.startswith('_'):
-                assert name in cls.__dict__ or name in exceptions, \
-                    f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
+            if callable(value) and not name.startswith("_"):
+                assert (
+                    name in cls.__dict__ or name in exceptions
+                ), f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
     return cls
 
 
@@ -39,7 +56,9 @@ class OARepoRDMService(RDMRecordService):
         """
         if "$schema" in data:
             schema = data["$schema"]
-        services = current_global_search.model_services
+        services = (
+            current_global_search.global_search_model_services
+        )  # eventually there might be non-global search service that should work with this?
         if len(services) > 1 and not schema:
             raise UndefinedModelError(
                 "Cannot create a draft without specifying its type."
@@ -237,9 +256,15 @@ class OARepoRDMService(RDMRecordService):
             identity, params, *args, extra_filter=extra_filter, **kwargs
         )
 
-    def scan(self, identity, params=None, search_preference=None, expand=False, **kwargs):
+    def scan(
+        self, identity, params=None, search_preference=None, expand=False, **kwargs
+    ):
         return current_global_search_service.scan(
-            identity, params, search_preference=search_preference, expand=expand, **kwargs
+            identity,
+            params,
+            search_preference=search_preference,
+            expand=expand,
+            **kwargs,
         )
 
     def oai_result_item(self, identity, oai_record_source):

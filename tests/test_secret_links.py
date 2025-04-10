@@ -3,20 +3,25 @@ from io import BytesIO
 import pytest
 from flask_principal import AnonymousIdentity, Identity, UserNeed
 from invenio_access.permissions import any_user, authenticated_user
+from invenio_rdm_records.secret_links.permissions import LinkNeed
 from invenio_records_resources.services.errors import (
     PermissionDeniedError,
     RecordPermissionDeniedError,
 )
-from invenio_rdm_records.secret_links.permissions import LinkNeed
 
 
 @pytest.fixture()
-def restricted_record(rdm_records_service, identity_simple):
+def restricted_record(rdm_records_service, workflow_data, identity_simple):
     """Restricted record fixture."""
     service = rdm_records_service
 
-    data = {"$schema": "local://modela-1.0.0.json", "metadata": {"title": "blah", "cdescription": "bbb"},
-            "files": {"enabled": True}, "access": {"record": "restricted", "files": "restricted"}}
+    data = {
+        "$schema": "local://modela-1.0.0.json",
+        "metadata": {"title": "blah", "cdescription": "bbb"},
+        "files": {"enabled": True},
+        "access": {"record": "restricted", "files": "restricted"},
+        **workflow_data,
+    }
 
     # Create
     draft = service.create(identity_simple, data)
@@ -38,8 +43,11 @@ def restricted_record(rdm_records_service, identity_simple):
 
     return record
 
+
 @pytest.mark.skip(reason="not used for now")
-def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
+def test_permission_levels(
+    rdm_records_service, restricted_record, identity_simple, search_clear
+):
     """Test invalid permission level."""
     service = rdm_records_service
 
