@@ -11,7 +11,7 @@ from invenio_records_resources.services.errors import (
 
 
 @pytest.fixture()
-def restricted_record(rdm_records_service, identity_simple):
+def restricted_record(rdm_records_service, workflow_data, identity_simple):
     """Restricted record fixture."""
     service = rdm_records_service
 
@@ -20,6 +20,7 @@ def restricted_record(rdm_records_service, identity_simple):
         "metadata": {"title": "blah", "cdescription": "bbb"},
         "files": {"enabled": True},
         "access": {"record": "restricted", "files": "restricted"},
+        **workflow_data,
     }
 
     # Create

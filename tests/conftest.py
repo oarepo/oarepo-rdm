@@ -12,6 +12,11 @@ from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
 from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
+from oarepo_workflows.base import Workflow
+from oarepo_runtime.i18n import lazy_gettext as _
+
+from oarepo_workflows.services.permissions.workflow_permissions import DefaultWorkflowPermissions
+from oarepo_workflows.requests.policy import WorkflowRequestPolicy
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -60,6 +65,18 @@ def identity_simple():
 @pytest.fixture()
 def rdm_records_service():
     return current_rdm_records_service
+
+@pytest.fixture()
+def workflow_data():
+    return {"parent": {"workflow": "default"}}
+
+WORKFLOWS = {
+    "default": Workflow(
+        label=_("Default workflow"),
+        permission_policy_cls=DefaultWorkflowPermissions,
+        request_policy_cls=WorkflowRequestPolicy,
+    ),
+}
 
 
 @pytest.fixture(scope="module")
@@ -120,6 +137,8 @@ def app_config(app_config):
         "record_detail": "/records/<pid_value>",
         "record_file_download": "/records/<pid_value>/files/<path:filename>",
     }
+
+    app_config["WORKFLOWS"] = WORKFLOWS
     return app_config
 
 
@@ -133,6 +152,7 @@ def custom_fields():
 def embargoed_files_record(
     rdm_records_service,
     identity_simple,
+    workflow_data
 ):
     def _record(records_service):
         today = arrow.utcnow().date().isoformat()
@@ -147,6 +167,7 @@ def embargoed_files_record(
                     "status": "embargoed",
                     "embargo": dict(active=True, until=today, reason=None),
                 },
+                **workflow_data,
             }
 
             # We need to set the current date in the past to pass the validations

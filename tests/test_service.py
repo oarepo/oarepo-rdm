@@ -7,27 +7,27 @@ from modelc.proxies import current_service as modelc_service
 from oarepo_rdm.errors import UndefinedModelError
 
 
-def test_create(rdm_records_service, identity_simple, search_clear):
+def test_create(rdm_records_service, identity_simple, workflow_data, search_clear):
     with pytest.raises(UndefinedModelError):
-        rdm_records_service.create(identity_simple, data={})
+        rdm_records_service.create(identity_simple, data={**workflow_data})
     recorda = rdm_records_service.create(
-        identity_simple, data={"$schema": "local://modela-1.0.0.json"}
+        identity_simple, data={"$schema": "local://modela-1.0.0.json", **workflow_data}
     )
     recordb = rdm_records_service.create(
-        identity_simple, data={"$schema": "local://modelb-1.0.0.json"}
+        identity_simple, data={"$schema": "local://modelb-1.0.0.json", **workflow_data}
     )
     with pytest.raises(UndefinedModelError):
         rdm_records_service.create(
-            identity_simple, data={"$schema": "local://modeld-1.0.0.json"}
+            identity_simple, data={"$schema": "local://modeld-1.0.0.json", **workflow_data}
         )
     assert isinstance(recorda._record, ModelaDraft)
     assert isinstance(recordb._record, ModelbDraft)
 
 
-def test_read(rdm_records_service, identity_simple, search_clear):
+def test_read(rdm_records_service, identity_simple, workflow_data, search_clear):
     sample_draft = modelc_service.create(  # todo - use pytest-oarepo? needs to implement the option for multiple models
         identity_simple,
-        {"metadata": {"title": "blah", "cdescription": "kch"}},
+        {"metadata": {"title": "blah", "cdescription": "kch"}, **workflow_data},
     )
     with pytest.raises(PIDDoesNotExistError):
         rdm_records_service.read_draft(identity_simple, "nonsense")
@@ -35,10 +35,10 @@ def test_read(rdm_records_service, identity_simple, search_clear):
     assert read_record.data["$schema"] == "local://modelc-1.0.0.json"
 
 
-def test_update(rdm_records_service, identity_simple, search_clear):
+def test_update(rdm_records_service, identity_simple, workflow_data, search_clear):
     sample_draft = modelc_service.create(
         identity_simple,
-        {"metadata": {"title": "blah", "cdescription": "kch"}},
+        {"metadata": {"title": "blah", "cdescription": "kch"}, **workflow_data},
     )
 
     with pytest.raises(PIDDoesNotExistError):
@@ -73,11 +73,11 @@ def test_update(rdm_records_service, identity_simple, search_clear):
     )
 
 
-def test_delete(rdm_records_service, identity_simple, search_clear):
+def test_delete(rdm_records_service, identity_simple, workflow_data, search_clear):
 
     sample_draft = modelc_service.create(
         identity_simple,
-        {"metadata": {"title": "blah", "cdescription": "kch"}},
+        {"metadata": {"title": "blah", "cdescription": "kch"}, **workflow_data},
     )
 
     with pytest.raises(PIDDoesNotExistError):
@@ -92,12 +92,12 @@ def test_delete(rdm_records_service, identity_simple, search_clear):
         rdm_records_service.read_draft(identity_simple, sample_draft["id"])
 
 
-def test_publish(rdm_records_service, identity_simple, search_clear):
+def test_publish(rdm_records_service, identity_simple, workflow_data, search_clear):
 
     sample_draft = modelc_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "cdescription": "kch"},
+            "metadata": {"title": "blah", "cdescription": "kch"}, **workflow_data,
             "files": {"enabled": False},
         },
     )
