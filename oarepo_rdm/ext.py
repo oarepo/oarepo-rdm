@@ -9,15 +9,30 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
+from invenio_records_resources.services.base.config import ConfiguratorMixin
 
 if TYPE_CHECKING:
     from flask import Flask
+
+from invenio_records_resources.services.records.service import RecordService #or with drafts? or RDMService? what are the possible use cases?
+from invenio_records_resources.services.records.config import RecordServiceConfig
+
+@dataclass
+class RDMModel:
+    service_id: str
+    api_service: RecordService
+    api_service_config: RecordServiceConfig
+    api_resource: any
+    api_resource_config: any
+    ui_resource_config: any
 
 
 class OARepoRDM(object):
@@ -63,6 +78,24 @@ class OARepoRDM(object):
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
 
+    def _instantiate_configurator_cls(self, cls_):
+        if issubclass(cls_, ConfiguratorMixin):
+            return cls_.build(self.app)
+        else:
+            return cls_()
+
+    @cached_property
+    def rdm_models(self):
+        models = self.app.config["RDM_MODELS"]
+        ret = []
+        for model_dict in models:
+            ret.append(RDMModel(model_dict["service_id"],
+                                obj_or_import_string(model_dict["api_service"]), # from service registry? and from exts for resources? reinitializing might be dangerous one day?
+                                self._instantiate_configurator_cls(obj_or_import_string(model_dict["api_service_config"])),
+                                obj_or_import_string(model_dict["api_resource"]),
+                                self._instantiate_configurator_cls(obj_or_import_string(model_dict["api_resource_config"])),
+                                obj_or_import_string(model_dict["ui_resource_config"])()))
+        return ret
 
 def api_finalize_app(app: Flask) -> None:
     """Finalize app."""
