@@ -268,7 +268,7 @@ class OARepoRDMService(RDMRecordService):
         )
 
     def oai_result_item(self, identity, oai_record_source):
-        raise NotImplementedError()
+        return super().oai_result_item(identity, oai_record_source)
 
     def rebuild_index(self, identity, uow=None):
         raise NotImplementedError()
