@@ -11,13 +11,15 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 from modelc.proxies import current_service as modelc_service
-from oarepo_runtime.i18n import lazy_gettext as _
 from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 from oarepo_workflows.base import Workflow
 from oarepo_workflows.requests.policy import WorkflowRequestPolicy
 from oarepo_workflows.services.permissions.workflow_permissions import (
     DefaultWorkflowPermissions,
 )
+from invenio_rdm_records.services.pids import providers
+from invenio_oaiserver.views.server import blueprint
+from oarepo_runtime.i18n import lazy_gettext as _
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -25,6 +27,10 @@ pytest_plugins = [
     "pytest_oarepo.users",
 ]
 
+@pytest.fixture()
+def app(app):
+    app.register_blueprint(blueprint)
+    yield app
 
 @pytest.fixture()
 def record_services(record_services):
@@ -35,6 +41,18 @@ def record_services(record_services):
             "local://modelc-1.0.0.json": modelc_service,
         }
     )
+
+@pytest.fixture(scope="module")
+def extra_entry_points():
+    """Register extra entry point."""
+    return {
+        "invenio.modela.response_handlers": [
+            "modela_oaidc_handler = tests.handlers:modela_handler"
+        ],
+        "invenio.modelb.response_handlers": [
+            "modelb_oaidc_handler = tests.handlers:modelb_handler"
+        ]
+    }
 
 
 @pytest.fixture(scope="module")
@@ -142,6 +160,78 @@ def app_config(app_config):
     }
 
     app_config["WORKFLOWS"] = WORKFLOWS
+
+    app_config["RDM_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
+        providers.OAIPIDProvider(
+            "oai",
+            label=_("OAI ID"),
+        ),
+    ]
+    app_config["RDM_PERSISTENT_IDENTIFIERS"] = {
+        "oai": {
+            "providers": ["oai"],
+            "required": True,
+            "label": _("OAI"),
+            "is_enabled": providers.OAIPIDProvider.is_enabled,
+        },
+    }
+    app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
+    app_config["OAISERVER_RECORD_INDEX"] = "modela,modelb,modelc"
+    app_config["OAISERVER_CREATED_KEY"] = "created"
+    app_config["OAISERVER_LAST_UPDATE_KEY"] = "updated"
+    app_config["OAISERVER_RECORD_CLS"] = "invenio_rdm_records.records.api:RDMRecord"
+    app_config["OAISERVER_SEARCH_CLS"] = "invenio_rdm_records.oai:OAIRecordSearch"
+    app_config["OAISERVER_ID_FETCHER"] = "invenio_rdm_records.oai:oaiid_fetcher"
+    app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai:getrecord_fetcher"
+    from oarepo_rdm.resources.responses import OAIServerMetadataFormats
+    app_config["OAISERVER_METADATA_FORMATS"] = OAIServerMetadataFormats()
+    app_config["OAISERVER_RECORD_SETS_FETCHER"] = "oarepo_rdm.oai:find_sets_for_record"
+    app_config["OAISERVER_ID_PREFIX"] = "oaioaioai"
+
+    app_config["RDM_MODELS"] = [{
+            "service_id": "modela",
+            # deprecated
+            "model_service": "modela.services.records.service.ModelaService",
+            # deprecated
+            "service_config": "modela.services.records.config.ModelaServiceConfig",
+            "api_service": "modela.services.records.service.ModelaService",
+            "api_service_config": "modela.services.records.config.ModelaServiceConfig",
+            "api_resource": "modela.resources.records.resource.ModelaResource",
+            "api_resource_config": (
+                "modela.resources.records.config.ModelaResourceConfig"
+            ),
+            "ui_resource_config": "tests.ui.modela.ModelaUIResourceConfig",
+        },
+    {
+        "service_id": "modelb",
+        # deprecated
+        "model_service": "modelb.services.records.service.ModelbService",
+        # deprecated
+        "service_config": "modelb.services.records.config.ModelbServiceConfig",
+        "api_service": "modelb.services.records.service.ModelbService",
+        "api_service_config": "modelb.services.records.config.ModelbServiceConfig",
+        "api_resource": "modelb.resources.records.resource.ModelbResource",
+        "api_resource_config": (
+            "modelb.resources.records.config.ModelbResourceConfig"
+        ),
+        "ui_resource_config": "tests.ui.modelb.ModelbUIResourceConfig",
+    },
+        {
+            "service_id": "modelc",
+            # deprecated
+            "model_service": "modelc.services.records.service.ModelcService",
+            # deprecated
+            "service_config": "modelc.services.records.config.ModelcServiceConfig",
+            "api_service": "modelc.services.records.service.ModelcService",
+            "api_service_config": "modelc.services.records.config.ModelcServiceConfig",
+            "api_resource": "modelc.resources.records.resource.ModelcResource",
+            "api_resource_config": (
+                "modelc.resources.records.config.ModelcResourceConfig"
+            ),
+            "ui_resource_config": "tests.ui.modelc.ModelcUIResourceConfig",
+        }
+    ]
+
     return app_config
 
 

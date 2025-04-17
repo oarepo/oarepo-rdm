@@ -79,6 +79,19 @@ class OARepoRDM(object):
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
 
+    def get_record_cls_from_uuid(self, uuid, is_draft=False):
+        pids = PersistentIdentifier.query.filter_by(object_uuid=uuid).all()
+        if not pids:
+            raise PIDDoesNotExistError("", uuid)
+        if len(pids) > 2: # should be some constant + filtered pid types (ie. oai, recid)
+            raise ValueError("Multiple PIDs found")
+        target_pid = None
+        for pid in pids:
+            if pid.pid_type != "oai":
+                target_pid = pid
+                break
+        return self.record_cls_from_pid_type(target_pid.pid_type, is_draft)
+
     def _instantiate_configurator_cls(self, cls_):
         if issubclass(cls_, ConfiguratorMixin):
             return cls_.build(self.app)
