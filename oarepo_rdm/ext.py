@@ -102,7 +102,12 @@ class OARepoRDM(object):
         for model in self.rdm_models:
             if model.service_id == service_id:
                 return model
-
+    
+    def get_api_resource_config(self, service_id):
+        model = self.get_rdm_model(service_id)
+        if model:
+            return model.api_resource_config
+        
     @cached_property
     def rdm_models(self):
         models = self.app.config["RDM_MODELS"]
