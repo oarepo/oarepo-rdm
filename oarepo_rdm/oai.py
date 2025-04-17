@@ -36,7 +36,7 @@ def get_record(record_uuid, with_deleted=False):
     if not pids:
         raise PIDDoesNotExistError("", record_uuid)
     if len(pids) > 2:
-        raise ValueError("Multiple PIDs found")
+        raise ValueError("Multiple PIDs found") # todo - this should be configurable
     for pid in pids:
         if pid.pid_type != "oai":
             target_pid = pid
