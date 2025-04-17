@@ -28,8 +28,5 @@ def test_read(rdm_records_service, users, logged_client, workflow_data, search_c
     )
     publish = rdm_records_service.publish(user.identity, sample["id"])
 
-    ModelaRecord.index.refresh()
-    ModelaDraft.index.refresh()
-
-    result = client.get(f"/records/{sample["id"]}")
+    result = client.get(f"/records/{sample['id']}")
     assert result.status_code == 200
