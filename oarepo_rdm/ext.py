@@ -119,16 +119,3 @@ class OARepoRDM(object):
                                 self._instantiate_configurator_cls(
                                     obj_or_import_string(model_dict["ui_resource_config"]))))
         return ret
-
-
-def api_finalize_app(app: Flask) -> None:
-    """Finalize app."""
-    finalize_app(app)
-
-
-def finalize_app(app: Flask) -> None:
-    """Finalize app."""
-    app.config["RECORDS_REST_ENDPOINTS"] = (
-        []
-    )  # rule /records/<pid(recid):pid_value> is in race condition with
-    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type

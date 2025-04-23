@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PYTHON="${PYTHON:-python3}"
+export PYTHONWARNINGS=ignore
 
 set -e
 
