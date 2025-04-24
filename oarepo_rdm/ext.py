@@ -6,19 +6,31 @@
 # details.
 #
 """OARepo-Requests extension."""
-
 from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
+from dataclasses import dataclass
+from functools import cached_property
+from typing import TYPE_CHECKING, Any
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
+from invenio_records_resources.services.base.config import ConfiguratorMixin
+from invenio_records_resources.proxies import current_service_registry
 
 if TYPE_CHECKING:
     from flask import Flask
 
+from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfig
+from invenio_rdm_records.resources import RDMRecordResource, RDMRecordResourceConfig
+
+@dataclass
+class RDMModel:
+    service_id: str
+    api_service: RDMRecordService
+    api_service_config: RDMRecordServiceConfig
+    api_resource: RDMRecordResource
+    api_resource_config: RDMRecordResourceConfig
+    ui_resource_config: Any
 
 class OARepoRDM(object):
     """OARepo extension of Invenio-Vocabularies."""
@@ -73,15 +85,37 @@ class OARepoRDM(object):
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
 
+    def get_rdm_model(self, service_id: str)->RDMModel:
+        for model in self.rdm_models:
+            if model.service_id == service_id:
+                return model
 
-def api_finalize_app(app: Flask) -> None:
-    """Finalize app."""
-    finalize_app(app)
+    def get_api_resource_config(self, service_id: str)->RDMRecordResourceConfig:
+        model = self.get_rdm_model(service_id)
+        if model:
+            return model.api_resource_config
 
-
-def finalize_app(app: Flask) -> None:
-    """Finalize app."""
-    app.config["RECORDS_REST_ENDPOINTS"] = (
-        []
-    )  # rule /records/<pid(recid):pid_value> is in race condition with
-    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    @cached_property
+    def rdm_models(self)->list[RDMModel]:
+        models = self.app.config["RDM_MODELS"]
+        ret = []
+        for model_dict in models:
+            model_service_id = model_dict["service_id"]
+            for service_id, service in current_service_registry._services.items():
+                if service_id == model_service_id:
+                    break
+            else:
+                # exception?
+                continue
+            # todo resource instances from exts
+            api_resource_config = self._instantiate_configurator_cls(
+                obj_or_import_string(model_dict["api_resource_config"]))
+            api_resource = obj_or_import_string(model_dict["api_resource"])(service=service, config=api_resource_config)
+            ret.append(RDMModel(model_dict["service_id"],
+                                service,
+                                service.config,
+                                api_resource,
+                                api_resource_config,
+                                self._instantiate_configurator_cls(
+                                    obj_or_import_string(model_dict["ui_resource_config"]))))
+        return ret
