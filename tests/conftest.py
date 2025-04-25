@@ -29,18 +29,9 @@ pytest_plugins = [
 
 @pytest.fixture()
 def app(app):
-    app.register_blueprint(blueprint)
+    if "invenio_oaiserver" not in app.blueprints:
+        app.register_blueprint(blueprint)
     yield app
-
-@pytest.fixture()
-def record_services(record_services):
-    record_services.update(
-        {
-            "local://modela-1.0.0.json": modela_service,
-            "local://modelb-1.0.0.json": modelb_service,
-            "local://modelc-1.0.0.json": modelc_service,
-        }
-    )
 
 @pytest.fixture(scope="module")
 def extra_entry_points():
@@ -51,6 +42,9 @@ def extra_entry_points():
         ],
         "invenio.modelb.response_handlers": [
             "modelb_oaidc_handler = tests.handlers:modelb_handler"
+        ],
+        "invenio.modelc.response_handlers": [
+            "modelc_oaidc_handler = tests.handlers:modelc_handler"
         ]
     }
 
@@ -182,12 +176,14 @@ def app_config(app_config):
     app_config["OAISERVER_RECORD_CLS"] = "invenio_rdm_records.records.api:RDMRecord"
     app_config["OAISERVER_SEARCH_CLS"] = "invenio_rdm_records.oai:OAIRecordSearch"
     app_config["OAISERVER_ID_FETCHER"] = "invenio_rdm_records.oai:oaiid_fetcher"
-    app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai:getrecord_fetcher"
-    from oarepo_rdm.resources.responses import OAIServerMetadataFormats
+    app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai.record:getrecord_fetcher"
+    from oarepo_rdm.oai.config import OAIServerMetadataFormats
     app_config["OAISERVER_METADATA_FORMATS"] = OAIServerMetadataFormats()
-    app_config["OAISERVER_RECORD_SETS_FETCHER"] = "oarepo_rdm.oai:find_sets_for_record"
+    app_config["OAISERVER_RECORD_SETS_FETCHER"] = "oarepo_rdm.oai.percolator:find_sets_for_record"
+    app_config["OAISERVER_RECORD_LIST_SETS_FETCHER"] = "oarepo_rdm.oai.percolator:sets_search_all"
     app_config["OAISERVER_ID_PREFIX"] = "oaioaioai"
-
+    app_config["OAISERVER_NEW_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_new_percolator"
+    app_config["OAISERVER_DELETE_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_delete_percolator"
     app_config["RDM_MODELS"] = [{
             "service_id": "modela",
             # deprecated

@@ -1,7 +1,21 @@
+#
+# Copyright (C) 2025 CESNET z.s.p.o.
+#
+# oarepo-requests is free software; you can redistribute it and/or
+# modify it under the terms of the MIT License; see LICENSE file for more
+# details.
+#
+"""invenio-oaiserver config extensions."""
+
 from functools import cached_property
-from oarepo_rdm.oai import oai_serializer
-from oarepo_rdm.proxies import current_oarepo_rdm
 from oarepo_runtime.resources.responses import OAIExportableResponseHandler
+from invenio_access.permissions import system_identity
+from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_pidstore.models import PersistentIdentifier
+
+from .serializer import oai_serializer
+from oarepo_rdm.proxies import current_oarepo_rdm
+
 
 class OAIServerMetadataFormats(object):
 
@@ -19,6 +33,9 @@ class OAIServerMetadataFormats(object):
 
     def values(self):
         return self._metadata_formats.values()
+
+    def __len__(self):
+        return len(self._metadata_formats)
 
     @cached_property
     def _metadata_formats(self)->dict:

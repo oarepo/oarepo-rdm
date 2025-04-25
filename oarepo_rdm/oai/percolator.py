@@ -1,67 +1,66 @@
-from oarepo_runtime.resources.responses import OAIExportableResponseHandler
-from lxml import etree
-from invenio_rdm_records.proxies import current_rdm_records
+#
+# Copyright (C) 2025 CESNET z.s.p.o.
+#
+# oarepo-requests is free software; you can redistribute it and/or
+# modify it under the terms of the MIT License; see LICENSE file for more
+# details.
+#
+"""invenio-oaiserver percolator extensions."""
+
+from flask import current_app
+from invenio_oaiserver import current_oaiserver
+from invenio_search import current_search, current_search_client
+from invenio_oaiserver.query import query_string_parser
 from collections import defaultdict
 from invenio_access.permissions import system_identity
 from oarepo_global_search.proxies import current_global_search
 from invenio_oaiserver.percolator import percolate_query, _create_percolator_mapping, _build_percolator_index_name
 from invenio_records_resources.services.records.results import RecordItem
-from invenio_oaiserver.proxies import current_oaiserver
-from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_pidstore.models import PersistentIdentifier
 from oarepo_rdm.proxies import current_oarepo_rdm
-from invenio_rdm_records.records.api import RDMRecord
 
+def _get_rdm_model_record_class_index_aliases(rdm_model):
+    rdm_model_alias_dict = rdm_model.api_service_config.record_cls.index.get_alias()
+    return list(rdm_model_alias_dict.values())[0]["aliases"]
 
-def get_handler_from_metadata_prefix_and_record_schema(metadata_prefix, record_schema):
-    for model in current_oarepo_rdm.rdm_models:
-        if model.api_service_config.record_cls.schema.value == record_schema:
-            for handler in model.api_resource_config.response_handlers.values():
-                if isinstance(handler, OAIExportableResponseHandler) and handler.oai_metadata_prefix == metadata_prefix:
-                    return handler
+def _get_current_search_index_alias(oai_index_alias):
+    for rdm_model in current_oarepo_rdm.rdm_models:
+        aliases = _get_rdm_model_record_class_index_aliases(rdm_model)
+        if oai_index_alias in aliases:
+            for alias in aliases:
+                if alias in current_search.mappings:
+                    return alias
     return None
 
-def oai_serializer(pid, record, **serializer_kwargs):
-    record_item = record["_source"]
-    if not isinstance(record_item, RecordItem):
-        record_item = current_rdm_records.records_service.read(system_identity, record_item['id'])
-    serializer = get_handler_from_metadata_prefix_and_record_schema(serializer_kwargs["metadata_prefix"],
-                                                                    record_item._record.schema).serializer
-    return etree.fromstring(
-        serializer.serialize_object(record_item.to_dict()).encode(encoding="utf-8")
-    )
+def _new_percolator(spec, search_pattern):
+    """Create new percolator associated with the new set."""
+    if spec and search_pattern:
+        query = query_string_parser(search_pattern=search_pattern).to_dict()
+        oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
+        for oai_index_alias in oai_records_index.split(','): #todo discussion now percolator is created for each oai index even when it doesn't have the mapping
+            current_search_index_alias = _get_current_search_index_alias(oai_index_alias)
+            if current_search_index_alias:
+                try:
+                    _create_percolator_mapping(current_search_index_alias,
+                                               current_search.mappings[current_search_index_alias])
+                    current_search_client.index(
+                        index=_build_percolator_index_name(current_search_index_alias),
+                        id="oaiset-{}".format(spec),
+                        body={"query": query},
+                    )
+                except Exception as e:
+                    current_app.logger.warning(e)
 
-def get_record(record_uuid, with_deleted=False):
-    pids = PersistentIdentifier.query.filter_by(object_uuid=record_uuid).all()
-    if not pids:
-        raise PIDDoesNotExistError("", record_uuid)
-    if len(pids) > 2:
-        raise ValueError("Multiple PIDs found") # todo - this should be configurable
-    for pid in pids:
-        if pid.pid_type != "oai":
-            target_pid = pid
-            break
-    actual_record_cls = current_oarepo_rdm.record_cls_from_pid_type(target_pid.pid_type, is_draft=False)
-    return actual_record_cls.get_record(record_uuid)
 
-def getrecord_fetcher(record_uuid):
-    """Fetch record data as dict with identity check for serialization."""
-    record = get_record(record_uuid)
-    record_dict = record.dumps()
-    record_dict["updated"] = record.updated
-    return record_dict
-
-    """
-    recid = PersistentIdentifier.get_by_object(
-        pid_type="recid", object_uuid=record_id, object_type="rec"
-    )
-
-    try:
-        return current_rdm_records.records_service.read(g.identity, recid.pid_value)
-    except PermissionDeniedError:
-        # if it is a restricted record.
-        raise PIDDoesNotExistError("recid", None)
-    """
+def _delete_percolator(spec, search_pattern):
+    oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
+    for oai_index_alias in oai_records_index.split(','):
+        current_search_index_alias = _get_current_search_index_alias(oai_index_alias)
+        if current_search_index_alias:
+            current_search_client.delete(
+                index=_build_percolator_index_name(current_search_index_alias),
+                id="oaiset-{}".format(spec),
+                ignore=[404],
+            )
 
 def get_service_by_record_schema(record_dict):
     for service in current_global_search.global_search_model_services:
@@ -70,8 +69,6 @@ def get_service_by_record_schema(record_dict):
         if service.record_cls.schema.value == record_dict["$schema"]:
             return service
     return None
-
-
 
 def sets_search_all(records):
     # in invenio it's used only for find_sets_for_record, which doesn't use more than one record
@@ -125,4 +122,4 @@ def sets_search_all(records):
 
 def find_sets_for_record(record):
     """Fetch a record's sets."""
-    return sets_search_all([record])[0]
+    return current_oaiserver.record_list_sets_fetcher([record])[0]

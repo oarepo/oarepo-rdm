@@ -99,6 +99,3 @@ def finalize_app(app: Flask) -> None:
         None, search_alias=current_global_search.indices
     )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
-
-    # RDMRecord.get_record = classmethod(get_record)
-    # RDMDraft.get_record = classmethod(get_record)
