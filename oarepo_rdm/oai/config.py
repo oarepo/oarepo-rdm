@@ -9,10 +9,6 @@
 
 from functools import cached_property
 from oarepo_runtime.resources.responses import OAIExportableResponseHandler
-from invenio_access.permissions import system_identity
-from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_pidstore.models import PersistentIdentifier
-
 from .serializer import oai_serializer
 from oarepo_rdm.proxies import current_oarepo_rdm
 

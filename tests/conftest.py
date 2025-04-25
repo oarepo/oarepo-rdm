@@ -272,3 +272,21 @@ def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
         return record
 
     return _record
+
+@pytest.fixture(scope="function")
+def search_clear_percolators():
+    """Clear search indices after test finishes (function scope).
+
+    Scope: function
+
+    This fixture rollback any changes performed to the indexes during a test,
+    in order to leave search in a clean state for the next test.
+    """
+    from invenio_search import current_search_client
+
+    yield
+    indices = current_search_client.indices.get_alias("").keys()
+    percolator_indices = [index for index in indices if index.endswith("percolators")]
+    for perc in percolator_indices:
+        current_search_client.indices.delete(perc)
+
