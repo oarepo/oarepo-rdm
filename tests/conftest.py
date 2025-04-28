@@ -176,7 +176,7 @@ def app_config(app_config):
     app_config["OAISERVER_RECORD_CLS"] = "invenio_rdm_records.records.api:RDMRecord"
     app_config["OAISERVER_SEARCH_CLS"] = "invenio_rdm_records.oai:OAIRecordSearch"
     app_config["OAISERVER_ID_FETCHER"] = "invenio_rdm_records.oai:oaiid_fetcher"
-    app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai.record:getrecord_fetcher"
+    app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai.record:get_record"
     from oarepo_rdm.oai.config import OAIServerMetadataFormats
     app_config["OAISERVER_METADATA_FORMATS"] = OAIServerMetadataFormats()
     app_config["OAISERVER_RECORD_SETS_FETCHER"] = "oarepo_rdm.oai.percolator:find_sets_for_record"

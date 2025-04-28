@@ -85,7 +85,8 @@ def test_identify(users, logged_client, search_clear):
     identify = client.get("/oai2d?verb=Identify")
     print(identify)
 
-def test_get_record(app, rdm_records_service, identity_simple, workflow_data, users, logged_client, search_clear):
+def test_get_record(app, rdm_records_service, identity_simple, workflow_data, users, logged_client, search_clear,
+                    search_clear_percolators):
     user = users[0]
     client = logged_client(user)
 
