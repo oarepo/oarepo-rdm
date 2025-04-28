@@ -78,7 +78,8 @@ def check_record(tree, pid_value):
             == 1
     )
 
-def test_identify(users, logged_client, search_clear):
+
+def test_identify(users, logged_client, search_clear, search_clear_percolators):
     user = users[0]
     client = logged_client(user)
 
@@ -108,7 +109,7 @@ def test_get_record(app, rdm_records_service, identity_simple, workflow_data, us
     check_record(etree.fromstring(resultb.data), f"oai:oaioaioai:{recordb['id']}")
 
 
-def test_list_records(app, rdm_records_service, identity_simple, workflow_data, users, logged_client, search_clear):
+def test_list_records(app, rdm_records_service, identity_simple, workflow_data, users, logged_client, search_clear, search_clear_percolators):
     user = users[0]
     client = logged_client(user)
 
@@ -392,15 +393,8 @@ def test_list_records(app, rdm_records_service, identity_simple, workflow_data, 
                 )
             assert result.status_code == 200
 
-def run_after_insert_oai_set():
-
-    for oaiset_id in [oaiset_.spec for oaiset_ in OAISet.query.all()]:
-        oaiset = OAISet.query.filter_by(spec=oaiset_id).one()
-        after_insert_oai_set(None, None, oaiset)
-
-def test_listsets(db, app, search_clear):
+def test_listsets(db, app, search_clear, search_clear_percolators):
     with app.test_request_context():
-        current_oaiserver.unregister_signals_oaiset()
         with db.session.begin_nested():
             a = OAISet(
                 spec="test", name="Test", description="test desc", system_created=False
@@ -470,7 +464,7 @@ def test_listsets(db, app, search_clear):
         assert text[0] == "test desc"
 
 
-def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow_data, search_clear, search_clear_percolators):
 
     from invenio_oaiserver.models import OAISet
     workflow_data_a = workflow_data | {"metadata": {"title": "lalala", "adescription": "bbbb"}}
@@ -478,7 +472,6 @@ def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow
     workflow_data_c = workflow_data | {"metadata": {"title": "tralala", "cdescription": "cccc"}}
 
     with app.app_context():
-        current_oaiserver.unregister_signals_oaiset()
         # create new OAI Set
         with db.session.begin_nested():
             oaiset1 = OAISet(
@@ -500,7 +493,7 @@ def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow
             db.session.add(oaiset2)
         db.session.commit()
 
-    run_after_insert_oai_set()
+    # run_after_insert_oai_set()
 
     recorda = rdm_records_service.create(
         identity_simple, data={"$schema": "local://modela-1.0.0.json", **workflow_data_a, "files": {"enabled": False}}
@@ -646,12 +639,12 @@ def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow
                 )
                 assert len(identifier) == 2
 
-def test_listmetadataformats(app, search_clear):
+def test_listmetadataformats(app, search_clear, search_clear_percolators):
 
     _listmetadataformats(app=app, query="/oai2d?verb=ListMetadataFormats")
 
 
-def test_listmetadataformats_record(app, rdm_records_service, identity_simple, workflow_data, search_clear):
+def test_listmetadataformats_record(app, rdm_records_service, identity_simple, workflow_data, search_clear, search_clear_percolators):
 
     recorda = rdm_records_service.create(
         identity_simple, data={"$schema": "local://modela-1.0.0.json", **workflow_data, "files": {"enabled": False}}
@@ -712,7 +705,6 @@ def _listmetadataformats(app, query):
             for nsp, pfx in zip(metadataNamespaces, prefixes)
         )
 
-
 def test_search_pattern_change(db, app, rdm_records_service, identity_simple, workflow_data, search_clear,
                                search_clear_percolators):
 
@@ -751,7 +743,6 @@ def test_search_pattern_change(db, app, rdm_records_service, identity_simple, wo
 
 def test_search_pattern_change_percolators(db, app, rdm_records_service, identity_simple, workflow_data,
                                            search_clear, search_clear_percolators):
-    """Test search pattern changes in percolator indices."""
     data1 = workflow_data | {"metadata": {"title": "lalala", "adescription": "bbbb"}}
     data2 = workflow_data | {"metadata": {"title": "tralala", "adescription": "bbbb"}}
     record1 = rdm_records_service.create(
