@@ -155,11 +155,13 @@ def app_config(app_config):
 
     app_config["WORKFLOWS"] = WORKFLOWS
 
+    # from oarepo_rdm.services.pids.providers.recid import VirtualCollectiveRecordPIDProvider
     app_config["RDM_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
         providers.OAIPIDProvider(
             "oai",
             label=_("OAI ID"),
         ),
+        #RecIDPIDProvider("recid", pid_type="recid"),
     ]
     app_config["RDM_PERSISTENT_IDENTIFIERS"] = {
         "oai": {
@@ -168,7 +170,14 @@ def app_config(app_config):
             "label": _("OAI"),
             "is_enabled": providers.OAIPIDProvider.is_enabled,
         },
+        #"recid": {
+        #    "providers": ["recid"],
+        #    "required": True,
+        #    "label": _("RECID"),
+        #    "is_enabled": RecIDPIDProvider.is_enabled,
+        #}
     }
+
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
     app_config["OAISERVER_RECORD_INDEX"] = "modela,modelb,modelc"
     app_config["OAISERVER_CREATED_KEY"] = "created"

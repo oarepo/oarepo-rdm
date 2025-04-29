@@ -98,8 +98,8 @@ def test_get_record(app, rdm_records_service, identity_simple, workflow_data, us
         identity_simple, data={"$schema": "local://modelb-1.0.0.json", **workflow_data, "files": {"enabled": False}}
     )
 
-    rdm_records_service.publish(identity_simple, recorda["id"])
-    rdm_records_service.publish(identity_simple, recordb["id"])
+    publish1 = rdm_records_service.publish(identity_simple, recorda["id"])
+    publish2 = rdm_records_service.publish(identity_simple, recordb["id"])
 
     resulta = client.get(f"/oai2d?verb=GetRecord&identifier=oai:oaioaioai:{recorda['id']}&metadataPrefix=oai_dc")
     resultb = client.get(f"/oai2d?verb=GetRecord&identifier=oai:oaioaioai:{recordb['id']}&metadataPrefix=oai_dc")
