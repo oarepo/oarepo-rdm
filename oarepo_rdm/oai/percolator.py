@@ -83,16 +83,7 @@ def sets_search_all(records):
 
     for record in records:
         if isinstance(record, RecordItem):
-            dumper = record._record.dumper
-            record = dumper.dump(record._record, {}) # todo ask whether this is correct
-            """
-            record_new = dumper.dump(record._record, {}) # todo ask whether this is correct
             record = record._record.dumps()
-
-            diff1 = set(record_new.keys()) - set(record.keys())
-            diff2 = set(record.keys()) - set(record_new.keys())
-            print()
-            """
 
         schema = record["$schema"]
         if schema not in processed_schemas:
