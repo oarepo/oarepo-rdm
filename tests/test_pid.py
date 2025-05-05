@@ -2,20 +2,39 @@ from invenio_access.permissions import system_identity
 from invenio_rdm_records.records.api import RDMDraft
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
-
+import pytest
+from invenio_drafts_resources.records.api import DraftRecordIdProviderV2
 from modela.records.api import ModelaIdProvider, ModelaDraft
 from modelb.records.api import ModelbIdProvider, ModelbDraft
+from modelc.records.api import ModelcIdProvider, ModelcDraft
 from invenio_records_resources.records.systemfields.pid import PIDField, PIDFieldContext
+from invenio_records.systemfields.base import SystemFieldsExt
+from invenio_pidstore.errors import PIDAlreadyExists
+from oarepo_runtime.records.pid_providers import UniversalPIDMixin
+
 
 FAKE_PID = "xavsd-8adfd"
-class ModelaFakePIDProvider(ModelaIdProvider):
-    def generate_id(self, record, **kwargs):
+
+
+class ModelaFakePIDProvider(UniversalPIDMixin, DraftRecordIdProviderV2):
+    pid_type = "modela"
+
+    def generate_id(self, **kwargs):
         return FAKE_PID
 
-class ModelbFakePIDProvider(ModelbIdProvider):
-    def generate_id(self, record, **kwargs):
+
+class ModelbFakePIDProvider(DraftRecordIdProviderV2):
+    pid_type = "modelb"
+
+    def generate_id(self, **kwargs):
         return FAKE_PID
 
+
+class ModelcFakePIDProvider(UniversalPIDMixin, DraftRecordIdProviderV2):
+    pid_type = "modelc"
+
+    def generate_id(self, **kwargs):
+        return FAKE_PID
 
 def test_pid(workflow_data, search_clear):
     modelc_record1 = modelc_service.create(
@@ -26,9 +45,14 @@ def test_pid(workflow_data, search_clear):
     draft = RDMDraft.pid.resolve(id_)
     assert isinstance(draft, ModelcDraft)
 
-def test_collective_provider(rdm_records_service, identity_simple, workflow_data, search_clear):
+def monkeypatch_pid_provider(cls, provider, monkeypatch):
+    monkeypatch.setattr(cls.pid.field, "_provider", provider)
+    for extension in cls._extensions:
+        if isinstance(extension, SystemFieldsExt):
+            monkeypatch.setattr(extension.declared_fields["pid"], "_provider", provider)
 
-    # should work normally
+
+def test_universal_provider(rdm_records_service, identity_simple, workflow_data, monkeypatch, search_clear):
     recorda = rdm_records_service.create(
         identity_simple, data={"$schema": "local://modela-1.0.0.json", **workflow_data, "files": {"enabled": False}}
     )
@@ -36,32 +60,19 @@ def test_collective_provider(rdm_records_service, identity_simple, workflow_data
         identity_simple, data={"$schema": "local://modelb-1.0.0.json", **workflow_data, "files": {"enabled": False}}
     )
 
-    ModelaDraft.pid = PIDField(
-        provider=ModelaFakePIDProvider,
-        context_cls=PIDFieldContext,
-        create=True,
-        delete=False,
-    )
-    ModelbDraft.pid = PIDField(
-        provider=ModelbFakePIDProvider,
-        context_cls=PIDFieldContext,
-        create=True,
-        delete=False,
-    )
-    # the second should crash on the collective pid
+    monkeypatch_pid_provider(ModelaDraft, ModelaFakePIDProvider, monkeypatch)
+    monkeypatch_pid_provider(ModelbDraft, ModelbFakePIDProvider, monkeypatch)
+    monkeypatch_pid_provider(ModelcDraft, ModelcFakePIDProvider, monkeypatch)
+
     recorda = rdm_records_service.create(
         identity_simple, data={"$schema": "local://modela-1.0.0.json", **workflow_data, "files": {"enabled": False}}
     )
+    # record does not use collective check
     recordb = rdm_records_service.create(
         identity_simple, data={"$schema": "local://modelb-1.0.0.json", **workflow_data, "files": {"enabled": False}}
     )
-
-
-    """
-    recordc = rdm_records_service.create(
-        identity_simple, data={"$schema": "local://modelc-1.0.0.json", **workflow_data, "files": {"enabled": False}}
-    )
-    recorda = rdm_records_service.publish(identity_simple, recorda["id"])
-    recordb = rdm_records_service.publish(identity_simple, recordb["id"])
-    recordc = rdm_records_service.publish(identity_simple, recordc["id"])
-    """
+    assert recorda["id"] == recordb["id"]
+    with pytest.raises(PIDAlreadyExists):
+        rdm_records_service.create(
+            identity_simple, data={"$schema": "local://modelc-1.0.0.json", **workflow_data, "files": {"enabled": False}}
+        )

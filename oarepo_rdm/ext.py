@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfig
 from invenio_rdm_records.resources import RDMRecordResource, RDMRecordResourceConfig
+from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 
 @dataclass
 class RDMModel:
@@ -31,6 +32,9 @@ class RDMModel:
     api_service_config: RDMRecordServiceConfig
     api_resource: RDMRecordResource
     api_resource_config: RDMRecordResourceConfig
+    record_cls: type[RDMRecord]
+    draft_cls: type[RDMDraft]
+    pid_type: str
     ui_resource_config: Any
 
 class OARepoRDM(object):
@@ -72,12 +76,9 @@ class OARepoRDM(object):
                         return record_cls
 
     def pick_record_pid(self, pids, id):
-        pids_without_skipped = []
         if not pids:
             raise PIDDoesNotExistError("", id)
-        for pid in pids:
-            if pid.pid_type not in ("oai", "vcrid"):  # todo - some way to configure skipped pids
-                pids_without_skipped.append(pid)
+        pids_without_skipped = [pid for pid in pids if pid.pid_type in self.primary_model_pids]
         if not pids_without_skipped:
             raise PIDDoesNotExistError("", id)
         if len(pids_without_skipped) > 1:
@@ -116,6 +117,10 @@ class OARepoRDM(object):
             return model.api_resource_config
 
     @cached_property
+    def primary_model_pids(self): # as opposed to oai, technical..
+        return {model.pid_type for model in self.rdm_models}
+
+    @cached_property
     def rdm_models(self)->list[RDMModel]:
         models = self.app.config["RDM_MODELS"]
         ret = []
@@ -136,6 +141,9 @@ class OARepoRDM(object):
                                 service.config,
                                 api_resource,
                                 api_resource_config,
+                                model_dict["record_cls"],
+                                model_dict["draft_cls"],
+                                model_dict["pid_type"],
                                 self._instantiate_configurator_cls(
                                     obj_or_import_string(model_dict["ui_resource_config"]))))
         return ret
