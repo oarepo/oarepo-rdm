@@ -169,6 +169,7 @@ def app_config(app_config):
             "is_enabled": providers.OAIPIDProvider.is_enabled,
         },
     }
+
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
     app_config["OAISERVER_RECORD_INDEX"] = "modela,modelb,modelc"
     app_config["OAISERVER_CREATED_KEY"] = "created"
@@ -184,7 +185,7 @@ def app_config(app_config):
     app_config["OAISERVER_ID_PREFIX"] = "oaioaioai"
     app_config["OAISERVER_NEW_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_new_percolator"
     app_config["OAISERVER_DELETE_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_delete_percolator"
-    app_config["RDM_MODELS"] = [{
+    app_config["RDM_MODELS"] = [{ #todo this is explicit due to ui; is there a reason to not merge missing attributes in model ext?
             "service_id": "modela",
             # deprecated
             "model_service": "modela.services.records.service.ModelaService",
@@ -197,35 +198,44 @@ def app_config(app_config):
                 "modela.resources.records.config.ModelaResourceConfig"
             ),
             "ui_resource_config": "tests.ui.modela.ModelaUIResourceConfig",
-        },
-    {
-        "service_id": "modelb",
-        # deprecated
-        "model_service": "modelb.services.records.service.ModelbService",
-        # deprecated
-        "service_config": "modelb.services.records.config.ModelbServiceConfig",
-        "api_service": "modelb.services.records.service.ModelbService",
-        "api_service_config": "modelb.services.records.config.ModelbServiceConfig",
-        "api_resource": "modelb.resources.records.resource.ModelbResource",
-        "api_resource_config": (
-            "modelb.resources.records.config.ModelbResourceConfig"
-        ),
-        "ui_resource_config": "tests.ui.modelb.ModelbUIResourceConfig",
-    },
-        {
-            "service_id": "modelc",
-            # deprecated
-            "model_service": "modelc.services.records.service.ModelcService",
-            # deprecated
-            "service_config": "modelc.services.records.config.ModelcServiceConfig",
-            "api_service": "modelc.services.records.service.ModelcService",
-            "api_service_config": "modelc.services.records.config.ModelcServiceConfig",
-            "api_resource": "modelc.resources.records.resource.ModelcResource",
-            "api_resource_config": (
-                "modelc.resources.records.config.ModelcResourceConfig"
-            ),
-            "ui_resource_config": "tests.ui.modelc.ModelcUIResourceConfig",
-        }
+            "record_cls": "modela.records.api.ModelaRecord",
+            "pid_type": "modela",
+            "draft_cls": "modela.records.api.ModelaDraft",
+            },
+            {
+                "service_id": "modelb",
+                # deprecated
+                "model_service": "modelb.services.records.service.ModelbService",
+                # deprecated
+                "service_config": "modelb.services.records.config.ModelbServiceConfig",
+                "api_service": "modelb.services.records.service.ModelbService",
+                "api_service_config": "modelb.services.records.config.ModelbServiceConfig",
+                "api_resource": "modelb.resources.records.resource.ModelbResource",
+                "api_resource_config": (
+                    "modelb.resources.records.config.ModelbResourceConfig"
+                ),
+                "ui_resource_config": "tests.ui.modelb.ModelbUIResourceConfig",
+                "record_cls": "modelb.records.api.ModelbRecord",
+                "pid_type": "modelb",
+                "draft_cls": "modelb.records.api.ModelbDraft",
+            },
+            {
+                "service_id": "modelc",
+                # deprecated
+                "model_service": "modelc.services.records.service.ModelcService",
+                # deprecated
+                "service_config": "modelc.services.records.config.ModelcServiceConfig",
+                "api_service": "modelc.services.records.service.ModelcService",
+                "api_service_config": "modelc.services.records.config.ModelcServiceConfig",
+                "api_resource": "modelc.resources.records.resource.ModelcResource",
+                "api_resource_config": (
+                    "modelc.resources.records.config.ModelcResourceConfig"
+                ),
+                "ui_resource_config": "tests.ui.modelc.ModelcUIResourceConfig",
+                "record_cls": "modelc.records.api.ModelcRecord",
+                "pid_type": "modelc",
+                "draft_cls": "modelc.records.api.ModelcDraft",
+            }
     ]
 
     app_config["RECORDS_REST_ENDPOINTS"] = (
