@@ -6,7 +6,6 @@
 # details.
 #
 """invenio-oaiserver percolator extensions."""
-
 from flask import current_app
 from invenio_oaiserver import current_oaiserver
 from invenio_search import current_search, current_search_client
@@ -17,18 +16,43 @@ from oarepo_global_search.proxies import current_global_search
 from invenio_oaiserver.percolator import percolate_query, _create_percolator_mapping, _build_percolator_index_name
 from invenio_records_resources.services.records.results import RecordItem
 from oarepo_rdm.proxies import current_oarepo_rdm
+from invenio_search.utils import prefix_index
 
 def _get_rdm_model_record_class_index_aliases(rdm_model):
-    rdm_model_alias_dict = rdm_model.api_service_config.record_cls.index.get_alias()
+    index = rdm_model.api_service_config.record_cls.index
+    old_name = index._name
+    try:
+        # index._name = build_index_name([old_name], app=current_app) suffix is wrong """nr_docs-documents-documents-1.0.0-1746450298"""
+        index._name = prefix_index(old_name, app=current_app)
+        rdm_model_alias_dict = index.get_alias()
+    finally:
+        index._name = old_name # i don't know whether doing this kind of thing is acceptable here
     return list(rdm_model_alias_dict.values())[0]["aliases"]
 
-def _get_current_search_index_alias(oai_index_alias):
+
+def _get_current_search_mapping_name(oai_index_alias):
     for rdm_model in current_oarepo_rdm.rdm_models:
+        """
+        the problem here is that we need for the oai index name (documents/ i'm not sure whether we can use documents-documents-1.0.0 there)
+        the mapping name documents-documents-1.0.0 and i don't know whether we expect this relationship to always be derivable
+        from oai index name itself - therefore the complications with trying to figure the mapping name through relationship
+        with index aliases
+        """
+
+        """
+        # i'm not sure this will always work
+        index_name = rdm_model.api_service_config.record_cls.index._name
+        index_name_split = index_name.split("-")[0]
+        if index_name_split == oai_index_alias:
+            return index_name
+        """
         aliases = _get_rdm_model_record_class_index_aliases(rdm_model)
-        if oai_index_alias in aliases:
+        prefixed_oai_index_alias = prefix_index(oai_index_alias, app=current_app) # this is ugly i suppose
+        if prefixed_oai_index_alias in aliases:
+            prefixed_mapping_names_map = {prefix_index(k, app=current_app): k for k in current_search.mappings.keys()} # this is ugly i suppose
             for alias in aliases:
-                if alias in current_search.mappings:
-                    return alias
+                if alias in prefixed_mapping_names_map:
+                    return prefixed_mapping_names_map[alias]
     return None
 
 def _new_percolator(spec, search_pattern):
@@ -37,13 +61,13 @@ def _new_percolator(spec, search_pattern):
         query = query_string_parser(search_pattern=search_pattern).to_dict()
         oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
         for oai_index_alias in oai_records_index.split(','): #todo discussion now percolator is created for each oai index even when it doesn't have the mapping
-            current_search_index_alias = _get_current_search_index_alias(oai_index_alias)
-            if current_search_index_alias:
+            current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
+            if current_search_mapping_name:
                 try:
-                    _create_percolator_mapping(current_search_index_alias,
-                                               current_search.mappings[current_search_index_alias])
+                    _create_percolator_mapping(current_search_mapping_name,
+                                               current_search.mappings[current_search_mapping_name])
                     current_search_client.index(
-                        index=_build_percolator_index_name(current_search_index_alias),
+                        index=_build_percolator_index_name(current_search_mapping_name),
                         id="oaiset-{}".format(spec),
                         body={"query": query},
                     )
@@ -54,10 +78,10 @@ def _new_percolator(spec, search_pattern):
 def _delete_percolator(spec, search_pattern):
     oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
     for oai_index_alias in oai_records_index.split(','):
-        current_search_index_alias = _get_current_search_index_alias(oai_index_alias)
-        if current_search_index_alias:
+        current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
+        if current_search_mapping_name:
             current_search_client.delete(
-                index=_build_percolator_index_name(current_search_index_alias),
+                index=_build_percolator_index_name(current_search_mapping_name),
                 id="oaiset-{}".format(spec),
                 ignore=[404],
             )
