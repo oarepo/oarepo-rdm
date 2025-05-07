@@ -77,10 +77,10 @@ class OARepoRDM(object):
 
     def pick_record_pid(self, pids, id):
         if not pids:
-            raise PIDDoesNotExistError("", id)
+            raise PIDDoesNotExistError(None, None)
         pids_without_skipped = [pid for pid in pids if pid.pid_type in self.primary_model_pids]
         if not pids_without_skipped:
-            raise PIDDoesNotExistError("", id)
+            raise PIDDoesNotExistError(None, None)
         if len(pids_without_skipped) > 1:
             raise ValueError("Multiple PIDs found") #use some piderror
         return pids_without_skipped[0]
