@@ -7,6 +7,7 @@
 #
 """OARepo-Requests extension."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
 
 from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfig
 from invenio_rdm_records.resources import RDMRecordResource, RDMRecordResourceConfig
+from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 
 @dataclass
 class RDMModel:
@@ -30,6 +32,9 @@ class RDMModel:
     api_service_config: RDMRecordServiceConfig
     api_resource: RDMRecordResource
     api_resource_config: RDMRecordResourceConfig
+    record_cls: type[RDMRecord]
+    draft_cls: type[RDMDraft]
+    pid_type: str
     ui_resource_config: Any
 
 class OARepoRDM(object):
@@ -57,7 +62,6 @@ class OARepoRDM(object):
     def record_cls_from_pid_type(self, pid_type, is_draft: bool):
         for model in self.app.config["GLOBAL_SEARCH_MODELS"]:
             service_cfg = obj_or_import_string(model["service_config"])
-
             if is_draft:
                 draft_cls = getattr(service_cfg, "draft_cls", None)
                 if draft_cls:
@@ -71,19 +75,36 @@ class OARepoRDM(object):
                     if provider.pid_type == pid_type:
                         return record_cls
 
+    def pick_record_pid(self, pids, id):
+        if not pids:
+            raise PIDDoesNotExistError(None, None)
+        pids_without_skipped = [pid for pid in pids if pid.pid_type in self.primary_model_pids]
+        if not pids_without_skipped:
+            raise PIDDoesNotExistError(None, None)
+        if len(pids_without_skipped) > 1:
+            raise ValueError("Multiple PIDs found") #use some piderror
+        return pids_without_skipped[0]
+
     def get_pid_type_from_pid(self, pid_value):
         pids = PersistentIdentifier.query.filter_by(pid_value=pid_value).all()
-        if not pids:
-            raise PIDDoesNotExistError("", pid_value)
-        if len(pids) > 1:
-            raise ValueError("Multiple PIDs found")
-        return pids[0].pid_type
+        pid = self.pick_record_pid(pids, pid_value)
+        return pid.pid_type
+
+    def pid_from_uuid(self, uuid):
+        pids = PersistentIdentifier.query.filter_by(object_uuid=uuid).all()
+        return self.pick_record_pid(pids, uuid)
 
     def record_service_from_pid_type(
         self, pid_type, is_draft: bool = False
     ):  # there isn't specialized draft service for now
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
         return get_record_service_for_record_class(record_cls)
+
+    def _instantiate_configurator_cls(self, cls_):
+        if issubclass(cls_, ConfiguratorMixin):
+            return cls_.build(self.app)
+        else:
+            return cls_()
 
     def get_rdm_model(self, service_id: str)->RDMModel:
         for model in self.rdm_models:
@@ -94,6 +115,10 @@ class OARepoRDM(object):
         model = self.get_rdm_model(service_id)
         if model:
             return model.api_resource_config
+
+    @cached_property
+    def primary_model_pids(self): # as opposed to oai, technical..
+        return {model.pid_type for model in self.rdm_models}
 
     @cached_property
     def rdm_models(self)->list[RDMModel]:
@@ -116,6 +141,9 @@ class OARepoRDM(object):
                                 service.config,
                                 api_resource,
                                 api_resource_config,
+                                model_dict["record_cls"],
+                                model_dict["draft_cls"],
+                                model_dict["pid_type"],
                                 self._instantiate_configurator_cls(
                                     obj_or_import_string(model_dict["ui_resource_config"]))))
         return ret
