@@ -17,16 +17,12 @@ from invenio_oaiserver.percolator import percolate_query, _create_percolator_map
 from invenio_records_resources.services.records.results import RecordItem
 from oarepo_rdm.proxies import current_oarepo_rdm
 from invenio_search.utils import prefix_index
+from oarepo_rdm.utils import prefixed_index
 
 def _get_rdm_model_record_class_index_aliases(rdm_model):
-    index = rdm_model.api_service_config.record_cls.index
-    old_name = index._name
-    try:
-        # index._name = build_index_name([old_name], app=current_app) suffix is wrong """nr_docs-documents-documents-1.0.0-1746450298"""
-        index._name = prefix_index(old_name, app=current_app)
-        rdm_model_alias_dict = index.get_alias()
-    finally:
-        index._name = old_name # i don't know whether doing this kind of thing is acceptable here
+    index = prefixed_index(rdm_model.api_service_config.record_cls.index)
+    index.refresh()
+    rdm_model_alias_dict = index.get_alias()
     return list(rdm_model_alias_dict.values())[0]["aliases"]
 
 

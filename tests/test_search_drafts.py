@@ -3,6 +3,8 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from modelc.proxies import current_service as modelc_service
 from modelc.records.api import ModelcDraft
 
+from oarepo_rdm.utils import refresh
+
 
 def test_description_search(
     app, db, search_clear, custom_fields, workflow_data, identity_simple
@@ -19,7 +21,8 @@ def test_description_search(
         identity_simple,
         {"metadata": {"title": "aaaaa", "cdescription": "jej"}, **workflow_data},
     )
-    ModelcDraft.index.refresh()
+
+    refresh(ModelcDraft.index)
 
     result = current_rdm_records_service.search_drafts(
         system_identity,

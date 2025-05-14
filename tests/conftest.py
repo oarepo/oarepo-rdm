@@ -20,6 +20,7 @@ from oarepo_workflows.services.permissions.workflow_permissions import (
 from invenio_rdm_records.services.pids import providers
 from invenio_oaiserver.views.server import blueprint
 from oarepo_runtime.i18n import lazy_gettext as _
+from oarepo_rdm.utils import refresh
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -241,7 +242,8 @@ def app_config(app_config):
     app_config["RECORDS_REST_ENDPOINTS"] = (
         []
     )  # rule /records/<pid(recid):pid_value> is in race condition with
-    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type]
+    app_config["SEARCH_INDEX_PREFIX"] = "nr_docs-"
     return app_config
 
 
@@ -274,8 +276,8 @@ def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
 
-            records_service.config.record_cls.index.refresh()
-            records_service.config.draft_cls.index.refresh()
+            refresh(records_service.config.record_cls.index)
+            refresh(records_service.config.draft_cls.index)
 
             # Recover current date
             mock_arrow.return_value = arrow.get(datetime.utcnow())
