@@ -146,6 +146,58 @@ def app_config(app_config):
         []
     )  # rule /records/<pid(recid):pid_value> is in race condition with
     # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    app_config["RDM_MODELS"] = [{  # todo this is explicit due to ui; is there a reason to not merge missing attributes in model ext?
+        "service_id": "modela",
+        # deprecated
+        "model_service": "modela.services.records.service.ModelaService",
+        # deprecated
+        "service_config": "modela.services.records.config.ModelaServiceConfig",
+        "api_service": "modela.services.records.service.ModelaService",
+        "api_service_config": "modela.services.records.config.ModelaServiceConfig",
+        "api_resource": "modela.resources.records.resource.ModelaResource",
+        "api_resource_config": (
+            "modela.resources.records.config.ModelaResourceConfig"
+        ),
+        "ui_resource_config": "tests.ui.modela.ModelaUIResourceConfig",
+        "record_cls": "modela.records.api.ModelaRecord",
+        "pid_type": "modela",
+        "draft_cls": "modela.records.api.ModelaDraft",
+    },
+        {
+            "service_id": "modelb",
+            # deprecated
+            "model_service": "modelb.services.records.service.ModelbService",
+            # deprecated
+            "service_config": "modelb.services.records.config.ModelbServiceConfig",
+            "api_service": "modelb.services.records.service.ModelbService",
+            "api_service_config": "modelb.services.records.config.ModelbServiceConfig",
+            "api_resource": "modelb.resources.records.resource.ModelbResource",
+            "api_resource_config": (
+                "modelb.resources.records.config.ModelbResourceConfig"
+            ),
+            "ui_resource_config": "tests.ui.modelb.ModelbUIResourceConfig",
+            "record_cls": "modelb.records.api.ModelbRecord",
+            "pid_type": "modelb",
+            "draft_cls": "modelb.records.api.ModelbDraft",
+        },
+        {
+            "service_id": "modelc",
+            # deprecated
+            "model_service": "modelc.services.records.service.ModelcService",
+            # deprecated
+            "service_config": "modelc.services.records.config.ModelcServiceConfig",
+            "api_service": "modelc.services.records.service.ModelcService",
+            "api_service_config": "modelc.services.records.config.ModelcServiceConfig",
+            "api_resource": "modelc.resources.records.resource.ModelcResource",
+            "api_resource_config": (
+                "modelc.resources.records.config.ModelcResourceConfig"
+            ),
+            "ui_resource_config": "tests.ui.modelc.ModelcUIResourceConfig",
+            "record_cls": "modelc.records.api.ModelcRecord",
+            "pid_type": "modelc",
+            "draft_cls": "modelc.records.api.ModelcDraft",
+        }
+    ]
     return app_config
 
 
