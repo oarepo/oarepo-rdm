@@ -21,7 +21,6 @@ $PYTHON -m venv $BUILDER_VENV
 . $BUILDER_VENV/bin/activate
 pip install -U setuptools pip wheel
 pip install oarepo-model-builder oarepo-model-builder-drafts oarepo-model-builder-files oarepo-model-builder-drafts-files oarepo-model-builder-rdm
-editable_install oarepo-model-builder-rdm
 
 if true ; then
     test -d model-a && rm -rf model-a
@@ -49,9 +48,5 @@ pip install oarepo-workflows
 pip install oarepo-requests
 pip install oarepo-communities
 pip install ".[tests]"
-
-editable_install oarepo-runtime
-editable_install invenio-oaiserver-fork2
-editable_install pytest-oarepo
 
 pytest tests
