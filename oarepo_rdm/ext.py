@@ -141,8 +141,8 @@ class OARepoRDM(object):
                                 service.config,
                                 api_resource,
                                 api_resource_config,
-                                model_dict["record_cls"],
-                                model_dict["draft_cls"],
+                                obj_or_import_string(model_dict["record_cls"]),
+                                obj_or_import_string(model_dict["draft_cls"]),
                                 model_dict["pid_type"],
                                 self._instantiate_configurator_cls(
                                     obj_or_import_string(model_dict["ui_resource_config"]))))

@@ -7,7 +7,6 @@ from invenio_drafts_resources.records.api import DraftRecordIdProviderV2
 from modela.records.api import ModelaIdProvider, ModelaDraft
 from modelb.records.api import ModelbIdProvider, ModelbDraft
 from modelc.records.api import ModelcIdProvider, ModelcDraft
-from invenio_records_resources.records.systemfields.pid import PIDField, PIDFieldContext
 from invenio_records.systemfields.base import SystemFieldsExt
 from invenio_pidstore.errors import PIDAlreadyExists
 from oarepo_runtime.records.pid_providers import UniversalPIDMixin
