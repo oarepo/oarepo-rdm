@@ -49,5 +49,4 @@ pip install oarepo-requests
 pip install oarepo-communities
 pip install ".[tests]"
 
-editable_install pytest-oarepo
 pytest tests
