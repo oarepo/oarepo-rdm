@@ -21,35 +21,25 @@ from oarepo_rdm.utils import prefixed_index
 
 def _get_rdm_model_record_class_index_aliases(rdm_model):
     index = prefixed_index(rdm_model.api_service_config.record_cls.index)
-    index.refresh()
     rdm_model_alias_dict = index.get_alias()
-    return list(rdm_model_alias_dict.values())[0]["aliases"]
+    return list(rdm_model_alias_dict.values())[0]["aliases"].keys()
 
 
 def _get_current_search_mapping_name(oai_index_alias):
+    prefixed_oai_index_alias = prefix_index(oai_index_alias, app=current_app) # this is ugly i suppose
+    prefixed_mapping_names_map = {prefix_index(k, app=current_app): k for k in current_search.mappings.keys()}
     for rdm_model in current_oarepo_rdm.rdm_models:
-        """
-        the problem here is that we need for the oai index name (documents/ i'm not sure whether we can use documents-documents-1.0.0 there)
-        the mapping name documents-documents-1.0.0 and i don't know whether we expect this relationship to always be derivable
-        from oai index name itself - therefore the complications with trying to figure the mapping name through relationship
-        with index aliases
-        """
-
-        """
-        # i'm not sure this will always work
-        index_name = rdm_model.api_service_config.record_cls.index._name
-        index_name_split = index_name.split("-")[0]
-        if index_name_split == oai_index_alias:
-            return index_name
-        """
         aliases = _get_rdm_model_record_class_index_aliases(rdm_model)
-        prefixed_oai_index_alias = prefix_index(oai_index_alias, app=current_app) # this is ugly i suppose
-        if prefixed_oai_index_alias in aliases:
-            prefixed_mapping_names_map = {prefix_index(k, app=current_app): k for k in current_search.mappings.keys()} # this is ugly i suppose
-            for alias in aliases:
-                if alias in prefixed_mapping_names_map:
-                    return prefixed_mapping_names_map[alias]
-    return None
+        if prefixed_oai_index_alias not in aliases:
+            continue
+        intersection = aliases & prefixed_mapping_names_map.keys()
+        if len(intersection) != 1:
+            raise ValueError(f"OAI index alias {oai_index_alias} does not have a resolvable mapping.")
+        return prefixed_mapping_names_map[intersection.pop()]
+
+    if current_oarepo_rdm.rdm_models:
+        raise ValueError(f"OAI index alias {oai_index_alias} is not a valid index alias.")
+
 
 def _new_percolator(spec, search_pattern):
     """Create new percolator associated with the new set."""
