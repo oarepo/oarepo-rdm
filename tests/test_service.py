@@ -106,4 +106,3 @@ def test_publish(rdm_records_service, identity_simple, workflow_data, search_cle
 
     publish = rdm_records_service.publish(identity_simple, sample_draft["id"])
     record = rdm_records_service.read(identity_simple, sample_draft["id"])
-

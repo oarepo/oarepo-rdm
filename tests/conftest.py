@@ -328,6 +328,7 @@ def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
             records_service.indexer.refresh()
+            records_service.draft_indexer.refresh()
             # Recover current date
             mock_arrow.return_value = arrow.get(datetime.utcnow())
         return record

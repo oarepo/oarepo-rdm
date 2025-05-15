@@ -23,7 +23,7 @@ def test_embargo_lift_with_draft(
 
     # Edit a draft
     ongoing_draft = service.edit(identity=identity_simple, id_=record["id"])
-    modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
 
     update_expired_embargos()
 
@@ -56,7 +56,7 @@ def test_embargo_lift_with_updated_draft(
     ongoing_draft = service.update_draft(
         id_=draft["id"], identity=identity_simple, data=draft
     )
-    modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
 
     update_expired_embargos()
 

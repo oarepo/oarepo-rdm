@@ -12,6 +12,7 @@ def test_list(rdm_records_service, users, logged_client, workflow_data, search_c
     publish = rdm_records_service.publish(user.identity, sample_draft["id"])
 
     modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
 
     result = client.get("/records")
     assert len(result.json["hits"]["hits"]) == 1

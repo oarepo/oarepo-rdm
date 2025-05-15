@@ -40,6 +40,8 @@ def test_description_search(
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -89,6 +91,8 @@ def test_basic_search(
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -140,6 +144,8 @@ def test_mixed_with_drafts(
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -174,6 +180,8 @@ def test_record_and_edited_draft(
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -200,6 +208,7 @@ def test_links(rdm_records_service, identity_simple, workflow_data, search_clear
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
     modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -227,8 +236,8 @@ def test_second_page(rdm_records_service, identity_simple, workflow_data, search
             },
         )
         rdm_records_service.publish(identity_simple, draft["id"])
-
     modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -335,6 +344,8 @@ def test_multiple_from_one_schema(
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -378,6 +389,8 @@ def test_facets(rdm_records_service, identity_simple, workflow_data, search_clea
 
     modela_service.indexer.refresh()
     modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
