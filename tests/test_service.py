@@ -106,3 +106,39 @@ def test_publish(rdm_records_service, identity_simple, workflow_data, search_cle
 
     publish = rdm_records_service.publish(identity_simple, sample_draft["id"])
     record = rdm_records_service.read(identity_simple, sample_draft["id"])
+
+def test_builder_links(rdm_records_service, identity_simple, workflow_data, search_clear):
+    sample_draft = modelc_service.create(
+        identity_simple,
+        {
+            "metadata": {"title": "blah", "cdescription": "kch"},
+            **workflow_data,
+            "files": {"enabled": False},
+        },
+    )
+    draft_id = sample_draft["id"]
+    assert {'access_links': f'http://localhost/records/{draft_id}/access/links',
+            'access_grants': f'http://localhost/records/{draft_id}/access/grants',
+            'access_users': f'http://localhost/records/{draft_id}/access/users',
+            'access_groups': f'http://localhost/records/{draft_id}/access/groups',
+            'access_request': f'http://localhost/records/{draft_id}/access/request'}.items() <= sample_draft.links.items()
+from invenio_records_permissions.generators import Disable
+
+def test_builder_links_inaccesible(rdm_records_service, identity_simple, workflow_data, monkeypatch_permissions, search_clear):
+    monkeypatch_permissions({"can_manage": [Disable()]},
+                             "oarepo_runtime.services.config.permissions_presets.EveryonePermissionPolicy")
+    sample_draft = modelc_service.create(
+        identity_simple,
+        {
+            "metadata": {"title": "blah", "cdescription": "kch"},
+            **workflow_data,
+            "files": {"enabled": False},
+        },
+    )
+    assert 'access_links' not in sample_draft.links
+    assert 'access_grants' not in sample_draft.links
+    assert 'access_users' not in sample_draft.links
+    assert 'access_groups' not in sample_draft.links
+    assert 'access_settings' not in sample_draft.links
+    assert 'access_request' in sample_draft.links
+
