@@ -1,7 +1,5 @@
 from modela.records.api import ModelaDraft, ModelaRecord
-
-from oarepo_rdm.utils import refresh
-
+from modela.proxies import current_service as modela_service
 
 def test_list(rdm_records_service, users, logged_client, workflow_data, search_clear):
     user = users[0]
@@ -13,8 +11,7 @@ def test_list(rdm_records_service, users, logged_client, workflow_data, search_c
     )
     publish = rdm_records_service.publish(user.identity, sample_draft["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelaDraft.index)
+    modela_service.indexer.refresh()
 
     result = client.get("/records")
     assert len(result.json["hits"]["hits"]) == 1

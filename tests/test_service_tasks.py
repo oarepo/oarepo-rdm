@@ -2,8 +2,6 @@ from invenio_rdm_records.services.tasks import update_expired_embargos
 from modela.proxies import current_service as modela_service
 from modelb.proxies import current_service as modelb_service
 
-from oarepo_rdm.utils import refresh
-
 
 def test_embargo_lift_without_draft(
     rdm_records_service, embargoed_files_record, search_clear
@@ -25,7 +23,7 @@ def test_embargo_lift_with_draft(
 
     # Edit a draft
     ongoing_draft = service.edit(identity=identity_simple, id_=record["id"])
-    refresh(modela_service.config.draft_cls.index)
+    modela_service.indexer.refresh()
 
     update_expired_embargos()
 
@@ -58,7 +56,7 @@ def test_embargo_lift_with_updated_draft(
     ongoing_draft = service.update_draft(
         id_=draft["id"], identity=identity_simple, data=draft
     )
-    refresh(modela_service.config.draft_cls.index)
+    modela_service.indexer.refresh()
 
     update_expired_embargos()
 

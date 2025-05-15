@@ -16,18 +16,22 @@ from oarepo_global_search.proxies import current_global_search
 from invenio_oaiserver.percolator import percolate_query, _create_percolator_mapping, _build_percolator_index_name
 from invenio_records_resources.services.records.results import RecordItem
 from oarepo_rdm.proxies import current_oarepo_rdm
-from invenio_search.utils import prefix_index
-from oarepo_rdm.utils import prefixed_index
+from invenio_search.utils import prefix_index, build_alias_name
+from oarepo_runtime.utils.index import prefixed_index
+from invenio_search.proxies import current_search
+
 
 def _get_rdm_model_record_class_index_aliases(rdm_model):
+
     index = prefixed_index(rdm_model.api_service_config.record_cls.index)
-    rdm_model_alias_dict = index.get_alias()
+    rdm_model_alias_dict = index.get_alias() # we expect get_alias returns values with prefix
+
     return list(rdm_model_alias_dict.values())[0]["aliases"].keys()
 
 
 def _get_current_search_mapping_name(oai_index_alias):
-    prefixed_oai_index_alias = prefix_index(oai_index_alias, app=current_app) # this is ugly i suppose
-    prefixed_mapping_names_map = {prefix_index(k, app=current_app): k for k in current_search.mappings.keys()}
+    prefixed_oai_index_alias = build_alias_name(oai_index_alias)
+    prefixed_mapping_names_map = {build_alias_name(k): k for k in current_search.mappings.keys()}
     for rdm_model in current_oarepo_rdm.rdm_models:
         aliases = _get_rdm_model_record_class_index_aliases(rdm_model)
         if prefixed_oai_index_alias not in aliases:

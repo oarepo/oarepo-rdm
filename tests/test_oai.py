@@ -16,7 +16,10 @@ from datetime import datetime, timedelta
 from invenio_oaiserver.proxies import current_oaiserver
 from invenio_oaiserver.models import OAISet
 from invenio_search.proxies import current_search_client
-from oarepo_rdm.utils import refresh
+
+from modela.proxies import current_service as modela_service
+from modelb.proxies import current_service as modelb_service
+from modelc.proxies import current_service as modelc_service
 
 def datetime_to_datestamp(dt, day_granularity=False):
     """Transform datetime to datestamp.
@@ -126,10 +129,8 @@ def test_list_records(app, rdm_records_service, identity_simple, workflow_data, 
         )
         rdm_records_service.publish(identity_simple, recordb["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelbRecord.index)
-    refresh(ModelaDraft.index)
-    refresh(ModelbDraft.index)
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
 
     result = client.get("/oai2d?verb=ListRecords&metadataPrefix=oai_dc")
 
@@ -509,12 +510,9 @@ def test_listidentifiers(db, app, rdm_records_service, identity_simple, workflow
     recordb = rdm_records_service.publish(identity_simple, recordb["id"])
     recordc = rdm_records_service.publish(identity_simple, recordc["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelbRecord.index)
-    refresh(ModelcRecord.index)
-    refresh(ModelaDraft.index)
-    refresh(ModelbDraft.index)
-    refresh(ModelcRecord.index)
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modelc_service.indexer.refresh()
 
     with app.test_request_context():
 
@@ -652,8 +650,7 @@ def test_listmetadataformats_record(app, rdm_records_service, identity_simple, w
     )
     recorda = rdm_records_service.publish(identity_simple, recorda["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelaDraft.index)
+    modela_service.indexer.refresh()
 
     _listmetadataformats(
         app=app,
@@ -714,8 +711,7 @@ def test_search_pattern_change(db, app, rdm_records_service, identity_simple, wo
         identity_simple, data={"$schema": "local://modela-1.0.0.json", **data, "files": {"enabled": False}})
     recorda = rdm_records_service.publish(identity_simple, recorda["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelaDraft.index)
+    modela_service.indexer.refresh()
 
     with app.app_context():
         # create new OAI Set
@@ -754,8 +750,7 @@ def test_search_pattern_change_percolators(db, app, rdm_records_service, identit
     record1 = rdm_records_service.publish(identity_simple, record1["id"])
     record2 = rdm_records_service.publish(identity_simple, record2["id"])
 
-    refresh(ModelaRecord.index)
-    refresh(ModelaDraft.index)
+    modela_service.indexer.refresh()
 
     record_index = record1._record.index._name
     percolator_index = _build_percolator_index_name(record_index)

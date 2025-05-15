@@ -20,7 +20,6 @@ from oarepo_workflows.services.permissions.workflow_permissions import (
 from invenio_rdm_records.services.pids import providers
 from invenio_oaiserver.views.server import blueprint
 from oarepo_runtime.i18n import lazy_gettext as _
-from oarepo_rdm.utils import refresh
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -328,10 +327,7 @@ def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
             mock_arrow.return_value = arrow.get(datetime(1954, 9, 29), tz.gettz("UTC"))
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
-
-            refresh(records_service.config.record_cls.index)
-            refresh(records_service.config.draft_cls.index)
-
+            records_service.indexer.refresh()
             # Recover current date
             mock_arrow.return_value = arrow.get(datetime.utcnow())
         return record
