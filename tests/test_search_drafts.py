@@ -19,7 +19,7 @@ def test_description_search(
         identity_simple,
         {"metadata": {"title": "aaaaa", "cdescription": "jej"}, **workflow_data},
     )
-    ModelcDraft.index.refresh()
+    modelc_service.draft_indexer.refresh()
 
     result = current_rdm_records_service.search_drafts(
         system_identity,

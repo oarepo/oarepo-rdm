@@ -268,7 +268,7 @@ class OARepoRDMService(RDMRecordService):
         )
 
     def oai_result_item(self, identity, oai_record_source):
-        raise NotImplementedError()
+        raise NotImplementedError() # used in oai serializer in invenio rdm, we use service read
 
     def rebuild_index(self, identity, uow=None):
         raise NotImplementedError()

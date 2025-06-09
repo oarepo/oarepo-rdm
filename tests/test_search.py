@@ -3,6 +3,9 @@ from modela.records.api import ModelaDraft, ModelaRecord
 from modelb.proxies import current_service as modelb_service
 from modelb.records.api import ModelbDraft, ModelbRecord
 
+from modela.proxies import current_service as modela_service
+from modelb.proxies import current_service as modelb_service
+
 
 def test_description_search(
     rdm_records_service, identity_simple, workflow_data, search_clear
@@ -35,10 +38,10 @@ def test_description_search(
     rdm_records_service.publish(identity_simple, modela_record2["id"])
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()  # needed cause the draft might be still found
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -86,10 +89,10 @@ def test_basic_search(
     rdm_records_service.publish(identity_simple, modela_record2["id"])
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()  # needed cause the draft might be still found
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -97,7 +100,10 @@ def test_basic_search(
     )
     results = result.to_dict()
 
+    for hit in results["hits"]["hits"]:
+        print(f"id: {hit['id']}; draft {hit['is_draft']}; schema {hit['$schema']}")
     assert len(results["hits"]["hits"]) == 2
+
 
     hit_ids = {r["id"] for r in results["hits"]["hits"]}
 
@@ -136,10 +142,10 @@ def test_mixed_with_drafts(
     rdm_records_service.publish(identity_simple, modela_record1["id"])
     rdm_records_service.publish(identity_simple, modela_record2["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -172,10 +178,10 @@ def test_record_and_edited_draft(
     rdm_records_service.publish(identity_simple, modela_record1["id"])
     rdm_records_service.edit(identity_simple, modela_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()  # needed cause the draft might be still found
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -201,8 +207,8 @@ def test_links(rdm_records_service, identity_simple, workflow_data, search_clear
     )
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelbRecord.index.refresh()
-    ModelbDraft.index.refresh()
+    modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -230,8 +236,8 @@ def test_second_page(rdm_records_service, identity_simple, workflow_data, search
             },
         )
         rdm_records_service.publish(identity_simple, draft["id"])
-    ModelbRecord.index.refresh()
-    ModelbDraft.index.refresh()
+    modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -293,8 +299,8 @@ def test_zero_hits(rdm_records_service, identity_simple, workflow_data, search_c
     rdm_records_service.publish(identity_simple, modela_record2["id"])
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -336,10 +342,10 @@ def test_multiple_from_one_schema(
     rdm_records_service.publish(identity_simple, modela_record2["id"])
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()  # needed cause the draft might be still found
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,
@@ -381,10 +387,10 @@ def test_facets(rdm_records_service, identity_simple, workflow_data, search_clea
     rdm_records_service.publish(identity_simple, modela_record2["id"])
     rdm_records_service.publish(identity_simple, modelb_record1["id"])
 
-    ModelaRecord.index.refresh()
-    ModelbRecord.index.refresh()
-    ModelaDraft.index.refresh()  # needed cause the draft might be still found
-    ModelbDraft.index.refresh()
+    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+    modelb_service.draft_indexer.refresh()
 
     result = rdm_records_service.search(
         identity_simple,

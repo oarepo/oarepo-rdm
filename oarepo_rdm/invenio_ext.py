@@ -21,7 +21,6 @@ from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
 from oarepo_global_search.proxies import current_global_search
-
 from oarepo_rdm.records.systemfields.pid import (
     OARepoDraftPIDFieldContext,
     OARepoPIDFieldContext,
