@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from invenio_rdm_records import InvenioRDMRecords
 from invenio_rdm_records.oaiserver.services.services import OAIPMHServerService
+from invenio_rdm_records.resources import RDMRecordResourceConfig
 from invenio_rdm_records.services import (
     CommunityRecordsService,
     IIIFService,
@@ -25,6 +26,7 @@ from oarepo_rdm.records.systemfields.pid import (
     OARepoDraftPIDFieldContext,
     OARepoPIDFieldContext,
 )
+from oarepo_rdm.resources.records.config import make_response_handlers_property
 from oarepo_rdm.services.service import OARepoRDMService
 
 if TYPE_CHECKING:
@@ -92,6 +94,7 @@ def api_finalize_app(app: Flask) -> None:
 def finalize_app(app: Flask) -> None:
     """Finalize app."""
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
+    rdm = app.extensions["invenio-rdm-records"]
 
     RDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     RDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
@@ -99,3 +102,5 @@ def finalize_app(app: Flask) -> None:
         None, search_alias=current_global_search.indices
     )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
+    setattr(RDMRecordResourceConfig, 'response_handlers',
+            property(make_response_handlers_property(rdm.records_resource.config.response_handlers)))
