@@ -14,9 +14,13 @@ from typing import TYPE_CHECKING, Any
 from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
+from invenio_rdm_records.resources.config import record_serializers
 from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
 from invenio_records_resources.services.base.config import ConfiguratorMixin
 from invenio_records_resources.proxies import current_service_registry
+from werkzeug.local import LocalProxy
+
+from oarepo_rdm.resources.records.config import global_search_response_handlers
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -58,6 +62,8 @@ class OARepoRDM(object):
                 "record_file_download": "/records/<pid_value>/files/<path:filename>",
             },
         )
+        proxy = LocalProxy(global_search_response_handlers)
+        app.config.setdefault("RDM_RECORDS_SERIALIZERS", record_serializers | {"application/vnd.inveniordm.v1+json": proxy})
 
     def record_cls_from_pid_type(self, pid_type, is_draft: bool):
         for model in self.app.config["GLOBAL_SEARCH_MODELS"]:
