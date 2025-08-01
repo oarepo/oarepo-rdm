@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from invenio_rdm_records import InvenioRDMRecords
 from invenio_rdm_records.oaiserver.services.services import OAIPMHServerService
-from invenio_rdm_records.resources import RDMRecordResourceConfig
 from invenio_rdm_records.services import (
     CommunityRecordsService,
     IIIFService,
@@ -100,4 +99,3 @@ def finalize_app(app: Flask) -> None:
         None, search_alias=current_global_search.indices
     )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
-
