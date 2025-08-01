@@ -111,7 +111,20 @@ def app_config(app_config):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
-
+    app_config["GLOBAL_SEARCH_MODELS"] = [
+        {
+            "model_service": "modela.services.records.service.ModelaService",
+            "service_config": "modela.services.records.config.ModelaServiceConfig",
+        },
+        {
+            "model_service": "modelb.services.records.service.ModelbService",
+            "service_config": "modelb.services.records.config.ModelbServiceConfig",
+        },
+        {
+            "model_service": "modelc.services.records.service.ModelcService",
+            "service_config": "modelc.services.records.config.ModelcServiceConfig",
+        },
+    ]
     app_config["SITE_API_URL"] = "http://localhost"
     # app_config["SQLALCHEMY_ECHO"] = True
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
