@@ -103,4 +103,5 @@ def finalize_app(app: Flask) -> None:
     )  # todo - should be just published indices, not all
     RDMDraft.index = IndexField(None, search_alias=current_global_search.indices)
     setattr(RDMRecordResourceConfig, 'response_handlers',
-            property(make_response_handlers_property(rdm.records_resource.config.response_handlers)))
+            property(make_response_handlers_property(app.config["RDM_RECORDS_SERIALIZERS"])))
+
