@@ -15,7 +15,8 @@ from invenio_base.utils import obj_or_import_string
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
 from invenio_rdm_records.resources.config import record_serializers
-from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
+# from oarepo_runtime.datastreams.utils import get_record_service_for_record_class
+from oarepo_runtime.proxies import current_runtime
 from invenio_records_resources.services.base.config import ConfiguratorMixin
 from invenio_records_resources.proxies import current_service_registry
 from werkzeug.local import LocalProxy
@@ -29,6 +30,7 @@ from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfi
 from invenio_rdm_records.resources import RDMRecordResource, RDMRecordResourceConfig
 from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 
+"""
 @dataclass
 class RDMModel:
     service_id: str
@@ -40,6 +42,7 @@ class RDMModel:
     draft_cls: type[RDMDraft]
     pid_type: str
     ui_resource_config: Any
+"""
 
 class OARepoRDM(object):
     """OARepo extension of Invenio-Vocabularies."""
@@ -84,6 +87,7 @@ class OARepoRDM(object):
     def pick_record_pid(self, pids, id):
         if not pids:
             raise PIDDoesNotExistError(None, None)
+        models = current_runtime.models
         pids_without_skipped = [pid for pid in pids if pid.pid_type in self.primary_model_pids]
         if not pids_without_skipped:
             raise PIDDoesNotExistError(None, None)
@@ -104,18 +108,21 @@ class OARepoRDM(object):
         self, pid_type, is_draft: bool = False
     ):  # there isn't specialized draft service for now
         record_cls = self.record_cls_from_pid_type(pid_type, is_draft)
-        return get_record_service_for_record_class(record_cls)
+        return current_runtime.get_record_service_for_record_class(record_cls)
 
+    """
     def _instantiate_configurator_cls(self, cls_):
         if issubclass(cls_, ConfiguratorMixin):
             return cls_.build(self.app)
         else:
             return cls_()
+    
 
     def get_rdm_model(self, service_id: str)->RDMModel:
         for model in self.rdm_models:
             if model.service_id == service_id:
                 return model
+
 
     def get_api_resource_config(self, service_id: str)->RDMRecordResourceConfig:
         model = self.get_rdm_model(service_id)
@@ -125,6 +132,7 @@ class OARepoRDM(object):
     @cached_property
     def primary_model_pids(self): # as opposed to oai, technical..
         return {model.pid_type for model in self.rdm_models}
+    
 
     @cached_property
     def rdm_models(self)->list[RDMModel]:
@@ -153,3 +161,4 @@ class OARepoRDM(object):
                                 self._instantiate_configurator_cls(
                                     obj_or_import_string(model_dict["ui_resource_config"]))))
         return ret
+        """

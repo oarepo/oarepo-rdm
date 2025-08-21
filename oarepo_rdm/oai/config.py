@@ -8,7 +8,8 @@
 """invenio-oaiserver config extensions."""
 
 from functools import cached_property
-from oarepo_runtime.resources.responses import OAIExportableResponseHandler
+# from oarepo_runtime.resources.responses import OAIExportableResponseHandler
+from oarepo_runtime.proxies import current_runtime
 from .serializer import oai_serializer
 from oarepo_rdm.proxies import current_oarepo_rdm
 
@@ -44,9 +45,10 @@ class OAIServerMetadataFormats(object):
         models = current_oarepo_rdm.rdm_models
         for model in models:
             for handler in model.api_resource_config.response_handlers.values():
-                if isinstance(handler, OAIExportableResponseHandler):
-                    ret[handler.oai_metadata_prefix] = \
-                                            {"namespace": handler.oai_namespace, "schema": handler.oai_schema,
-                                             "serializer": (oai_serializer, {"metadata_prefix": handler.oai_metadata_prefix})}
+                pass
+                #if isinstance(handler, ):
+                #    ret[handler.oai_metadata_prefix] = \
+                #                            {"namespace": handler.oai_namespace, "schema": handler.oai_schema,
+                #                             "serializer": (oai_serializer, {"metadata_prefix": handler.oai_metadata_prefix})}
 
         return ret

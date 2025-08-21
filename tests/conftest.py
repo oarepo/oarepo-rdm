@@ -1,4 +1,7 @@
+import json
 import os
+import sys
+import time
 from datetime import datetime
 from unittest import mock
 
@@ -8,18 +11,20 @@ from dateutil import tz
 from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
-from modela.proxies import current_service as modela_service
-from modelb.proxies import current_service as modelb_service
-from modelc.proxies import current_service as modelc_service
-from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
+from oarepo_model.customizations import AddFileToModule
+from oarepo_model.presets.rdm import rdm_presets
+from oarepo_model.presets.records_resources import records_resources_presets
+# from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 from oarepo_workflows.base import Workflow
+from oarepo_workflows.model.presets import workflows_presets
 from oarepo_workflows.requests.policy import WorkflowRequestPolicy
 from oarepo_workflows.services.permissions.workflow_permissions import (
     DefaultWorkflowPermissions,
 )
 from invenio_rdm_records.services.pids import providers
 from invenio_oaiserver.views.server import blueprint
-from oarepo_runtime.i18n import lazy_gettext as _
+#from oarepo_runtime.i18n import lazy_gettext as _
+from invenio_i18n import _
 
 pytest_plugins = [
     "pytest_oarepo.fixtures",
@@ -93,9 +98,128 @@ WORKFLOWS = {
     ),
 }
 
+@pytest.fixture(scope="session")
+def model_types():
+    """Model types fixture."""
+    # Define the model types used in the tests
+    return {
+        "Metadata": {
+            "properties": {
+                "title": {"type": "fulltext+keyword", "required": True},
+            }
+        }
+    }
+
+@pytest.fixture(scope="session")
+def model_a(model_types):
+    from oarepo_model.api import model
+    from oarepo_model.presets.drafts import drafts_presets
+
+    t1 = time.time()
+
+    model_ = model(
+        name="model_a",
+        version="1.0.0",
+        presets=[
+            records_resources_presets,
+            drafts_presets,
+            rdm_presets,
+            workflows_presets,
+        ],
+        types=[model_types],
+        metadata_type="Metadata",
+        customizations=[
+            AddFileToModule(
+                "parent-jsonschema",
+                "jsonschemas",
+                "parent-v1.0.0.json",
+                json.dumps(
+                    {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "$id": "local://parent-v1.0.0.json",
+                        "type": "object",
+                        "properties": {"id": {"type": "string"}},
+                    }
+                ),
+            ),
+        ],
+    )
+    model_.register()
+
+    t2 = time.time()
+    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
+
+    try:
+        yield model_
+    finally:
+        model_.unregister()
+
+    return model_
+
+@pytest.fixture(scope="session")
+def model_b(model_types):
+    from oarepo_model.api import model
+    from oarepo_model.presets.drafts import drafts_presets
+
+    t1 = time.time()
+
+    model_ = model(
+        name="model_b",
+        version="1.0.0",
+        presets=[
+            records_resources_presets,
+            drafts_presets,
+            rdm_presets,
+            workflows_presets,
+        ],
+        types=[model_types],
+        metadata_type="Metadata",
+    )
+    model_.register()
+
+    t2 = time.time()
+    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
+
+    try:
+        yield model_
+    finally:
+        model_.unregister()
+
+    return model_
+
+@pytest.fixture(scope="session")
+def model_c(model_types):
+    from oarepo_model.api import model
+    from oarepo_model.presets.drafts import drafts_presets
+
+    t1 = time.time()
+
+    model_ = model(
+        name="model_c",
+        version="1.0.0",
+        presets=[
+            records_resources_presets,
+            drafts_presets,
+            rdm_presets,
+            workflows_presets,
+        ],
+        types=[model_types],
+        metadata_type="Metadata",
+    )
+    model_.register()
+
+    t2 = time.time()
+    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
+
+    try:
+        yield model_
+    finally:
+        model_.unregister()
+
+    return model_
 
 @pytest.fixture(scope="module")
-def app_config(app_config):
+def app_config(app_config, model_a, model_b, model_c):
     """Mimic an instance's configuration."""
     app_config["JSONSCHEMAS_HOST"] = "localhost"
     app_config["RECORDS_REFRESOLVER_CLS"] = (
@@ -299,9 +423,9 @@ def app_config(app_config):
     return app_config
 
 
-@pytest.fixture()
-def custom_fields():
-    prepare_cf_indices()
+#@pytest.fixture()
+#def custom_fields():
+#    prepare_cf_indices()
 
 
 # from invenio_rdm_records

@@ -27,6 +27,12 @@ def check_fully_overridden(cls):
         "scan_expired_embargos",
         "exists",
         "cleanup_record",
+        # new
+        "search_revisions",
+        "read_revision",
+        "create_or_update_many",
+        "result_bulk_item",
+        "result_bulk_list",
     }
     # what to do with delete? rdm uses delete_record but does not ban it
     # perhaps it's simpler to just list exceptions than explicitly call super(), it does the same thing?

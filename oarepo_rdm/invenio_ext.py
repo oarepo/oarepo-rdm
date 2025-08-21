@@ -36,8 +36,8 @@ class InvenioRDMRecords(InvenioRDMRecords):
 
     def init_services(self, app):
         """Initialize services."""
+        super().init_services(app)
         service_configs = self.service_configs(app)
-
         # Services
         self.records_service = OARepoRDMService(
             service_configs.record,
@@ -46,34 +46,6 @@ class InvenioRDMRecords(InvenioRDMRecords):
             access_service=RecordAccessService(service_configs.record),
             pids_service=PIDsService(service_configs.record, PIDManager),
             # review_service=ReviewService(service_configs.record),
-        )
-
-        self.records_media_files_service = RDMRecordService(
-            service_configs.record_with_media_files,
-            files_service=RDMFileService(service_configs.media_file),
-            draft_files_service=RDMFileService(service_configs.media_file_draft),
-            pids_service=PIDsService(service_configs.record, PIDManager),
-        )
-
-        self.iiif_service = IIIFService(
-            records_service=self.records_service, config=None
-        )
-
-        self.record_communities_service = RecordCommunitiesService(
-            config=service_configs.record_communities,
-        )
-
-        self.community_records_service = CommunityRecordsService(
-            config=service_configs.community_records,
-        )
-
-        self.community_inclusion_service = CommunityInclusionService()
-        self.record_requests_service = RecordRequestsService(
-            config=service_configs.record_requests
-        )
-
-        self.oaipmh_server_service = OAIPMHServerService(
-            config=service_configs.oaipmh_server,
         )
 
 

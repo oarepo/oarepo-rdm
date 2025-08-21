@@ -1,3 +1,53 @@
-[build_system]
-requires = ["setuptools", "wheel", "babel>2.8"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "oarepo-rdm"
+version = "1.0.0"
+description = ""
+readme = "README.md"
+authors = [
+    { name = "Ronald Krist", email = "krist@cesnet.cz" }
+]
+requires-python = ">=3.13,<3.14"
+
+dependencies = [
+    "oarepo-runtime>=2.0.0dev5,<3.0.0",
+    "graphlib",
+    "oarepo[rdm,tests]>=13.0.0,<14.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11.13",
+    "types-PyYAML",
+]
+
+tests = [
+    "pytest-invenio",
+]
+
+[project.entry-points."invenio_base.apps"]
+invenio_rdm_records = "oarepo_rdm.invenio_ext:InvenioRDMRecords"
+oarepo_rdm = "oarepo_rdm.ext:OARepoRDM"
+[project.entry-points."invenio_base.api_apps"]
+invenio_rdm_records = "oarepo_rdm.invenio_ext:InvenioRDMRecords"
+oarepo_rdm = "oarepo_rdm.ext:OARepoRDM"
+[project.entry-points."invenio_base.api_blueprints"]
+invenio_rdm_records = "invenio_rdm_records.views:create_records_bp"
+invenio_rdm_records_record_files = "invenio_rdm_records.views:create_record_files_bp"
+invenio_rdm_records_draft_files = "invenio_rdm_records.views:create_draft_files_bp"
+invenio_rdm_records_ext = "invenio_rdm_records.views:blueprint"
+invenio_rdm_records_parent_links = "invenio_rdm_records.views:create_parent_record_links_bp"
+invenio_rdm_records_parent_grants = "invenio_rdm_records.views:create_parent_grants_bp"
+invenio_rdm_records_user_access = "invenio_rdm_records.views:create_grant_user_access_bp"
+invenio_rdm_records_group_access = "invenio_rdm_records.views:create_grant_group_access_bp"
+[project.entry-points."invenio_base.finalize_app"]
+invenio_rdm_records = "oarepo_rdm.invenio_ext:finalize_app"
+[project.entry-points."invenio_base.api_finalize_app"]
+invenio_rdm_records = "oarepo_rdm.invenio_ext:api_finalize_app"
+
+[[tool.mypy.overrides]]
+module = ["untyped_package.*"]
+follow_untyped_imports = true
