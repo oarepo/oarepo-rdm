@@ -7,28 +7,36 @@
 #
 """oarepo oaiserver serializer functions."""
 
-# from oarepo_runtime.resources.responses import OAIExportableResponseHandler
-from lxml import etree
-from invenio_rdm_records.proxies import current_rdm_records
-from invenio_access.permissions import system_identity
-from invenio_records_resources.services.records.results import RecordItem
-from oarepo_rdm.proxies import current_oarepo_rdm
+from __future__ import annotations
 
-def get_handler_from_metadata_prefix_and_record_schema(metadata_prefix, record_schema):
-    for model in current_oarepo_rdm.rdm_models:
-        if model.api_service_config.record_cls.schema.value == record_schema:
-            for handler in model.api_resource_config.response_handlers.values():
-                pass
-#                if isinstance(handler, OAIExportableResponseHandler) and handler.oai_metadata_prefix == metadata_prefix:
-#                    return handler
-    return None
+from typing import TYPE_CHECKING, Any, Protocol
 
-def oai_serializer(pid, record, **serializer_kwargs):
-    record_item = record["_source"]
-    if not isinstance(record_item, RecordItem):
-        record_item = current_rdm_records.records_service.read(system_identity, record_item['id'])
-    serializer = get_handler_from_metadata_prefix_and_record_schema(serializer_kwargs["metadata_prefix"],
-                                                                    record_item._record.schema).serializer
-    return etree.fromstring(
-        serializer.serialize_object(record_item.to_dict()).encode(encoding="utf-8")
-    )
+if TYPE_CHECKING:
+    from lxml import etree
+
+
+class OAISerializer(Protocol):
+    """Protocol for Invenio OAI serializers."""
+
+    def __call__(self, pid: Any, record: dict[str, Any], **serializer_kwargs: Any) -> etree.Element:
+        """Transform search hit into OAI record.
+
+        :param pid: the value of the persistent identifier
+        :param record: the record to serialize as it came from the opensearch. Notably,
+        the record has a ["_source"] property that contains the actual record data.
+        :param serializer_kwargs: additional keyword arguments for the serializer
+        """
+
+
+def multiplexing_oai_serializer(
+    pid: Any,
+    record: dict[str, Any],
+    model_serializers: dict[str, OAISerializer],
+    **serializer_kwargs: Any,
+) -> etree.Element:
+    """Multiplexing OAI serializer that dispatches to the correct model serializer."""
+    source = record["_source"]
+    json_schema = source.get("$schema")
+    if not json_schema:
+        raise ValueError(f"Missing JSON schema on record {record}")
+    return model_serializers[json_schema](pid, record, **serializer_kwargs)

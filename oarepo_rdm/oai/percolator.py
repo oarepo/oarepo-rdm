@@ -6,25 +6,33 @@
 # details.
 #
 """invenio-oaiserver percolator extensions."""
-from flask import current_app
-from invenio_oaiserver import current_oaiserver
-from invenio_search import current_search, current_search_client
-from invenio_oaiserver.query import query_string_parser
+
+from __future__ import annotations
+
 from collections import defaultdict
+
+from flask import current_app
 from invenio_access.permissions import system_identity
-from oarepo_global_search.proxies import current_global_search
-from invenio_oaiserver.percolator import percolate_query, _create_percolator_mapping, _build_percolator_index_name
+from invenio_oaiserver import current_oaiserver
+from invenio_oaiserver.percolator import (
+    _build_percolator_index_name,
+    _create_percolator_mapping,
+    percolate_query,
+)
+from invenio_oaiserver.query import query_string_parser
 from invenio_records_resources.services.records.results import RecordItem
-from oarepo_rdm.proxies import current_oarepo_rdm
-from invenio_search.utils import prefix_index, build_alias_name
-from oarepo_runtime.utils.index import prefixed_index
+from invenio_search import current_search, current_search_client
 from invenio_search.proxies import current_search
+from invenio_search.utils import build_alias_name
+from oarepo_global_search.proxies import current_global_search
+from oarepo_runtime.utils.index import prefixed_index
+
+from oarepo_rdm.proxies import current_oarepo_rdm
 
 
 def _get_rdm_model_record_class_index_aliases(rdm_model):
-
     index = prefixed_index(rdm_model.api_service_config.record_cls.index)
-    rdm_model_alias_dict = index.get_alias() # we expect get_alias returns values with prefix
+    rdm_model_alias_dict = index.get_alias()  # we expect get_alias returns values with prefix
 
     return list(rdm_model_alias_dict.values())[0]["aliases"].keys()
 
@@ -50,15 +58,19 @@ def _new_percolator(spec, search_pattern):
     if spec and search_pattern:
         query = query_string_parser(search_pattern=search_pattern).to_dict()
         oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
-        for oai_index_alias in oai_records_index.split(','): #todo discussion now percolator is created for each oai index even when it doesn't have the mapping
+        for oai_index_alias in oai_records_index.split(
+            ","
+        ):  # TODO discussion now percolator is created for each oai index even when it doesn't have the mapping
             current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
             if current_search_mapping_name:
                 try:
-                    _create_percolator_mapping(current_search_mapping_name,
-                                               current_search.mappings[current_search_mapping_name])
+                    _create_percolator_mapping(
+                        current_search_mapping_name,
+                        current_search.mappings[current_search_mapping_name],
+                    )
                     current_search_client.index(
                         index=_build_percolator_index_name(current_search_mapping_name),
-                        id="oaiset-{}".format(spec),
+                        id=f"oaiset-{spec}",
                         body={"query": query},
                     )
                 except Exception as e:
@@ -67,14 +79,15 @@ def _new_percolator(spec, search_pattern):
 
 def _delete_percolator(spec, search_pattern):
     oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
-    for oai_index_alias in oai_records_index.split(','):
+    for oai_index_alias in oai_records_index.split(","):
         current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
         if current_search_mapping_name:
             current_search_client.delete(
                 index=_build_percolator_index_name(current_search_mapping_name),
-                id="oaiset-{}".format(spec),
+                id=f"oaiset-{spec}",
                 ignore=[404],
             )
+
 
 def get_service_by_record_schema(record_dict):
     for service in current_global_search.global_search_model_services:
@@ -83,6 +96,7 @@ def get_service_by_record_schema(record_dict):
         if service.record_cls.schema.value == record_dict["$schema"]:
             return service
     return None
+
 
 def sets_search_all(records):
     # in invenio it's used only for find_sets_for_record, which doesn't use more than one record
@@ -114,7 +128,7 @@ def sets_search_all(records):
     for schema, index in indices_mapping.items():
         records = records_mapping[schema]
         record_sets = [[] for _ in range(len(records))]
-        result = percolate_query(indices_mapping[schema], documents=records)
+        result = percolate_query(index, documents=records)
         results_for_index[schema] = result
         records_sets_mapping[schema] = record_sets
 
@@ -126,11 +140,10 @@ def sets_search_all(records):
             set_index_id = s["_id"]
             if set_index_id.startswith(prefix):
                 set_spec = set_index_id[prefix_len:]
-                for record_index in s.get("fields", {}).get(
-                    "_percolator_document_slot", []
-                ):
+                for record_index in s.get("fields", {}).get("_percolator_document_slot", []):
                     records_sets_mapping[schema][record_index].append(set_spec)
     return [item for sublist in records_sets_mapping.values() for item in sublist]
+
 
 def find_sets_for_record(record):
     """Fetch a record's sets."""

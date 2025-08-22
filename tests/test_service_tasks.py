@@ -1,11 +1,21 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
 from invenio_rdm_records.services.tasks import update_expired_embargos
-from modela.proxies import current_service as modela_service
-from modelb.proxies import current_service as modelb_service
+
+from .models import modela, modelb, modelc
+
+modela_service = modela.proxies.current_service
+modelb_service = modelb.proxies.current_service
+modelc_service = modelc.proxies.current_service
 
 
-def test_embargo_lift_without_draft(
-    rdm_records_service, embargoed_files_record, search_clear
-):
+def test_embargo_lift_without_draft(rdm_records_service, embargoed_files_record, search_clear):
     record = embargoed_files_record(modela_service)
     update_expired_embargos()
     record_lifted = rdm_records_service.record_cls.pid.resolve(record["id"])
@@ -15,9 +25,7 @@ def test_embargo_lift_without_draft(
     assert record_lifted.access.status.value == "metadata-only"
 
 
-def test_embargo_lift_with_draft(
-    rdm_records_service, embargoed_files_record, identity_simple, search_clear
-):
+def test_embargo_lift_with_draft(rdm_records_service, embargoed_files_record, identity_simple, search_clear):
     record = embargoed_files_record(modela_service)
     service = rdm_records_service
 
@@ -39,9 +47,7 @@ def test_embargo_lift_with_draft(
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_embargo_lift_with_updated_draft(
-    rdm_records_service, embargoed_files_record, identity_simple, search_clear
-):
+def test_embargo_lift_with_updated_draft(rdm_records_service, embargoed_files_record, identity_simple, search_clear):
     record = embargoed_files_record(modela_service)
     service = rdm_records_service
 
@@ -51,11 +57,9 @@ def test_embargo_lift_with_updated_draft(
     # Change record's title and access field to be restricted
     draft["metadata"]["title"] = "Record modified by the user"
     draft["access"]["status"] = "restricted"
-    draft["access"]["embargo"] = dict(active=False, until=None, reason=None)
+    draft["access"]["embargo"] = {"active": False, "until": None, "reason": None}
     # Update the ongoing draft with the new data simulating the user's input
-    ongoing_draft = service.update_draft(
-        id_=draft["id"], identity=identity_simple, data=draft
-    )
+    ongoing_draft = service.update_draft(id_=draft["id"], identity=identity_simple, data=draft)
     modela_service.draft_indexer.refresh()
 
     update_expired_embargos()
@@ -72,9 +76,7 @@ def test_embargo_lift_with_updated_draft(
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_embargo_lift_multiple_models(
-    rdm_records_service, embargoed_files_record, search_clear
-):
+def test_embargo_lift_multiple_models(rdm_records_service, embargoed_files_record, search_clear):
     record1 = embargoed_files_record(modela_service)
     record2 = embargoed_files_record(modelb_service)
 

@@ -1,3 +1,13 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+from collections.abc import Mapping
+
 from oarepo_ui.resources import (
     BabelComponent,
     PermissionsComponent,
@@ -10,12 +20,14 @@ from tests.ui.common import ModelUISerializer
 
 
 class ModelcUIResourceConfig(RecordsUIResourceConfig):
+    """UI resource config for the ModelC."""
+
     api_service = "simple_model"  # must be something included in oarepo, as oarepo is used in tests
 
     blueprint_name = "simple_model"
     url_prefix = "/simple-model"
     ui_serializer_class = ModelUISerializer
-    templates = {
+    templates: Mapping = {
         **RecordsUIResourceConfig.templates,
         "detail": "TestDetail",
         "search": "TestSearch",
@@ -23,9 +35,9 @@ class ModelcUIResourceConfig(RecordsUIResourceConfig):
         "edit": "TestEdit",
     }
 
-    components = [
+    components = (
         BabelComponent,
         PermissionsComponent,
         AllowedHtmlTagsComponent,
         CustomFieldsComponent,
-    ]
+    )

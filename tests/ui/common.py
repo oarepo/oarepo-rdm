@@ -1,11 +1,23 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
 import marshmallow as ma
-from flask_resources import MarshmallowSerializer, JSONSerializer, BaseListSchema
+from flask_resources import BaseListSchema, JSONSerializer, MarshmallowSerializer
 
 
 class ModelSchema(ma.Schema):
+    """Schema for Model."""
+
     title = ma.fields.String()
 
     class Meta:
+        """Meta class for ModelSchema."""
+
         unknown = ma.INCLUDE
 
 

@@ -1,3 +1,11 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
 from io import BytesIO
 
 import pytest
@@ -10,8 +18,8 @@ from invenio_records_resources.services.errors import (
 )
 
 
-@pytest.fixture()
-def restricted_record(rdm_records_service, workflow_data, identity_simple):
+@pytest.fixture
+def restricted_record(rdm_records_service, identity_simple):
     """Restricted record fixture."""
     service = rdm_records_service
 
@@ -20,19 +28,14 @@ def restricted_record(rdm_records_service, workflow_data, identity_simple):
         "metadata": {"title": "blah", "cdescription": "bbb"},
         "files": {"enabled": True},
         "access": {"record": "restricted", "files": "restricted"},
-        **workflow_data,
     }
 
     # Create
     draft = service.create(identity_simple, data)
 
     # Add a file
-    service.draft_files.init_files(
-        identity_simple, draft.id, data=[{"key": "test.pdf"}]
-    )
-    service.draft_files.set_file_content(
-        identity_simple, draft.id, "test.pdf", BytesIO(b"test file")
-    )
+    service.draft_files.init_files(identity_simple, draft.id, data=[{"key": "test.pdf"}])
+    service.draft_files.set_file_content(identity_simple, draft.id, "test.pdf", BytesIO(b"test file"))
     service.draft_files.commit_file(identity_simple, draft.id, "test.pdf")
 
     # Publish
@@ -45,22 +48,14 @@ def restricted_record(rdm_records_service, workflow_data, identity_simple):
 
 
 @pytest.mark.skip(reason="not used for now")
-def test_permission_levels(
-    rdm_records_service, restricted_record, identity_simple, search_clear
-):
+def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
     """Test invalid permission level."""
     service = rdm_records_service
 
     id_ = restricted_record.id
-    view_link = service.access.create_secret_link(
-        identity_simple, id_, {"permission": "view"}
-    )
-    preview_link = service.access.create_secret_link(
-        identity_simple, id_, {"permission": "preview"}
-    )
-    edit_link = service.access.create_secret_link(
-        identity_simple, id_, {"permission": "edit"}
-    )
+    view_link = service.access.create_secret_link(identity_simple, id_, {"permission": "view"})
+    preview_link = service.access.create_secret_link(identity_simple, id_, {"permission": "preview"})
+    edit_link = service.access.create_secret_link(identity_simple, id_, {"permission": "edit"})
 
     # == Anonymous user
     anon = AnonymousIdentity()
@@ -148,7 +143,7 @@ def test_permission_levels(
     data["metadata"]["title"] = "allow it"
     service.update_draft(i, id_, data)
     service.delete_draft(i, id_)
-    test = service.edit(i, id_)
+    _test = service.edit(i, id_)
     service.publish(i, id_)
     new_draft = service.new_version(i, id_)
     new_id = new_draft.id

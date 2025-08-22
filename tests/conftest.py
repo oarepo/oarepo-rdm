@@ -1,57 +1,41 @@
-import json
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+import base64
 import os
-import sys
-import time
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest import mock
 
 import arrow
 import pytest
-from dateutil import tz
 from flask_principal import Identity, Need, UserNeed
+from flask_security import login_user
+from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
-from invenio_rdm_records.proxies import current_rdm_records_service
-from oarepo_model.customizations import AddFileToModule
-from oarepo_model.presets.rdm import rdm_presets
-from oarepo_model.presets.records_resources import records_resources_presets
-# from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
-from oarepo_workflows.base import Workflow
-from oarepo_workflows.model.presets import workflows_presets
-from oarepo_workflows.requests.policy import WorkflowRequestPolicy
-from oarepo_workflows.services.permissions.workflow_permissions import (
-    DefaultWorkflowPermissions,
-)
-from invenio_rdm_records.services.pids import providers
-from invenio_oaiserver.views.server import blueprint
-#from oarepo_runtime.i18n import lazy_gettext as _
 from invenio_i18n import _
+from invenio_oaiserver.views.server import blueprint
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records.api import RDMRecord
+from invenio_rdm_records.services.pids import providers
+from sqlalchemy.exc import IntegrityError
 
-pytest_plugins = [
-    "pytest_oarepo.fixtures",
-    "pytest_oarepo.records",
-    "pytest_oarepo.users",
-]
+# pytest_plugins = [
+# "pytest_oarepo.fixtures",
+# "pytest_oarepo.records",
+# "pytest_oarepo.users",
+# ]
 
-@pytest.fixture()
+
+@pytest.fixture
 def app(app):
     if "invenio_oaiserver" not in app.blueprints:
         app.register_blueprint(blueprint)
-    yield app
-
-@pytest.fixture(scope="module")
-def extra_entry_points():
-    """Register extra entry point."""
-    return {
-        "invenio.modela.response_handlers": [
-            "modela_oaidc_handler = tests.handlers:modela_handler"
-        ],
-        "invenio.modelb.response_handlers": [
-            "modelb_oaidc_handler = tests.handlers:modelb_handler"
-        ],
-        "invenio.modelc.response_handlers": [
-            "modelc_oaidc_handler = tests.handlers:modelc_handler"
-        ]
-    }
+    return app
 
 
 @pytest.fixture(scope="module")
@@ -65,14 +49,9 @@ def location(location):
     return location
 
 
-@pytest.fixture(autouse=True)
-def vocab_cf(vocab_cf):
-    return vocab_cf
-
-
 @pytest.fixture(scope="module")
 def identity_simple():
-    """Simple identity fixture."""
+    """Return simple identity fixture."""
     i = Identity(1)
     i.provides.add(UserNeed(1))
     i.provides.add(Need(method="system_role", value="any_user"))
@@ -80,23 +59,10 @@ def identity_simple():
     return i
 
 
-@pytest.fixture()
+@pytest.fixture
 def rdm_records_service():
     return current_rdm_records_service
 
-
-@pytest.fixture()
-def workflow_data():
-    return {"parent": {"workflow": "default"}}
-
-
-WORKFLOWS = {
-    "default": Workflow(
-        label=_("Default workflow"),
-        permission_policy_cls=DefaultWorkflowPermissions,
-        request_policy_cls=WorkflowRequestPolicy,
-    ),
-}
 
 @pytest.fixture(scope="session")
 def model_types():
@@ -110,117 +76,35 @@ def model_types():
         }
     }
 
+
 @pytest.fixture(scope="session")
 def model_a(model_types):
-    from oarepo_model.api import model
-    from oarepo_model.presets.drafts import drafts_presets
+    from .models import modela
 
-    t1 = time.time()
+    return modela
 
-    model_ = model(
-        name="model_a",
-        version="1.0.0",
-        presets=[
-            records_resources_presets,
-            drafts_presets,
-            rdm_presets,
-            workflows_presets,
-        ],
-        types=[model_types],
-        metadata_type="Metadata",
-        customizations=[
-            AddFileToModule(
-                "parent-jsonschema",
-                "jsonschemas",
-                "parent-v1.0.0.json",
-                json.dumps(
-                    {
-                        "$schema": "http://json-schema.org/draft-07/schema#",
-                        "$id": "local://parent-v1.0.0.json",
-                        "type": "object",
-                        "properties": {"id": {"type": "string"}},
-                    }
-                ),
-            ),
-        ],
-    )
-    model_.register()
-
-    t2 = time.time()
-    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
-
-    try:
-        yield model_
-    finally:
-        model_.unregister()
-
-    return model_
 
 @pytest.fixture(scope="session")
 def model_b(model_types):
-    from oarepo_model.api import model
-    from oarepo_model.presets.drafts import drafts_presets
+    from .models import modelb
 
-    t1 = time.time()
+    return modelb
 
-    model_ = model(
-        name="model_b",
-        version="1.0.0",
-        presets=[
-            records_resources_presets,
-            drafts_presets,
-            rdm_presets,
-            workflows_presets,
-        ],
-        types=[model_types],
-        metadata_type="Metadata",
-    )
-    model_.register()
-
-    t2 = time.time()
-    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
-
-    try:
-        yield model_
-    finally:
-        model_.unregister()
-
-    return model_
 
 @pytest.fixture(scope="session")
 def model_c(model_types):
-    from oarepo_model.api import model
-    from oarepo_model.presets.drafts import drafts_presets
+    from .models import modelc
 
-    t1 = time.time()
+    return modelc
 
-    model_ = model(
-        name="model_c",
-        version="1.0.0",
-        presets=[
-            records_resources_presets,
-            drafts_presets,
-            rdm_presets,
-            workflows_presets,
-        ],
-        types=[model_types],
-        metadata_type="Metadata",
-    )
-    model_.register()
-
-    t2 = time.time()
-    print(f"Model created in {t2 - t1:.2f} seconds", file=sys.stderr, flush=True)
-
-    try:
-        yield model_
-    finally:
-        model_.unregister()
-
-    return model_
 
 @pytest.fixture(scope="module")
 def app_config(app_config, model_a, model_b, model_c):
     """Mimic an instance's configuration."""
+    model_a.register()
+    model_b.register()
+    model_c.register()
+
     app_config["JSONSCHEMAS_HOST"] = "localhost"
     app_config["RECORDS_REFRESOLVER_CLS"] = (
         "invenio_records.resolver.InvenioRefResolver"
@@ -235,22 +119,7 @@ def app_config(app_config, model_a, model_b, model_c):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
-    app_config["GLOBAL_SEARCH_MODELS"] = [
-        {
-            "model_service": "modela.services.records.service.ModelaService",
-            "service_config": "modela.services.records.config.ModelaServiceConfig",
-        },
-        {
-            "model_service": "modelb.services.records.service.ModelbService",
-            "service_config": "modelb.services.records.config.ModelbServiceConfig",
-        },
-        {
-            "model_service": "modelc.services.records.service.ModelcService",
-            "service_config": "modelc.services.records.config.ModelcServiceConfig",
-        },
-    ]
     app_config["SITE_API_URL"] = "http://localhost"
-    # app_config["SQLALCHEMY_ECHO"] = True
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
         "L": "Local",
         "F": "Fetch",
@@ -264,20 +133,14 @@ def app_config(app_config, model_a, model_b, model_c):
     app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
     app_config["RDM_DEFAULT_FILES_ENABLED"] = False
     app_config["RDM_SEARCH_SORT_BY_VERIFIED"] = False
+
     app_config["SQLALCHEMY_ENGINE_OPTIONS"] = (
-        {  # hack to avoid pool_timeout set in invenio_app_rdm
+        {  # avoid pool_timeout set in invenio_app_rdm
             "pool_pre_ping": False,
             "pool_recycle": 3600,
         },
     )
     app_config["REST_CSRF_ENABLED"] = False
-
-    app_config["APP_RDM_ROUTES"] = {
-        "record_detail": "/records/<pid_value>",
-        "record_file_download": "/records/<pid_value>/files/<path:filename>",
-    }
-
-    app_config["WORKFLOWS"] = WORKFLOWS
 
     app_config["RDM_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
         providers.OAIPIDProvider(
@@ -303,13 +166,28 @@ def app_config(app_config, model_a, model_b, model_c):
     app_config["OAISERVER_ID_FETCHER"] = "invenio_rdm_records.oai:oaiid_fetcher"
     app_config["OAISERVER_GETRECORD_FETCHER"] = "oarepo_rdm.oai.record:get_record"
     from oarepo_rdm.oai.config import OAIServerMetadataFormats
+
     app_config["OAISERVER_METADATA_FORMATS"] = OAIServerMetadataFormats()
-    app_config["OAISERVER_RECORD_SETS_FETCHER"] = "oarepo_rdm.oai.percolator:find_sets_for_record"
-    app_config["OAISERVER_RECORD_LIST_SETS_FETCHER"] = "oarepo_rdm.oai.percolator:sets_search_all"
+    app_config["OAISERVER_RECORD_SETS_FETCHER"] = (
+        "oarepo_rdm.oai.percolator:find_sets_for_record"
+    )
+    app_config["OAISERVER_RECORD_LIST_SETS_FETCHER"] = (
+        "oarepo_rdm.oai.percolator:sets_search_all"
+    )
     app_config["OAISERVER_ID_PREFIX"] = "oaioaioai"
-    app_config["OAISERVER_NEW_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_new_percolator"
-    app_config["OAISERVER_DELETE_PERCOLATOR_FUNCTION"] = "oarepo_rdm.oai.percolator:_delete_percolator"
-    app_config["RDM_MODELS"] = [{ #todo this is explicit due to ui; is there a reason to not merge missing attributes in model ext?
+    app_config["OAISERVER_NEW_PERCOLATOR_FUNCTION"] = (
+        "oarepo_rdm.oai.percolator:_new_percolator"
+    )
+    app_config["OAISERVER_DELETE_PERCOLATOR_FUNCTION"] = (
+        "oarepo_rdm.oai.percolator:_delete_percolator"
+    )
+
+    app_config["RECORDS_REST_ENDPOINTS"] = (
+        []
+    )  # rule /records/<pid(recid):pid_value> is in race condition with
+    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
+    app_config["RDM_MODELS"] = [
+        {  # TODO: this is explicit due to ui; is there a reason to not merge missing attributes in model ext?
             "service_id": "modela",
             # deprecated
             "model_service": "modela.services.records.service.ModelaService",
@@ -325,64 +203,7 @@ def app_config(app_config, model_a, model_b, model_c):
             "record_cls": "modela.records.api.ModelaRecord",
             "pid_type": "modela",
             "draft_cls": "modela.records.api.ModelaDraft",
-            },
-            {
-                "service_id": "modelb",
-                # deprecated
-                "model_service": "modelb.services.records.service.ModelbService",
-                # deprecated
-                "service_config": "modelb.services.records.config.ModelbServiceConfig",
-                "api_service": "modelb.services.records.service.ModelbService",
-                "api_service_config": "modelb.services.records.config.ModelbServiceConfig",
-                "api_resource": "modelb.resources.records.resource.ModelbResource",
-                "api_resource_config": (
-                    "modelb.resources.records.config.ModelbResourceConfig"
-                ),
-                "ui_resource_config": "tests.ui.modelb.ModelbUIResourceConfig",
-                "record_cls": "modelb.records.api.ModelbRecord",
-                "pid_type": "modelb",
-                "draft_cls": "modelb.records.api.ModelbDraft",
-            },
-            {
-                "service_id": "modelc",
-                # deprecated
-                "model_service": "modelc.services.records.service.ModelcService",
-                # deprecated
-                "service_config": "modelc.services.records.config.ModelcServiceConfig",
-                "api_service": "modelc.services.records.service.ModelcService",
-                "api_service_config": "modelc.services.records.config.ModelcServiceConfig",
-                "api_resource": "modelc.resources.records.resource.ModelcResource",
-                "api_resource_config": (
-                    "modelc.resources.records.config.ModelcResourceConfig"
-                ),
-                "ui_resource_config": "tests.ui.modelc.ModelcUIResourceConfig",
-                "record_cls": "modelc.records.api.ModelcRecord",
-                "pid_type": "modelc",
-                "draft_cls": "modelc.records.api.ModelcDraft",
-            }
-    ]
-
-    app_config["RECORDS_REST_ENDPOINTS"] = (
-        []
-    )  # rule /records/<pid(recid):pid_value> is in race condition with
-    # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type
-    app_config["RDM_MODELS"] = [{  # todo this is explicit due to ui; is there a reason to not merge missing attributes in model ext?
-        "service_id": "modela",
-        # deprecated
-        "model_service": "modela.services.records.service.ModelaService",
-        # deprecated
-        "service_config": "modela.services.records.config.ModelaServiceConfig",
-        "api_service": "modela.services.records.service.ModelaService",
-        "api_service_config": "modela.services.records.config.ModelaServiceConfig",
-        "api_resource": "modela.resources.records.resource.ModelaResource",
-        "api_resource_config": (
-            "modela.resources.records.config.ModelaResourceConfig"
-        ),
-        "ui_resource_config": "tests.ui.modela.ModelaUIResourceConfig",
-        "record_cls": "modela.records.api.ModelaRecord",
-        "pid_type": "modela",
-        "draft_cls": "modela.records.api.ModelaDraft",
-    },
+        },
         {
             "service_id": "modelb",
             # deprecated
@@ -416,23 +237,17 @@ def app_config(app_config, model_a, model_b, model_c):
             "record_cls": "modelc.records.api.ModelcRecord",
             "pid_type": "modelc",
             "draft_cls": "modelc.records.api.ModelcDraft",
-        }
+        },
     ]
     # /records/<pid_value> from rdm and PIDConverter in it breaks record resolution due to use recid pid type]
     app_config["SEARCH_INDEX_PREFIX"] = "nr_docs-"
     return app_config
 
 
-#@pytest.fixture()
-#def custom_fields():
-#    prepare_cf_indices()
-
-
 # from invenio_rdm_records
-@pytest.fixture()
-def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
-    def _record(records_service):
-        today = arrow.utcnow().date().isoformat()
+@pytest.fixture
+def embargoed_files_record(rdm_records_service, identity_simple):
+    def _record(records_service) -> RDMRecord:
         # Add embargo to record
         with mock.patch("arrow.utcnow") as mock_arrow:
             data = {
@@ -442,24 +257,28 @@ def embargoed_files_record(rdm_records_service, identity_simple, workflow_data):
                     "record": "public",
                     "files": "restricted",
                     "status": "embargoed",
-                    "embargo": dict(active=True, until=today, reason=None),
+                    "embargo": {
+                        "active": True,
+                        "until": datetime.now(tz=UTC).date().isoformat(),
+                        "reason": None,
+                    },
                 },
-                **workflow_data,
             }
 
             # We need to set the current date in the past to pass the validations
-            mock_arrow.return_value = arrow.get(datetime(1954, 9, 29), tz.gettz("UTC"))
+            mock_arrow.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
             records_service.indexer.refresh()
             records_service.draft_indexer.refresh()
             # Recover current date
-            mock_arrow.return_value = arrow.get(datetime.utcnow())
+            mock_arrow.return_value = arrow.get(datetime.now(tz=UTC))
         return record
 
     return _record
 
-@pytest.fixture(scope="function")
+
+@pytest.fixture
 def search_clear_percolators():
     """Clear search indices after test finishes (function scope).
 
@@ -476,3 +295,133 @@ def search_clear_percolators():
     for perc in percolator_indices:
         current_search_client.indices.delete(perc)
 
+
+#
+#
+#
+#
+#
+# TODO: use pytest-oarepo instead of this
+@pytest.fixture
+def password():
+    """Password fixture."""
+    return base64.b64encode(os.urandom(16)).decode("utf-8")
+
+
+def _create_user(user_fixture, app, db) -> None:
+    """Create users, reusing it if it already exists."""
+    try:
+        user_fixture.create(app, db)
+    except IntegrityError:
+        datastore = app.extensions["security"].datastore
+        user_fixture._user = datastore.get_user_by_email(  # noqa: SLF001
+            user_fixture.email
+        )
+        user_fixture._app = app  # noqa: SLF001
+        app.logger.info("skipping creation of %s, already existing", user_fixture.email)
+
+
+@pytest.fixture
+def users(app, db, UserFixture, password):
+    """Predefined user fixtures."""
+    user1 = UserFixture(
+        email="user1@example.org",
+        password=password,
+        active=True,
+        confirmed=True,
+        user_profile={
+            "affiliations": "CERN",
+        },
+    )
+    _create_user(user1, app, db)
+
+    user2 = UserFixture(
+        email="user2@example.org",
+        password=password,
+        username="beetlesmasher",
+        active=True,
+        confirmed=True,
+        user_profile={
+            "affiliations": "CERN",
+        },
+    )
+    _create_user(user2, app, db)
+
+    user3 = UserFixture(
+        email="user3@example.org",
+        password=password,
+        username="beetlesmasherXXL",
+        user_profile={
+            "full_name": "Maxipes Fik",
+            "affiliations": "CERN",
+        },
+        active=True,
+        confirmed=True,
+    )
+    _create_user(user3, app, db)
+
+    user4 = UserFixture(
+        email="user4@example.org",
+        password=password,
+        username="african",
+        preferences={
+            "timezone": "Africa/Dakar",  # something without daylight saving time; +0.0
+        },
+        user_profile={
+            "affiliations": "CERN",
+        },
+        active=True,
+        confirmed=True,
+    )
+    _create_user(user4, app, db)
+
+    user5 = UserFixture(
+        email="user5@example.org",
+        password=password,
+        username="mexican",
+        preferences={
+            "timezone": "America/Mexico_City",  # something without daylight saving time
+        },
+        user_profile={
+            "affiliations": "CERN",
+        },
+        active=True,
+        confirmed=True,
+    )
+    _create_user(user5, app, db)
+
+    return [user1, user2, user3, user4, user5]
+
+
+class LoggedClient:
+    def __init__(self, client, user_fixture):
+        self.client = client
+        self.user_fixture = user_fixture
+
+    def _login(self):
+        login_user(self.user_fixture.user, remember=True)
+        login_user_via_session(self.client, email=self.user_fixture.email)
+
+    def post(self, *args, **kwargs):
+        self._login()
+        return self.client.post(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        self._login()
+        return self.client.get(*args, **kwargs)
+
+    def put(self, *args, **kwargs):
+        self._login()
+        return self.client.put(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self._login()
+        return self.client.delete(*args, **kwargs)
+
+
+@pytest.fixture
+def logged_client(client):
+    def _logged_client(user):
+        return LoggedClient(client, user)
+
+    return _logged_client
