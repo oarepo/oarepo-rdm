@@ -44,7 +44,9 @@ def _site_name(site_url: str) -> str:
     return site_url.split("//")[-1].split("/")[0]
 
 
-OAISERVER_ID_PREFIX = LocalProxy(lambda: f"oai:{_site_name(current_app.config['SITE_UI_URL'])}:")
+OAISERVER_ID_PREFIX = LocalProxy(
+    lambda: f"oai:{_site_name(current_app.config['SITE_UI_URL'])}:"
+)
 """The prefix that will be applied to the generated OAI-PMH ids."""
 
 OAISERVER_SEARCH_CLS = "invenio_rdm_records.oai:OAIRecordSearch"

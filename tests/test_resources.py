@@ -21,7 +21,7 @@ def test_list(rdm_records_service, users, logged_client, search_clear):
     sample_draft = rdm_records_service.create(
         user.identity,
         data={
-            "$schema": "local://modela-1.0.0.json",
+            "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": False},
         },
     )
@@ -41,7 +41,7 @@ def test_read(rdm_records_service, users, logged_client, search_clear):
     sample = rdm_records_service.create(
         user.identity,
         data={
-            "$schema": "local://modela-1.0.0.json",
+            "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": False},
         },
     )

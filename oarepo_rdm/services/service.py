@@ -10,64 +10,140 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, cast, override
+import copy
+from typing import TYPE_CHECKING, Any, cast, override
 
 from invenio_rdm_records.services.services import RDMRecordService
+from invenio_records_resources.services.records.service import ServiceSchemaWrapper
 from invenio_records_resources.services.uow import UnitOfWork, unit_of_work
 from oarepo_runtime.proxies import current_runtime
+from werkzeug.exceptions import Forbidden
 
 from oarepo_rdm.errors import UndefinedModelError
+
+from .config import MultiplexingLinks, MultiplexingSchema
 
 if TYPE_CHECKING:
     import datetime
 
     from invenio_access.permissions import Identity
-    from invenio_records_resources.services.files.results import FileList
     from invenio_records_resources.services.records.results import (
         RecordItem,
-        RecordList,
     )
     from oarepo_runtime.api import Model
 
+pass_through = {
+    "create_search",
+    "search_request",
+    "check_revision_id",
+    "read_many",
+    "read_all",
+    "delete",
+    "permission_policy",
+    "check_permission",
+    "require_permission",
+    "run_components",
+    "result_item",
+    "result_list",
+    "record_to_index",
+    "scan_expired_embargos",
+    "exists",
+    "cleanup_record",
+    "search_revisions",
+    "read_revision",
+    "create_or_update_many",
+    "result_bulk_item",
+    "result_bulk_list",
+    # out of place
+    "set_user_quota",
+    "search",
+    "search_drafts",
+    "scan",
+}
 
-def check_fully_overridden(cls: type) -> type:
+
+def check_fully_overridden(pass_through, base_class):
     """Check that all methods are fully overridden in the subclass."""
-    exceptions = {
-        "create_search",
-        "search_request",
-        "check_revision_id",
-        "read_many",
-        "read_all",
-        "delete",
-        "permission_policy",
-        "check_permission",
-        "require_permission",
-        "run_components",
-        "result_item",
-        "result_list",
-        "record_to_index",
-        "scan_expired_embargos",
-        "exists",
-        "cleanup_record",
-        "search_revisions",
-        "read_revision",
-        "create_or_update_many",
-        "result_bulk_item",
-        "result_bulk_list",
-        # out of place
-        "set_user_quota",
-    }
 
-    for m in cls.mro()[1:]:
+    def wrapper(cls: type) -> type:
         # go through base classes and check if methods defined on them
         # are either in the list of exceptions, or are overriden in the class
-        for name, value in m.__dict__.items():
-            if callable(value) and not name.startswith("_") and not (name in cls.__dict__ or name in exceptions):
-                raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
-    return cls
+        for name, value in base_class.__dict__.items():
+            if not callable(value) or name.startswith("_") or name in pass_through:
+                continue
+
+            this_class_value = cls.__dict__.get(name, None)
+            if this_class_value is value:
+                raise TypeError(
+                    f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
+                )
+        return cls
+
+    return wrapper
 
 
-@check_fully_overridden
+def pass_to_specialized_service(method_names):
+    """Pass the call to the specialized service.
+
+    The service is selected by converting the id to pid type and resolving
+    the service by pid type."""
+
+    def make_delegate(method_name: str):
+        def delegate(self, *args, **kwargs):
+            # might be called with positional arguments (almost always)
+            # or with keyword arguments (lift embargoes are called this way)
+            if "id_" in kwargs:
+                id_ = kwargs["id_"]
+            elif "_id" in kwargs:
+                # lift_embargo is the only one having it this way
+                id_ = kwargs["_id"]
+            else:
+                # called as (identity, id_)
+                id_ = args[1]
+
+            specialized_service = self._get_specialized_service(id_)
+            method = getattr(specialized_service, method_name)
+            return method(*args, **kwargs)
+
+        return delegate
+
+    def wrapper(cls: type) -> type:
+        overriden_methods = {}
+        for name in method_names:
+            if not hasattr(cls, name):
+                raise TypeError(f"Method {name} is not implemented in {cls.__name__}")
+            overriden_methods[name] = make_delegate(name)
+        return type(cls.__name__, (cls,), overriden_methods)
+
+    return wrapper
+
+
+@check_fully_overridden(pass_through, RDMRecordService)
+@pass_to_specialized_service(
+    [
+        "read",
+        "read_draft",
+        "read_latest",
+        "scan_versions",
+        "search_versions",
+        "update",
+        "update_draft",
+        "validate_draft",
+        "edit",
+        "new_version",
+        "import_files",
+        "delete_record",
+        "delete_draft",
+        "update_tombstone",
+        "publish",
+        "set_quota",
+        "mark_record_for_purge",
+        "purge_record",
+        "restore_record",
+        "unmark_record_for_purge",
+        "lift_embargo",
+    ]
+)
 class OARepoRDMService(RDMRecordService):
     """RDM service replacement that delegates calls to a specialized services.
 
@@ -84,7 +160,19 @@ class OARepoRDMService(RDMRecordService):
     def _get_specialized_service(self, pid_value: str) -> RDMRecordService:
         """Get a specialized service based on the pid_value of the record."""
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
-        return cast("RDMRecordService", current_runtime.model_by_pid_type[pid_type].service)
+        return cast(
+            "RDMRecordService", current_runtime.model_by_pid_type[pid_type].service
+        )
+
+    @property
+    def links_item_tpl(self):
+        """Item links template."""
+        return MultiplexingLinks()
+
+    @property
+    def schema(self) -> ServiceSchemaWrapper:
+        """Schema for the service."""
+        return MultiplexingSchema(self, None)
 
     @unit_of_work()
     @override
@@ -104,10 +192,14 @@ class OARepoRDMService(RDMRecordService):
         model = self._get_model_from_record_data(data, schema=schema)
         return cast(
             "RecordItem",
-            model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs),
+            model.service.create(
+                identity=identity, data=data, uow=uow, expand=expand, **kwargs
+            ),
         )
 
-    def _get_model_from_record_data(self, data: dict[str, Any], schema: str | None = None) -> Model:
+    def _get_model_from_record_data(
+        self, data: dict[str, Any], schema: str | None = None
+    ) -> Model:
         """Get the model from the record data."""
         if "$schema" in data:
             schema = data["$schema"]
@@ -123,528 +215,81 @@ class OARepoRDMService(RDMRecordService):
         raise UndefinedModelError(f"Model for schema {schema} does not exist.")
 
     @override
-    def read(  # type: ignore[override]
+    def _search(
         self,
-        identity: Identity,
-        id_: str,
-        expand: bool = False,
-        include_deleted: bool = False,
-    ) -> RecordItem:
-        """Read a record.
+        action,
+        identity,
+        params,
+        search_preference,
+        record_cls=None,
+        search_opts=None,
+        extra_filter=None,
+        permission_action="read",
+        versioning=True,
+        **kwargs,
+    ):
+        """Create the search engine DSL."""
+        params.update(kwargs)
+        # get services that can handle the search request [pid_type -> service]
+        services = self._search_eligible_services(identity, permission_action, **kwargs)
+        if not services:
+            raise Forbidden()
 
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param expand: if True, expand fields such as files and requests.
-        :param include_deleted: if True, include deleted records in the response,
-                    otherwise RecordDeletedException is raised for deleted records.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).read(identity, id_, expand=expand, include_deleted=include_deleted),
-        )
+        queries_list: dict[str, dict] = {}
 
-    @unit_of_work()
-    @override
-    def delete_record(
-        self,
-        identity: Identity,
-        id_: str,
-        data: dict[str, Any],
-        expand: bool = False,
-        uow: UnitOfWork | None = None,
-        revision_id: str | None = None,
-    ) -> RecordItem:
-        """Soft-delete a record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param data: the data with a reason why the record is deleted.
-        :param expand: if True, expand fields such as files and requests.
-        :param uow: the unit of work to use.
-        :param revision_id: the revision ID of the record. If provided, check that
-                the actual record revision is equal and if not, raise a revision conflict
-                exception.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).delete_record(
-                identity,
-                id_,
-                data=data,
-                expand=expand,
-                uow=uow,
-                revision_id=revision_id,
-            ),
-        )
-
-    @unit_of_work()
-    @override
-    def delete_draft(
-        self,
-        identity: Identity,
-        id_: str,
-        revision_id: str | None = None,
-        uow: UnitOfWork | None = None,
-    ) -> Literal[True]:
-        """Delete a draft record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the draft record.
-        :param revision_id: the revision ID of the draft record. If provided, check that
-                the actual draft revision is equal and if not, raise a revision conflict
-        :param uow: the unit of work to use.
-        """
-        return self._get_specialized_service(id_).delete_draft(  # type: ignore[no-any-return]
-            identity, id_, revision_id=revision_id, uow=uow
-        )
-
-    @unit_of_work()
-    @override
-    def lift_embargo(self, identity: Identity, _id: str, uow: UnitOfWork | None = None) -> None:
-        """Lift the embargo on a record.
-
-        :param identity: the identity of the user making the request.
-        :param _id: the persistent identifier of the record.
-        :param uow: the unit of work to use.
-        """
-        self._get_specialized_service(_id).lift_embargo(identity, _id, uow=uow)
-
-    @unit_of_work()
-    @override
-    def import_files(self, identity: Identity, id_: str, uow: UnitOfWork | None = None, **kwargs: Any) -> FileList:
-        """Import files from a published record to a draft record that was created from the published one.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the draft record.
-        :param uow: the unit of work to use.
-        """
-        return cast(
-            "FileList",
-            self._get_specialized_service(id_).import_files(identity, id_, uow=uow, **kwargs),
-        )
-
-    @unit_of_work()
-    @override
-    def mark_record_for_purge(
-        self,
-        identity: Identity,
-        id_: str,
-        expand: bool = False,
-        uow: UnitOfWork | None = None,
-    ) -> RecordItem:
-        """Mark a soft-deleted record for a purge.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param expand: if True, expand fields such as files and requests.
-        :param uow: the unit of work to use.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).mark_record_for_purge(identity, id_, expand=expand, uow=uow),
-        )
-
-    @unit_of_work()
-    @override
-    def publish(
-        self,
-        identity: Identity,
-        id_: str,
-        uow: UnitOfWork | None = None,
-        expand: bool = False,
-    ) -> RecordItem:
-        """Publish a draft record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the draft record.
-        :param uow: the unit of work to use.
-        :param expand: whether to expand the response.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).publish(identity, id_, expand=expand, uow=uow),
-        )
-
-    @unit_of_work()
-    @override
-    def purge_record(  # pyright: reportIncompatibleMethodOverride=False # type: ignore[override]
-        self, identity: Identity, id_: str, uow: UnitOfWork | None = None
-    ) -> None:
-        """Purge a soft-deleted record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param uow: the unit of work to use.
-        """
-        self._get_specialized_service(id_).purge_record(identity, id_, uow=uow)
-
-    @override
-    def read_draft(self, identity: Identity, id_: str, expand: bool = False) -> RecordItem:
-        """Read a draft record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the draft record.
-        :param expand: if True, expand fields such as files and requests.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).read_draft(identity, id_, expand=expand),
-        )
-
-    @override
-    def read_latest(self, identity: Identity, id_: str, expand: bool = False) -> RecordItem:
-        """Read the latest version of a record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param expand: if True, expand fields such as files and requests.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).read_latest(identity, id_, expand=expand),
-        )
-
-    @unit_of_work()
-    @override
-    def update(
-        self,
-        identity: Identity,
-        id_: str,
-        data: dict,
-        revision_id: str | None = None,
-        uow: UnitOfWork | None = None,
-        expand: bool = False,
-        **kwargs: Any,
-    ) -> RecordItem:
-        """Update a record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param data: the data to update the record with.
-        :param revision_id: optimistic concurrency control revision ID.
-        :param uow: the unit of work to use.
-        :param expand: whether to expand the response.
-        :param kwargs: additional keyword arguments.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).update(
-                identity,
-                id_,
-                data,
-                revision_id=revision_id,
-                uow=uow,
-                expand=expand,
+        for jsonschema, service in services.items():
+            search = service._search(
+                action=action,
+                identity=identity,
+                params=copy.deepcopy(params),
+                search_preference=search_preference,
+                record_cls=record_cls,
+                search_opts=self._search_options(service, search_opts),
+                extra_filter=extra_filter,
+                permission_action=permission_action,
+                versioning=versioning,
                 **kwargs,
-            ),
+            )
+            queries_list[jsonschema] = search.to_dict()
+
+        params["delegated_query"] = [queries_list, search_opts or self.config.search]
+
+        return super()._search(
+            action=action,
+            identity=identity,
+            params=params,
+            search_preference=search_preference,
+            record_cls=record_cls,
+            search_opts=search_opts,
+            extra_filter=extra_filter,
+            permission_action=permission_action,
+            versioning=versioning,
+            **kwargs,
         )
 
-    @unit_of_work()
+    def _search_options(self, service, search_opts):
+        if search_opts is self.config.search:
+            return service.config.search
+        if search_opts is self.config.search_drafts:
+            return service.config.search_drafts
+        if search_opts is self.config.search_versions:
+            return service.config.search_versions
+        return search_opts
+
+    def _search_eligible_services(
+        self, identity: Identity, permission_action: str, **kwargs: Any
+    ) -> dict[str, RDMRecordService]:
+        """Get a list of eligible RDM record services."""
+        return {
+            model.record_json_schema: model.service
+            for model in current_runtime.rdm_models
+            if model.service.check_permission(identity, permission_action, **kwargs)
+        }
+
     @override
-    def update_draft(
-        self,
-        identity: Identity,
-        id_: str,
-        data: dict,
-        revision_id: str | None = None,
-        uow: UnitOfWork | None = None,
-        expand: bool = False,
+    def oai_result_item(
+        self, identity: Identity, oai_record_source: dict[str, Any]
     ) -> RecordItem:
-        """Update a draft record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the draft record.
-        :param data: the data to update the draft record with.
-        :param revision_id: optimistic concurrency control revision ID.
-        :param uow: the unit of work to use.
-        :param expand: whether to expand the response.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).update_draft(
-                identity, id_, data, revision_id=revision_id, uow=uow, expand=expand
-            ),
-        )
-
-    @unit_of_work()
-    @override
-    def restore_record(
-        self,
-        identity: Identity,
-        id_: str,
-        expand: bool = False,
-        uow: UnitOfWork | None = None,
-    ) -> None:
-        """Restore a soft-deleted record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param expand: if True, expand fields such as files and requests.
-        :param uow: the unit of work to use.
-        """
-        self._get_specialized_service(id_).restore_record(identity, id_, expand=expand, uow=uow)
-
-    @override
-    def scan_versions(
-        self,
-        identity: Identity,
-        id_: str,
-        params: dict[str, list[str]] | None = None,
-        search_preference: str | None = None,
-        expand: bool = False,
-        permission_action: str = "read_deleted",
-        **kwargs: Any,
-    ) -> RecordList:
-        """Return all versions of a record, optionally with a filter applied.
-
-        This call uses opensearch `scan` API to retrieve all versions of a record.
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param params: additional query parameters.
-        :param search_preference: the search preference to use.
-        :param expand: if True, expand fields such as files and requests.
-        :param permission_action: the permission action to use.
-        :param kwargs: additional keyword arguments.
-        """
-        return cast(
-            "RecordList",
-            self._get_specialized_service(id_).scan_versions(
-                identity,
-                id_,
-                params=params,
-                search_preferences=search_preference,
-                expand=expand,
-                permissions_action=permission_action,
-                **kwargs,
-            ),
-        )
-
-    @override
-    def search_versions(  # type: ignore[override] # pyright: reportIncompatibleMethodOverride=False
-        self,
-        identity: Identity,
-        id_: str,
-        params: dict[str, list[str]] | None = None,
-        search_preference: str | None = None,
-        expand: bool = False,
-        **kwargs: Any,
-    ) -> RecordList:
-        """Search for all versions of a record, optionally with a filter applied.
-
-        This call uses opensearch `search` API to retrieve all versions of a record.
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param params: additional query parameters.
-        :param search_preference: the search preference to use.
-        :param expand: if True, expand fields such as files and requests.
-        :param kwargs: additional keyword arguments.
-        """
-        return cast(
-            "RecordList",
-            self._get_specialized_service(id_).search_versions(
-                identity,
-                id_,
-                params=params,
-                search_preferences=search_preference,
-                expand=expand,
-                **kwargs,
-            ),
-        )
-
-    @unit_of_work()
-    @override
-    def set_quota(
-        self,
-        identity: Identity,
-        id_: str,
-        data: dict[str, Any],
-        files_attr: str = "files",
-        uow: UnitOfWork | None = None,
-    ) -> Literal[True]:
-        """Set the quota for a record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param data: the quota data to set.
-        :param files_attr: the files attribute to use.
-        :param uow: the unit of work to use.
-        """
-        return self._get_specialized_service(id_).set_quota(  # type: ignore[no-any-return]
-            identity, id_, data=data, files_attr=files_attr, uow=uow
-        )
-
-    @unit_of_work()
-    @override
-    def unmark_record_for_purge(
-        self,
-        identity: Identity,
-        id_: str,
-        expand: bool = False,
-        uow: UnitOfWork | None = None,
-    ) -> RecordItem:
-        """Unmark a record for purge.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param expand: if True, expand fields such as files and requests.
-        :param uow: the unit of work to use.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).unmark_record_for_purge(identity, id_, expand=expand, uow=uow),
-        )
-
-    @unit_of_work()
-    @override
-    def update_tombstone(
-        self,
-        identity: Identity,
-        id_: str,
-        data: dict[str, Any],
-        expand: bool = False,
-        uow: UnitOfWork | None = None,
-    ) -> RecordItem:
-        """Update the tombstone of a deleted record.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param data: the tombstone data to update.
-        :param expand: if True, expand fields such as files and requests.
-        :param uow: the unit of work to use.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).update_tombstone(identity, id_, data=data, expand=expand, uow=uow),
-        )
-
-    @override
-    def validate_draft(self, identity: Identity, id_: str, ignore_field_permissions: bool = False) -> None:
-        self._get_specialized_service(id_).validate_draft(
-            identity, id_, ignore_field_permissions=ignore_field_permissions
-        )
-
-    @unit_of_work()
-    @override
-    def edit(
-        self,
-        identity: Identity,
-        id_: str,
-        uow: UnitOfWork | None = None,
-        expand: bool = False,
-        **kwargs: Any,
-    ) -> RecordItem:
-        """Edit a record.
-
-        This method creates a draft record from a published record and return it.
-        When the draft is published, the original record is updated with the new data.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param uow: the unit of work to use.
-        :param expand: if True, expand fields such as files and requests.
-        :param kwargs: additional keyword arguments.
-
-        :return: the edited draft record.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).edit(identity, id_, uow=uow, expand=expand, **kwargs),
-        )
-
-    @unit_of_work()
-    @override
-    def new_version(
-        self,
-        identity: Identity,
-        id_: str,
-        uow: UnitOfWork | None = None,
-        expand: bool = False,
-        **kwargs: Any,
-    ) -> RecordItem:
-        """Create a new version of a record.
-
-        This method creates a draft by copying the existing record data
-        and allowing for modifications. The draft will have a new persistent identifier.
-        When the draft is published, a new published record with the same PID is created.
-
-        :param identity: the identity of the user making the request.
-        :param id_: the persistent identifier of the record.
-        :param uow: the unit of work to use.
-        :param expand: if True, expand fields such as files and requests.
-        :param kwargs: additional keyword arguments.
-
-        :return: the new version of the record.
-        """
-        return cast(
-            "RecordItem",
-            self._get_specialized_service(id_).new_version(identity, id_, uow=uow, expand=expand, **kwargs),
-        )
-
-    @override
-    def search(
-        self,
-        identity: Identity,
-        params: dict[str, tuple[str, ...]] | None = None,
-        search_preference: str | None = None,
-        expand: bool = False,
-        extra_filter: Any | None = None,
-        **kwargs: Any,
-    ) -> RecordList:
-        """Search for records.
-
-        :param identity: the identity of the user making the request.
-        :param params: the search parameters.
-        :param search_preference: the search preference.
-        :param expand: whether to expand the results.
-        :param extra_filter: any extra filter to apply.
-        :param kwargs: any additional keyword arguments.
-        """
-        raise NotImplementedError
-
-    @override
-    def search_drafts(
-        self,
-        identity: Identity,
-        params: dict[str, tuple[str, ...]] | None = None,
-        search_preference: str | None = None,
-        expand: bool = False,
-        extra_filter: Any | None = None,
-        **kwargs: Any,
-    ) -> RecordList:
-        """Search for user records.
-
-        Note: both drafts and published records where the identity is an owner are returned.
-
-        :param identity: the identity of the user making the request.
-        :param params: the search parameters.
-        :param search_preference: the search preference.
-        :param expand: whether to expand the results.
-        :param extra_filter: any extra filter to apply.
-        :param kwargs: any additional keyword arguments.
-        """
-        raise NotImplementedError
-
-    @override
-    def scan(
-        self,
-        identity: Identity,
-        params: dict[str, tuple[str, ...]] | None = None,
-        search_preference: str | None = None,
-        expand: bool = False,
-        **kwargs: Any,
-    ) -> RecordList:
-        """Scan for records.
-
-        :param identity: the identity of the user making the request.
-        :param params: the search parameters.
-        :param search_preference: the search preference.
-        :param expand: whether to expand the results.
-        :param kwargs: any additional keyword arguments.
-        """
-        raise NotImplementedError
-
-    @override
-    def oai_result_item(self, identity: Identity, oai_record_source: dict[str, Any]) -> RecordItem:
         """Serialize an oai record source to a record item."""
         model = self._get_model_from_record_data(oai_record_source)
         service: RDMRecordService = cast("RDMRecordService", model.service)
@@ -657,7 +302,9 @@ class OARepoRDMService(RDMRecordService):
             if hasattr(model.service, "rebuild_index"):
                 model.service.rebuild_index(identity, uow=uow)
             else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+                raise NotImplementedError(
+                    f"Model {model} does not support rebuilding index."
+                )
 
     @unit_of_work()
     @override
@@ -669,9 +316,13 @@ class OARepoRDMService(RDMRecordService):
     ) -> None:
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "cleanup_drafts"):
-                model.service.cleanup_drafts(timedelta, uow=uow, search_gc_deletes=search_gc_deletes)
+                model.service.cleanup_drafts(
+                    timedelta, uow=uow, search_gc_deletes=search_gc_deletes
+                )
             else:
-                raise NotImplementedError(f"Model {model} does not support cleaning up drafts.")
+                raise NotImplementedError(
+                    f"Model {model} does not support cleaning up drafts."
+                )
 
     @unit_of_work()
     @override
@@ -693,7 +344,9 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+                raise NotImplementedError(
+                    f"Model {model} does not support rebuilding index."
+                )
 
     @override
     def reindex(
@@ -716,7 +369,9 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+                raise NotImplementedError(
+                    f"Model {model} does not support rebuilding index."
+                )
 
     @override
     def on_relation_update(
@@ -737,4 +392,6 @@ class OARepoRDMService(RDMRecordService):
                     limit=limit,
                 )
             else:
-                raise NotImplementedError(f"Model {model} does not support relation updates.")
+                raise NotImplementedError(
+                    f"Model {model} does not support relation updates."
+                )

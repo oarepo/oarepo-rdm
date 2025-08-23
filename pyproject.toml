@@ -56,6 +56,7 @@ oarepo_rdm = "oarepo_rdm.ext:finalize_app"
 
 [project.entry-points."invenio_base.api_finalize_app"]
 invenio_rdm_records = "invenio_rdm_records.ext:api_finalize_app"
+oarepo_rdm = "oarepo_rdm.ext:finalize_app"
 
 [[tool.mypy.overrides]]
 follow_untyped_imports = true

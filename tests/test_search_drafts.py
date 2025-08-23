@@ -16,7 +16,7 @@ modelb_service = modelb.proxies.current_service
 modelc_service = modelc.proxies.current_service
 
 
-def test_description_search(app, db, search_clear, custom_fields, identity_simple):
+def test_description_search(app, db, search_clear, identity_simple):
     _modelc_record0 = modelc_service.create(
         system_identity,
         {"metadata": {"title": "blah", "cdescription": "bbb"}},
@@ -40,5 +40,11 @@ def test_description_search(app, db, search_clear, custom_fields, identity_simpl
 
     rec_id = modelc_record2.data["id"]
     assert rec_id == results["hits"]["hits"][0]["id"]
-    assert results["links"]["self"] == "http://localhost/user/search?page=1&q=jej&size=10&sort=bestmatch"
-    assert results["hits"]["hits"][0]["links"]["self"] == f"http://localhost/modelc/{rec_id}/draft"
+    assert (
+        results["links"]["self"]
+        == "http://localhost/user/records?page=1&q=jej&size=10&sort=bestmatch"
+    )
+    assert (
+        results["hits"]["hits"][0]["links"]["self"]
+        == f"http://localhost/modelc/{rec_id}/draft"
+    )

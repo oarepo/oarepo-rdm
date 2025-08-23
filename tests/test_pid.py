@@ -53,7 +53,7 @@ class ModelcFakePIDProvider(UniversalPIDMixin, DraftRecordIdProviderV2):
 
 
 def test_pid(model_c, search_clear):
-    modelc_record1 = model_c.RecordService.create(
+    modelc_record1 = model_c.proxies.current_service.create(
         system_identity,
         {"metadata": {"title": "blah", "cdescription": "kch"}},
     )
@@ -81,14 +81,14 @@ def test_universal_provider(
     recorda = rdm_records_service.create(
         identity_simple,
         data={
-            "$schema": "local://modela-1.0.0.json",
+            "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": False},
         },
     )
     recordb = rdm_records_service.create(
         identity_simple,
         data={
-            "$schema": "local://modelb-1.0.0.json",
+            "$schema": "local://modelb-v1.0.0.json",
             "files": {"enabled": False},
         },
     )
@@ -100,7 +100,7 @@ def test_universal_provider(
     recorda = rdm_records_service.create(
         identity_simple,
         data={
-            "$schema": "local://modela-1.0.0.json",
+            "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": False},
         },
     )
@@ -108,7 +108,7 @@ def test_universal_provider(
     recordb = rdm_records_service.create(
         identity_simple,
         data={
-            "$schema": "local://modelb-1.0.0.json",
+            "$schema": "local://modelb-v1.0.0.json",
             "files": {"enabled": False},
         },
     )
@@ -117,7 +117,7 @@ def test_universal_provider(
         rdm_records_service.create(
             identity_simple,
             data={
-                "$schema": "local://modelc-1.0.0.json",
+                "$schema": "local://modelc-v1.0.0.json",
                 "files": {"enabled": False},
             },
         )

@@ -10,17 +10,26 @@
 
 from __future__ import annotations
 
-from oarepo_rdm.proxies import current_oarepo_rdm
+from invenio_rdm_records.resources.config import RDMRecordResourceConfig
 
 
-def global_search_response_handlers():
-    """Return UI global search handlers."""
-    serializers: list[dict] = [
-        {
-            "schema": model.api_service.record_cls.schema.value,
-            "serializer": model.api_resource.config.response_handlers["application/vnd.inveniordm.v1+json"].serializer,
-        }
-        for model in current_oarepo_rdm.rdm_models
-    ]
+class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
+    routes = {
+        **RDMRecordResourceConfig.routes,
+        "all-prefix": "/all",  # /api/all/records
+    }
 
-    return GlobalSearchResponseHandler(serializers)
+
+# def global_search_response_handlers():
+#     """Return UI global search handlers."""
+#     serializers: list[dict] = [
+#         {
+#             "schema": model.api_service.record_cls.schema.value,
+#             "serializer": model.api_resource.config.response_handlers[
+#                 "application/vnd.inveniordm.v1+json"
+#             ].serializer,
+#         }
+#         for model in current_oarepo_rdm.rdm_models
+#     ]
+
+#     return GlobalSearchResponseHandler(serializers)

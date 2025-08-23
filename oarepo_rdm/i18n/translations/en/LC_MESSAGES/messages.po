@@ -1,0 +1,23 @@
+#
+msgid ""
+msgstr ""
+
+#: /home/dusanst/Projects/oarepo-global-search/oarepo_global_search/ui/templates/semantic-ui/global_search/Search.jinja:3
+msgid "Search results"
+msgstr ""
+
+#: /Users/miroslavbauer/Code/github.com/oarepo/oarepo-global-search/oarepo_global_search/ui/templates/semantic-ui/global_search/NoModels.jinja:7
+msgid "Missing record models"
+msgstr ""
+
+#: /Users/miroslavbauer/Code/github.com/oarepo/oarepo-global-search/oarepo_global_search/ui/templates/semantic-ui/global_search/NoModels.jinja:11
+msgid ""
+"It looks like you haven't configured any record model yet, which is required"
+" to enable search functionality. Without a configured record model, searches"
+" cannot be performed. To get started, please refer to the documentation page"
+" for detailed instructions on how to add and configure a record model:"
+msgstr ""
+
+#: /Users/miroslavbauer/Code/github.com/oarepo/oarepo-global-search/oarepo_global_search/ui/templates/semantic-ui/global_search/NoModels.jinja:13
+msgid "Create record model"
+msgstr ""
