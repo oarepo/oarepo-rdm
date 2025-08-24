@@ -21,8 +21,8 @@ Homepage = "https://github.com/oarepo/oarepo-rdm"
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.11.13",
     "types-PyYAML",
+    "lxml-stubs"
 ]
 
 tests = [

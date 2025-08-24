@@ -6,7 +6,9 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-from collections.abc import Mapping
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from oarepo_ui.resources import (
     BabelComponent,
@@ -17,6 +19,9 @@ from oarepo_ui.resources.components.bleach import AllowedHtmlTagsComponent
 from oarepo_ui.resources.components.custom_fields import CustomFieldsComponent
 
 from tests.ui.common import ModelUISerializer
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class ModelcUIResourceConfig(RecordsUIResourceConfig):

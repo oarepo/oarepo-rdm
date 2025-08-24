@@ -6,9 +6,12 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
+from __future__ import annotations
+
 import base64
 import os
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 from unittest import mock
 
 import arrow
@@ -19,14 +22,15 @@ from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 from invenio_oaiserver.views.server import blueprint
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.records.api import RDMRecord
 from sqlalchemy.exc import IntegrityError
 
-# pytest_plugins = [
-# "pytest_oarepo.fixtures",
-# "pytest_oarepo.records",
-# "pytest_oarepo.users",
-# ]
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from invenio_accounts.models import User
+    from invenio_rdm_records.records.api import RDMRecord
+
+# TODO: add pytest-oarepo and remove some of the fixtures below
 
 
 @pytest.fixture
@@ -104,12 +108,8 @@ def app_config(app_config, model_a, model_b, model_c):
     model_c.register()
 
     app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = (
-        "invenio_records.resolver.InvenioRefResolver"
-    )
-    app_config["RECORDS_REFRESOLVER_STORE"] = (
-        "invenio_jsonschemas.proxies.current_refresolver_store"
-    )
+    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
+    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
     app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
     app_config["SEARCH_HOSTS"] = [
         {
@@ -190,7 +190,7 @@ def search(search):
     init_percolators()
 
 
-@pytest.fixture()
+@pytest.fixture
 def percolators():
     from oarepo_rdm.oai.percolator import init_percolators
 
@@ -223,7 +223,7 @@ def _create_user(user_fixture, app, db) -> None:
 
 
 @pytest.fixture
-def users(app, db, UserFixture, password):
+def users(app, db, UserFixture, password):  # noqa: N803 # as it is a fixture name
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
@@ -295,34 +295,42 @@ def users(app, db, UserFixture, password):
 
 
 class LoggedClient:
+    """Logged client for testing."""
+
     def __init__(self, client, user_fixture):
+        """Initialize the logged client."""
         self.client = client
         self.user_fixture = user_fixture
 
-    def _login(self):
+    def _login(self) -> None:
+        """Perform login."""
         login_user(self.user_fixture.user, remember=True)
         login_user_via_session(self.client, email=self.user_fixture.email)
 
-    def post(self, *args, **kwargs):
+    def post(self, *args: Any, **kwargs: Any) -> Any:
+        """Send a POST request with authentication."""
         self._login()
         return self.client.post(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def get(self, *args: Any, **kwargs: Any) -> Any:
+        """Send a GET request with authentication."""
         self._login()
         return self.client.get(*args, **kwargs)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args: Any, **kwargs: Any) -> Any:
+        """Send a PUT request with authentication."""
         self._login()
         return self.client.put(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args: Any, **kwargs: Any) -> Any:
+        """Send a DELETE request with authentication."""
         self._login()
         return self.client.delete(*args, **kwargs)
 
 
 @pytest.fixture
-def logged_client(client):
-    def _logged_client(user):
+def logged_client(client) -> Callable[[User], LoggedClient]:
+    def _logged_client(user) -> LoggedClient:
         return LoggedClient(client, user)
 
     return _logged_client
@@ -330,4 +338,4 @@ def logged_client(client):
 
 @pytest.fixture
 def oai_prefix(app):
-    return f"oai:{app.config["OAISERVER_ID_PREFIX"]}:"
+    return f"oai:{app.config['OAISERVER_ID_PREFIX']}:"

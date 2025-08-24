@@ -6,12 +6,13 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
+from __future__ import annotations
 
 import copy
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import pytest
-from flask import Flask
 from invenio_oaiserver.errors import OAINoRecordsMatchError
 from invenio_oaiserver.models import OAISet
 from invenio_oaiserver.percolator import _build_percolator_index_name
@@ -22,6 +23,9 @@ from invenio_search.proxies import current_search_client
 from lxml import etree
 
 from .models import modela, modelb, modelc
+
+if TYPE_CHECKING:
+    from flask import Flask
 
 modela_service = modela.proxies.current_service
 modelb_service = modelb.proxies.current_service
@@ -130,12 +134,8 @@ def test_get_record(
     _publish1 = rdm_records_service.publish(identity_simple, recorda["id"])
     _publish2 = rdm_records_service.publish(identity_simple, recordb["id"])
 
-    resulta = client.get(
-        f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recorda['id']}&metadataPrefix=oai_dc"
-    )
-    resultb = client.get(
-        f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recordb['id']}&metadataPrefix=oai_dc"
-    )
+    resulta = client.get(f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recorda['id']}&metadataPrefix=oai_dc")
+    resultb = client.get(f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recordb['id']}&metadataPrefix=oai_dc")
 
     check_record(etree.fromstring(resulta.data), f"{oai_prefix}{recorda['id']}")
     check_record(etree.fromstring(resultb.data), f"{oai_prefix}{recordb['id']}")
@@ -183,18 +183,8 @@ def test_list_records(
     assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
 
     assert len(tree.xpath("/x:OAI-PMH/x:ListRecords", namespaces=NAMESPACES)) == 1
-    assert (
-        len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES))
-        == 10
-    )
-    assert (
-        len(
-            tree.xpath(
-                "/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES
-            )
-        )
-        == 10
-    )
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 10
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES)) == 10
     assert (
         len(
             tree.xpath(
@@ -224,31 +214,17 @@ def test_list_records(
     )
 
     # First resumption token
-    resumption_token = tree.xpath(
-        "/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES
-    )[0]
+    resumption_token = tree.xpath("/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES)[0]
     assert resumption_token.text
     # Get data for resumption token
     with app.test_client() as c:
-        result = c.get(
-            f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}"
-        )
+        result = c.get(f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}")
 
     tree = etree.fromstring(result.data)
     assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
     assert len(tree.xpath("/x:OAI-PMH/x:ListRecords", namespaces=NAMESPACES)) == 1
-    assert (
-        len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES))
-        == 10
-    )
-    assert (
-        len(
-            tree.xpath(
-                "/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES
-            )
-        )
-        == 10
-    )
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 10
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES)) == 10
     assert (
         len(
             tree.xpath(
@@ -278,31 +254,17 @@ def test_list_records(
     )
 
     # Second resumption token
-    resumption_token = tree.xpath(
-        "/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES
-    )[0]
+    resumption_token = tree.xpath("/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES)[0]
     assert resumption_token.text
     # Get data for resumption token
     with app.test_client() as c:
-        result = c.get(
-            f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}"
-        )
+        result = c.get(f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}")
 
     tree = etree.fromstring(result.data)
     assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
     assert len(tree.xpath("/x:OAI-PMH/x:ListRecords", namespaces=NAMESPACES)) == 1
-    assert (
-        len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES))
-        == 10
-    )
-    assert (
-        len(
-            tree.xpath(
-                "/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES
-            )
-        )
-        == 10
-    )
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 10
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES)) == 10
     assert (
         len(
             tree.xpath(
@@ -332,29 +294,16 @@ def test_list_records(
     )
 
     # Third resumption token
-    resumption_token = tree.xpath(
-        "/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES
-    )[0]
+    resumption_token = tree.xpath("/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES)[0]
     assert resumption_token.text
     with app.test_client() as c:
-        result = c.get(
-            f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}"
-        )
+        result = c.get(f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}")
 
     tree = etree.fromstring(result.data)
     assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
     assert len(tree.xpath("/x:OAI-PMH/x:ListRecords", namespaces=NAMESPACES)) == 1
-    assert (
-        len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 2
-    )
-    assert (
-        len(
-            tree.xpath(
-                "/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES
-            )
-        )
-        == 2
-    )
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 2
+    assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record/x:header", namespaces=NAMESPACES)) == 2
     assert (
         len(
             tree.xpath(
@@ -384,9 +333,7 @@ def test_list_records(
     )
 
     # No fourth resumption token
-    resumption_token = tree.xpath(
-        "/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES
-    )[0]
+    resumption_token = tree.xpath("/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES)[0]
     assert not resumption_token.text
 
     # Check from:until range
@@ -396,13 +343,11 @@ def test_list_records(
             result = c.get(
                 "/oai2d?verb=ListRecords&metadataPrefix=oai_dc&from={from_}&until={until_}".format(
                     from_=datetime_to_datestamp(
-                        datetime.fromisoformat(recordb.data["updated"])
-                        - timedelta(days=1),
+                        datetime.fromisoformat(recordb.data["updated"]) - timedelta(days=1),
                         day_granularity=granularity,
                     ),
                     until_=datetime_to_datestamp(
-                        datetime.fromisoformat(recordb.data["updated"])
-                        + timedelta(days=1),
+                        datetime.fromisoformat(recordb.data["updated"]) + timedelta(days=1),
                         day_granularity=granularity,
                     ),
                 )
@@ -410,24 +355,13 @@ def test_list_records(
             assert result.status_code == 200
 
             tree = etree.fromstring(result.data)
-            assert (
-                len(
-                    tree.xpath(
-                        "/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES
-                    )
-                )
-                == 10
-            )
+            assert len(tree.xpath("/x:OAI-PMH/x:ListRecords/x:record", namespaces=NAMESPACES)) == 10
 
             # Check from:until range in resumption token
-            resumption_token = tree.xpath(
-                "/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES
-            )[0]
+            resumption_token = tree.xpath("/x:OAI-PMH/x:ListRecords/x:resumptionToken", namespaces=NAMESPACES)[0]
             assert resumption_token.text
 
-            result = c.get(
-                f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}"
-            )
+            result = c.get(f"/oai2d?verb=ListRecords&resumptionToken={resumption_token.text}")
             assert result.status_code == 200
 
 
@@ -451,25 +385,9 @@ def test_listsets(db, app, search_clear, percolators):
         assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
 
         assert len(tree.xpath("/x:OAI-PMH/x:ListSets", namespaces=NAMESPACES)) == 1
-        assert (
-            len(tree.xpath("/x:OAI-PMH/x:ListSets/x:set", namespaces=NAMESPACES)) == 1
-        )
-        assert (
-            len(
-                tree.xpath(
-                    "/x:OAI-PMH/x:ListSets/x:set/x:setSpec", namespaces=NAMESPACES
-                )
-            )
-            == 1
-        )
-        assert (
-            len(
-                tree.xpath(
-                    "/x:OAI-PMH/x:ListSets/x:set/x:setName", namespaces=NAMESPACES
-                )
-            )
-            == 1
-        )
+        assert len(tree.xpath("/x:OAI-PMH/x:ListSets/x:set", namespaces=NAMESPACES)) == 1
+        assert len(tree.xpath("/x:OAI-PMH/x:ListSets/x:set/x:setSpec", namespaces=NAMESPACES)) == 1
+        assert len(tree.xpath("/x:OAI-PMH/x:ListSets/x:set/x:setName", namespaces=NAMESPACES)) == 1
         assert (
             len(
                 tree.xpath(
@@ -586,25 +504,12 @@ def test_listidentifiers(
         tree = etree.fromstring(result.data)
 
         assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
-        assert (
-            len(tree.xpath("/x:OAI-PMH/x:ListIdentifiers", namespaces=NAMESPACES)) == 1
-        )
-        assert (
-            len(
-                tree.xpath(
-                    "/x:OAI-PMH/x:ListIdentifiers/x:header", namespaces=NAMESPACES
-                )
-            )
-            == 3
-        )
-        identifier = tree.xpath(
-            "/x:OAI-PMH/x:ListIdentifiers/x:header/x:identifier", namespaces=NAMESPACES
-        )
+        assert len(tree.xpath("/x:OAI-PMH/x:ListIdentifiers", namespaces=NAMESPACES)) == 1
+        assert len(tree.xpath("/x:OAI-PMH/x:ListIdentifiers/x:header", namespaces=NAMESPACES)) == 3
+        identifier = tree.xpath("/x:OAI-PMH/x:ListIdentifiers/x:header/x:identifier", namespaces=NAMESPACES)
         assert len(identifier) == 3
         assert identifier[0].text == str(recorda_oai_pid)
-        datestamp = tree.xpath(
-            "/x:OAI-PMH/x:ListIdentifiers/x:header/x:datestamp", namespaces=NAMESPACES
-        )
+        datestamp = tree.xpath("/x:OAI-PMH/x:ListIdentifiers/x:header/x:datestamp", namespaces=NAMESPACES)
         assert len(datestamp) == 3
 
         # Check from:until range
@@ -614,13 +519,11 @@ def test_listidentifiers(
                 result = c.get(
                     "/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&from={from_}&until={until_}".format(
                         from_=datetime_to_datestamp(
-                            datetime.fromisoformat(recorda.data["updated"])
-                            - timedelta(1),
+                            datetime.fromisoformat(recorda.data["updated"]) - timedelta(1),
                             day_granularity=granularity,
                         ),
                         until_=datetime_to_datestamp(
-                            datetime.fromisoformat(recorda.data["updated"])
-                            + timedelta(1),
+                            datetime.fromisoformat(recorda.data["updated"]) + timedelta(1),
                             day_granularity=granularity,
                         ),
                     )
@@ -636,12 +539,8 @@ def test_listidentifiers(
 
         # check set param
         with app.test_client() as c:
-            result_test0 = c.get(
-                "/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&set=test0"
-            )
-            result_b = c.get(
-                "/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&set=bdescription"
-            )
+            result_test0 = c.get("/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&set=test0")
+            result_b = c.get("/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&set=bdescription")
             assert result_test0.status_code == 200
             assert result_b.status_code == 200
 
@@ -670,13 +569,11 @@ def test_listidentifiers(
                 result = c.get(
                     "/oai2d?verb=ListIdentifiers&metadataPrefix=oai_dc&from={from_}&until={until_}&set=test0".format(
                         from_=datetime_to_datestamp(
-                            datetime.fromisoformat(recorda.data["updated"])
-                            - timedelta(1),
+                            datetime.fromisoformat(recorda.data["updated"]) - timedelta(1),
                             day_granularity=granularity,
                         ),
                         until_=datetime_to_datestamp(
-                            datetime.fromisoformat(recorda.data["updated"])
-                            + timedelta(1),
+                            datetime.fromisoformat(recorda.data["updated"]) + timedelta(1),
                             day_granularity=granularity,
                         ),
                     )
@@ -727,16 +624,9 @@ def _listmetadataformats(app: Flask, query: str) -> None:
         tree = etree.fromstring(result.data)
 
         assert len(tree.xpath("/x:OAI-PMH", namespaces=NAMESPACES)) == 1
-        assert (
-            len(tree.xpath("/x:OAI-PMH/x:ListMetadataFormats", namespaces=NAMESPACES))
-            == 1
-        )
-        metadataFormats = tree.xpath(
-            "/x:OAI-PMH/x:ListMetadataFormats/x:metadataFormat", namespaces=NAMESPACES
-        )
-        cfg_metadataFormats = copy.deepcopy(
-            app.config.get("OAISERVER_METADATA_FORMATS", {})
-        )
+        assert len(tree.xpath("/x:OAI-PMH/x:ListMetadataFormats", namespaces=NAMESPACES)) == 1
+        metadataFormats = tree.xpath("/x:OAI-PMH/x:ListMetadataFormats/x:metadataFormat", namespaces=NAMESPACES)
+        cfg_metadataFormats = copy.deepcopy(app.config.get("OAISERVER_METADATA_FORMATS", {}))
         assert len(metadataFormats) == len(cfg_metadataFormats)
 
         prefixes = tree.xpath(
@@ -752,8 +642,7 @@ def _listmetadataformats(app: Flask, query: str) -> None:
         )
         assert len(schemas) == len(cfg_metadataFormats)
         assert all(
-            sch.text in cfg_metadataFormats[pfx.text]["schema"]
-            for sch, pfx in zip(schemas, prefixes, strict=False)
+            sch.text in cfg_metadataFormats[pfx.text]["schema"] for sch, pfx in zip(schemas, prefixes, strict=False)
         )
 
         metadataNamespaces = tree.xpath(
@@ -846,9 +735,7 @@ def test_search_pattern_change_percolators(
 
     modela_service.indexer.refresh()
 
-    percolator_index = _build_percolator_index_name(
-        app.config["OAISERVER_RECORD_INDEX"]
-    )
+    percolator_index = _build_percolator_index_name(app.config["OAISERVER_RECORD_INDEX"])
 
     with app.app_context():
         # create new OAI Set
@@ -865,7 +752,7 @@ def test_search_pattern_change_percolators(
         # check record is in set
         current_search_client.indices.refresh(index=percolator_index)
         sets_before_change = current_oaiserver.record_list_sets_fetcher(
-            [record1._record.dumps(), record2._record.dumps()]
+            [record1._record.dumps(), record2._record.dumps()]  # noqa: SLF001
         )
 
         oaiset.search_pattern = "metadata.title:tralala"
@@ -874,7 +761,7 @@ def test_search_pattern_change_percolators(
 
         current_search_client.indices.refresh(index=percolator_index)
         sets_after_change = current_oaiserver.record_list_sets_fetcher(
-            [record1._record.dumps(), record2._record.dumps()]
+            [record1._record.dumps(), record2._record.dumps()]  # noqa: SLF001
         )
 
         assert sets_before_change == [["test2"], []]

@@ -8,6 +8,8 @@
 #
 """OAI exports."""
 
+from __future__ import annotations
+
 from invenio_rdm_records.resources.serializers.dublincore import DublinCoreXMLSerializer
 
 

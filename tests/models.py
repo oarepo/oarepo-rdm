@@ -6,6 +6,8 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
+from __future__ import annotations
+
 from invenio_i18n import lazy_gettext as _
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
@@ -113,9 +115,9 @@ modelc = model(
     ],
 )
 
-assert (
-    "metadata_adescription" not in modela.RecordServiceConfig.search.facets
-), "Remove this assert when facets are supported in oarepo-model"
+assert "metadata_adescription" not in modela.RecordServiceConfig.search.facets, (
+    "Remove this assert when facets are supported in oarepo-model"
+)
 
 modela.RecordServiceConfig.search.facets["metadata_adescription"] = TermsFacet(
     field="metadata.adescription", label="A Description"

@@ -1,3 +1,13 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Presets for enabling OAI endpoint on the model."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
@@ -24,7 +34,6 @@ class OAIMappingAliasPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-
         yield PatchJSONFile(
             "record-mapping",
             {
@@ -51,8 +60,7 @@ class OAIDraftMappingAliasPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-
-        def remove_oaisource(mapping):
+        def remove_oaisource(mapping: dict[str, Any]) -> dict[str, Any]:
             mapping.get("aliases", {}).pop("oaisource", None)
             return mapping
 

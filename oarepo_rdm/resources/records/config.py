@@ -10,26 +10,15 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from invenio_rdm_records.resources.config import RDMRecordResourceConfig
 
 
 class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
-    routes = {
+    """OARepo extension to RDM record resource configuration."""
+
+    routes: ClassVar[dict[str, str]] = {
         **RDMRecordResourceConfig.routes,
         "all-prefix": "/all",  # /api/all/records
     }
-
-
-# def rdm_response_handlers():
-#     """Return UI global search handlers."""
-#     serializers: list[dict] = [
-#         {
-#             "schema": model.api_service.record_cls.schema.value,
-#             "serializer": model.api_resource.config.response_handlers[
-#                 "application/vnd.inveniordm.v1+json"
-#             ].serializer,
-#         }
-#         for model in current_oarepo_rdm.rdm_models
-#     ]
-
-#     return GlobalSearchResponseHandler(serializers)

@@ -79,7 +79,7 @@ class OAIServerMetadataFormats(Dict):
                     {
                         "namespace": export.oai_namespace,
                         "schema": export.oai_schema,
-                        "model_schema": model.record_cls.schema.value,
+                        "model_schema": model.record_cls.schema.value,  # type: ignore[reportAttributeAccessIssue]
                         "serializer": export.serializer,
                     }
                 )
@@ -108,12 +108,7 @@ class OAIServerMetadataFormats(Dict):
                 "schema": serialization_infos[0]["schema"],
                 "serializer": (
                     multiplexing_oai_serializer,
-                    {
-                        "model_serializers": {
-                            x["model_schema"]: x["serializer"]
-                            for x in serialization_infos
-                        }
-                    },
+                    {"model_serializers": {x["model_schema"]: x["serializer"] for x in serialization_infos}},
                 ),
             }
         return ret

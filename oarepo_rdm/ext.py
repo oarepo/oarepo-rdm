@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
-from invenio_records_resources.services.records.config import SearchOptions
 
 from oarepo_rdm.records.systemfields.pid import (
     OARepoDraftPIDFieldContext,
@@ -24,6 +23,7 @@ from oarepo_rdm.services.search import MultiplexedSearchOptions
 
 if TYPE_CHECKING:
     from flask import Flask
+    from invenio_records_resources.services.records.config import SearchOptions
 
 
 class OARepoRDM:
@@ -48,24 +48,26 @@ class OARepoRDM:
             config.RDM_PERSISTENT_IDENTIFIER_PROVIDERS
         )
 
-        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(
-            config.RDM_PERSISTENT_IDENTIFIERS
-        )
+        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(config.RDM_PERSISTENT_IDENTIFIERS)
 
     @cached_property
     def search_options(self) -> SearchOptions:
+        """Return search options."""
         return MultiplexedSearchOptions("search")
 
     @cached_property
     def draft_search_options(self) -> SearchOptions:
+        """Return draft search options."""
         return MultiplexedSearchOptions("search_drafts")
 
     @cached_property
     def versions_search_options(self) -> SearchOptions:
+        """Return versions search options."""
         return MultiplexedSearchOptions("search_versions")
 
     @cached_property
     def all_search_options(self) -> SearchOptions:
+        """Return all search options."""
         return MultiplexedSearchOptions("search_all")
 
 
@@ -86,6 +88,4 @@ def finalize_app(_app: Flask) -> None:
         None,
         search_alias=[*current_runtime.published_indices],
     )
-    InvenioRDMDraft.index = IndexField(
-        None, search_alias=[*current_runtime.draft_indices]
-    )
+    InvenioRDMDraft.index = IndexField(None, search_alias=[*current_runtime.draft_indices])

@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from lxml import etree
 from oarepo_runtime import current_runtime
@@ -19,11 +19,11 @@ if TYPE_CHECKING:
 
 
 def multiplexing_oai_serializer(
-    pid: Any,
+    pid: Any,  # noqa: ARG001 # invenio callback api needs this
     record: dict[str, Any],
     model_serializers: dict[str, BaseSerializer],
-    **serializer_kwargs: Any,
-) -> etree.Element:
+    **serializer_kwargs: Any,  # noqa: ARG001 # invenio callback api needs this
+) -> etree._Element:
     """Multiplexing OAI serializer that dispatches to the correct model serializer.
 
     :param pid: The PID of the record.
@@ -37,6 +37,5 @@ def multiplexing_oai_serializer(
         raise ValueError(f"Missing JSON schema on record {record}")
     model = current_runtime.models_by_schema[json_schema]
     loaded_record = model.record_cls.loads(source)
-    return etree.fromstring(
-        model_serializers[json_schema].serialize_object(loaded_record).encode("utf-8")
-    )
+    resp = cast("str", model_serializers[json_schema].serialize_object(loaded_record))
+    return etree.fromstring(resp.encode("utf-8"))
