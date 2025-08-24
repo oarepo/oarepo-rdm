@@ -10,7 +10,7 @@ theme = WebpackThemeBundle(
             "dependencies": {},
             "devDependencies": {},
             "aliases": {
-                "@translations/oarepo_global_search": "translations/oarepo_global_search/i18next.js"
+                "@translations/oarepo_rdm": "translations/oarepo_rdm/i18next.js"
             },
         }
     },

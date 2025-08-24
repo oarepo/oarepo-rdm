@@ -42,14 +42,15 @@ class OARepoRDM:
 
     def init_config(self, app: Flask) -> None:
         """Load config."""
-        # from oarepo_rdm.resources.records.config import global_search_response_handlers
+        from . import config
 
-        # proxy = LocalProxy(global_search_response_handlers)
-        # # TODO: check this
-        # app.config.setdefault(
-        #     "RDM_RECORDS_SERIALIZERS",
-        #     record_serializers | {"application/vnd.inveniordm.v1+json": proxy},
-        # )
+        app.config.setdefault("RDM_PERSISTENT_IDENTIFIER_PROVIDERS", []).extend(
+            config.RDM_PERSISTENT_IDENTIFIER_PROVIDERS
+        )
+
+        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(
+            config.RDM_PERSISTENT_IDENTIFIERS
+        )
 
     @cached_property
     def search_options(self) -> SearchOptions:

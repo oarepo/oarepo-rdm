@@ -1,150 +1,108 @@
-#
-# Copyright (C) 2025 CESNET z.s.p.o.
-#
-# oarepo-requests is free software; you can redistribute it and/or
-# modify it under the terms of the MIT License; see LICENSE file for more
-# details.
-#
-"""invenio-oaiserver percolator extensions."""
+"""percolators extensions.
+
+InvenioRDM contains partial support for multiple percolators, that is not
+working in some places. We work around it by:
+
+1. Declaring a single alias, `OAISERVER_RECORD_INDEX`, that is present on all records
+2. During `invenio search init`, we create a single percolator index called
+   `{OAISERVER_RECORD_INDEX}-percolator` and merge mappings from all the models
+   into this single percolator index. This means that all models must have consistent
+   mappings for shared properties.
+3. If you do not have consistent models, add OAREPO_PERCOLATOR_MAPPING to your config.
+   This should be a function receiving a list of models and returning a json mapping
+   with non-conflicting parts only.
+4. Invenio then continues as normal, using the merged percolator index for search
+   queries.
+"""
 
 from __future__ import annotations
 
-from collections import defaultdict
+from typing import TYPE_CHECKING
 
+from deepmerge import always_merger
 from flask import current_app
-from invenio_access.permissions import system_identity
-from invenio_oaiserver import current_oaiserver
-from invenio_oaiserver.percolator import (
-    _build_percolator_index_name,
-    _create_percolator_mapping,
-    percolate_query,
-)
-from invenio_oaiserver.query import query_string_parser
-from invenio_records_resources.services.records.results import RecordItem
-from invenio_search import current_search, current_search_client
-from invenio_search.proxies import current_search
-from invenio_search.utils import build_alias_name
-from oarepo_global_search.proxies import current_global_search
-from oarepo_runtime.utils.index import prefixed_index
+from invenio_search import current_search_client
+from invenio_search.utils import build_index_name
 
-from oarepo_rdm.proxies import current_oarepo_rdm
+if TYPE_CHECKING:
+    pass
 
 
-def _get_rdm_model_record_class_index_aliases(rdm_model):
-    index = prefixed_index(rdm_model.api_service_config.record_cls.index)
-    rdm_model_alias_dict = index.get_alias()  # we expect get_alias returns values with prefix
+def init_percolators() -> None:
+    oaiserver_record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
+    prefixed_oaiserver_record_index = build_index_name(
+        oaiserver_record_index, suffix="", app=current_app
+    )
 
-    return list(rdm_model_alias_dict.values())[0]["aliases"].keys()
+    percolated_mappings = _get_percolated_mappings(
+        oaiserver_record_index, prefixed_oaiserver_record_index
+    )
+    if not percolated_mappings:
+        return
 
+    _generate_percolator_index(percolated_mappings)
 
-def _get_current_search_mapping_name(oai_index_alias):
-    prefixed_oai_index_alias = build_alias_name(oai_index_alias)
-    prefixed_mapping_names_map = {build_alias_name(k): k for k in current_search.mappings.keys()}
-    for rdm_model in current_oarepo_rdm.rdm_models:
-        aliases = _get_rdm_model_record_class_index_aliases(rdm_model)
-        if prefixed_oai_index_alias not in aliases:
-            continue
-        intersection = aliases & prefixed_mapping_names_map.keys()
-        if len(intersection) != 1:
-            raise ValueError(f"OAI index alias {oai_index_alias} does not have a resolvable mapping.")
-        return prefixed_mapping_names_map[intersection.pop()]
-
-    if current_oarepo_rdm.rdm_models:
-        raise ValueError(f"OAI index alias {oai_index_alias} is not a valid index alias.")
-
-
-def _new_percolator(spec, search_pattern):
-    """Create new percolator associated with the new set."""
-    if spec and search_pattern:
-        query = query_string_parser(search_pattern=search_pattern).to_dict()
-        oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
-        for oai_index_alias in oai_records_index.split(
-            ","
-        ):  # TODO discussion now percolator is created for each oai index even when it doesn't have the mapping
-            current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
-            if current_search_mapping_name:
-                try:
-                    _create_percolator_mapping(
-                        current_search_mapping_name,
-                        current_search.mappings[current_search_mapping_name],
-                    )
-                    current_search_client.index(
-                        index=_build_percolator_index_name(current_search_mapping_name),
-                        id=f"oaiset-{spec}",
-                        body={"query": query},
-                    )
-                except Exception as e:
-                    current_app.logger.warning(e)
-
-
-def _delete_percolator(spec, search_pattern):
-    oai_records_index = current_app.config["OAISERVER_RECORD_INDEX"]
-    for oai_index_alias in oai_records_index.split(","):
-        current_search_mapping_name = _get_current_search_mapping_name(oai_index_alias)
-        if current_search_mapping_name:
-            current_search_client.delete(
-                index=_build_percolator_index_name(current_search_mapping_name),
-                id=f"oaiset-{spec}",
-                ignore=[404],
+    # add the local alias to all indices that had the oaiserver alias
+    # we can not do it when the model is generated as we do not have
+    # the app yet and the app defines the opensearch prefix.
+    # that is why it is deferred here.
+    #
+    # TODO: one could use __SEARCH_INDEX_PREFIX__ but this one works
+    # only for templates, not for actual indices. We might suggest
+    # a change to invenio to start supporting this.
+    for index_name, mapping in percolated_mappings.items():
+        if prefixed_oaiserver_record_index not in mapping["aliases"]:
+            current_search_client.indices.put_alias(
+                index_name, prefixed_oaiserver_record_index
             )
 
 
-def get_service_by_record_schema(record_dict):
-    for service in current_global_search.global_search_model_services:
-        if not hasattr(service, "record_cls") or not hasattr(service.record_cls, "schema"):
-            continue
-        if service.record_cls.schema.value == record_dict["$schema"]:
-            return service
-    return None
+def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
+    mapping = current_app.config.get(
+        "OAREPO_PERCOLATOR_MAPPING", _create_default_percolator_mapping
+    )(percolated_mappings)
+
+    mapping["mappings"]["properties"]["query"] = {"type": "percolator"}
+
+    record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
+    percolator_index = build_index_name(
+        record_index + "-percolators", suffix="", app=current_app
+    )
+
+    # remove the previous percolator index and build it again
+    if current_search_client.indices.exists(percolator_index):
+        current_search_client.indices.delete(percolator_index)
+
+    current_search_client.indices.create(index=percolator_index, body=mapping)
 
 
-def sets_search_all(records):
-    # in invenio it's used only for find_sets_for_record, which doesn't use more than one record
-    if not records:
-        return []
+def _get_percolated_mappings(
+    oaiserver_record_index: str, prefixed_oaiserver_record_index: str
+) -> dict[str, dict]:
+    indices = current_search_client.indices.get("*")
 
-    processed_schemas = set()
-    indices_mapping = {}
-    records_mapping = defaultdict(list)
-    results_for_index = {}
-    records_sets_mapping = {}
+    ret = {}
+    for index_name, index in indices.items():
+        if (
+            oaiserver_record_index in index["aliases"]
+            or prefixed_oaiserver_record_index in index["aliases"]
+        ):
+            ret[index_name] = index
 
-    for record in records:
-        if isinstance(record, RecordItem):
-            record = record._record.dumps()
-
-        schema = record["$schema"]
-        if schema not in processed_schemas:
-            service = get_service_by_record_schema(record)
-            record_item = service.read(system_identity, record["id"])
-            record_index = record_item._record.index._name
-            _create_percolator_mapping(record_index)
-            percolator_index = _build_percolator_index_name(record_index)
-            indices_mapping[schema] = percolator_index
-            processed_schemas.add(service)
-
-        records_mapping[schema].append(record)
-
-    for schema, index in indices_mapping.items():
-        records = records_mapping[schema]
-        record_sets = [[] for _ in range(len(records))]
-        result = percolate_query(index, documents=records)
-        results_for_index[schema] = result
-        records_sets_mapping[schema] = record_sets
-
-    prefix = "oaiset-"
-    prefix_len = len(prefix)
-
-    for schema, result in results_for_index.items():
-        for s in result:
-            set_index_id = s["_id"]
-            if set_index_id.startswith(prefix):
-                set_spec = set_index_id[prefix_len:]
-                for record_index in s.get("fields", {}).get("_percolator_document_slot", []):
-                    records_sets_mapping[schema][record_index].append(set_spec)
-    return [item for sublist in records_sets_mapping.values() for item in sublist]
+    return ret
 
 
-def find_sets_for_record(record):
-    """Fetch a record's sets."""
-    return current_oaiserver.record_list_sets_fetcher([record])[0]
+def _create_default_percolator_mapping(mappings: dict[str, dict]) -> dict:
+    """Merge all mappings into a single one"""
+    # for each models, get the mapping
+    percolator_mapping: dict = {}
+
+    for index_name, settings in mappings.items():
+        if not percolator_mapping:
+            percolator_mapping = settings["mappings"]
+        else:
+            percolator_mapping = always_merger.merge(
+                percolator_mapping, settings["mappings"]
+            )
+    # TODO: analyzers and so on
+    return {"mappings": percolator_mapping}

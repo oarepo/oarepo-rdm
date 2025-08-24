@@ -58,6 +58,16 @@ oarepo_rdm = "oarepo_rdm.ext:finalize_app"
 invenio_rdm_records = "invenio_rdm_records.ext:api_finalize_app"
 oarepo_rdm = "oarepo_rdm.ext:finalize_app"
 
+[project.entry-points."invenio_search.index_templates"]
+oarepo_rdm_oai = "oarepo_rdm.oai.index_templates"
+
+[project.entry-points."invenio_search.mappings"]
+oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
+
+[project.entry-points."oarepo.cli.search.init"]
+install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
+
+
 [[tool.mypy.overrides]]
 follow_untyped_imports = true
 

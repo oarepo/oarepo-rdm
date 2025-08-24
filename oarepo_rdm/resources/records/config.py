@@ -20,7 +20,7 @@ class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
     }
 
 
-# def global_search_response_handlers():
+# def rdm_response_handlers():
 #     """Return UI global search handlers."""
 #     serializers: list[dict] = [
 #         {

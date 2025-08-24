@@ -27,8 +27,6 @@ modela_service = modela.proxies.current_service
 modelb_service = modelb.proxies.current_service
 modelc_service = modelc.proxies.current_service
 
-from .utils import record_from_result
-
 
 def datetime_to_datestamp(dt, day_granularity=False):
     """Transform datetime to datestamp.
@@ -93,7 +91,7 @@ def check_record(tree, pid_value):
     )
 
 
-def test_identify(users, logged_client, search_clear, search_clear_percolators):
+def test_identify(app, search, users, logged_client, search_clear, percolators):
     user = users[0]
     client = logged_client(user)
 
@@ -106,8 +104,10 @@ def test_get_record(
     identity_simple,
     users,
     logged_client,
+    oai_prefix,
+    search,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     user = users[0]
     client = logged_client(user)
@@ -131,14 +131,14 @@ def test_get_record(
     _publish2 = rdm_records_service.publish(identity_simple, recordb["id"])
 
     resulta = client.get(
-        f"/oai2d?verb=GetRecord&identifier=oai:oaioaioai:{recorda['id']}&metadataPrefix=oai_dc"
+        f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recorda['id']}&metadataPrefix=oai_dc"
     )
     resultb = client.get(
-        f"/oai2d?verb=GetRecord&identifier=oai:oaioaioai:{recordb['id']}&metadataPrefix=oai_dc"
+        f"/oai2d?verb=GetRecord&identifier={oai_prefix}{recordb['id']}&metadataPrefix=oai_dc"
     )
 
-    check_record(etree.fromstring(resulta.data), f"oai:oaioaioai:{recorda['id']}")
-    check_record(etree.fromstring(resultb.data), f"oai:oaioaioai:{recordb['id']}")
+    check_record(etree.fromstring(resulta.data), f"{oai_prefix}{recorda['id']}")
+    check_record(etree.fromstring(resultb.data), f"{oai_prefix}{recordb['id']}")
 
 
 def test_list_records(
@@ -148,7 +148,7 @@ def test_list_records(
     users,
     logged_client,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     user = users[0]
     client = logged_client(user)
@@ -431,11 +431,15 @@ def test_list_records(
             assert result.status_code == 200
 
 
-def test_listsets(db, app, search_clear, search_clear_percolators):
+def test_listsets(db, app, search_clear, percolators):
     with app.test_request_context():
         with db.session.begin_nested():
             a = OAISet(
-                spec="test", name="Test", description="test desc", system_created=False
+                spec="test",
+                name="Test",
+                description="test desc",
+                system_created=False,
+                search_pattern="metadata.title:test",
             )
             db.session.add(a)
 
@@ -501,13 +505,16 @@ def test_listsets(db, app, search_clear, search_clear_percolators):
         assert text[0] == "test desc"
 
 
+# TODO: test list records within a set
+
+
 def test_listidentifiers(
     db,
     app,
     rdm_records_service,
     identity_simple,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     from invenio_oaiserver.models import OAISet
 
@@ -684,7 +691,7 @@ def test_listidentifiers(
                 assert len(identifier) == 2
 
 
-def test_listmetadataformats(app, search_clear, search_clear_percolators):
+def test_listmetadataformats(app, search_clear, percolators):
     _listmetadataformats(app=app, query="/oai2d?verb=ListMetadataFormats")
 
 
@@ -693,7 +700,7 @@ def test_listmetadataformats_record(
     rdm_records_service,
     identity_simple,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     recorda = rdm_records_service.create(
         identity_simple,
@@ -766,7 +773,7 @@ def test_search_pattern_change(
     rdm_records_service,
     identity_simple,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     data = {"metadata": {"title": "lalala", "adescription": "bbbb"}}
     recorda = rdm_records_service.create(
@@ -784,7 +791,7 @@ def test_search_pattern_change(
     with app.app_context():
         # create new OAI Set
         oaiset = OAISet(
-            spec="test0",
+            spec="test1",
             name="test",
             description="test desc 0",
             search_pattern="metadata.title:lalala",
@@ -793,7 +800,7 @@ def test_search_pattern_change(
         db.session.add(oaiset)
         db.session.commit()
         # check record is in set
-        rec_in_set = get_records(set="test0")
+        rec_in_set = get_records(set="test1")
         assert rec_in_set.total == 1
         rec = next(rec_in_set.items)
         assert rec["json"]["_source"]["metadata"]["title"] == "lalala"
@@ -804,7 +811,7 @@ def test_search_pattern_change(
         db.session.commit()
         # check records is not in set
         with pytest.raises(OAINoRecordsMatchError):
-            get_records(set="test0")
+            get_records(set="test1")
 
 
 def test_search_pattern_change_percolators(
@@ -813,7 +820,7 @@ def test_search_pattern_change_percolators(
     rdm_records_service,
     identity_simple,
     search_clear,
-    search_clear_percolators,
+    percolators,
 ):
     data1 = {"metadata": {"title": "lalala", "adescription": "bbbb"}}
     data2 = {"metadata": {"title": "tralala", "adescription": "bbbb"}}
@@ -839,16 +846,17 @@ def test_search_pattern_change_percolators(
 
     modela_service.indexer.refresh()
 
-    record_index = record_from_result(record1).index._name  # noqa SLF001
-    percolator_index = _build_percolator_index_name(record_index)
+    percolator_index = _build_percolator_index_name(
+        app.config["OAISERVER_RECORD_INDEX"]
+    )
 
     with app.app_context():
         # create new OAI Set
 
         oaiset = OAISet(
-            spec="test0",
+            spec="test2",
             name="test",
-            description="test desc 0",
+            description="test desc 2",
             search_pattern="metadata.title:lalala",
             system_created=False,
         )
@@ -857,7 +865,7 @@ def test_search_pattern_change_percolators(
         # check record is in set
         current_search_client.indices.refresh(index=percolator_index)
         sets_before_change = current_oaiserver.record_list_sets_fetcher(
-            [record1, record2]
+            [record1._record.dumps(), record2._record.dumps()]
         )
 
         oaiset.search_pattern = "metadata.title:tralala"
@@ -866,8 +874,8 @@ def test_search_pattern_change_percolators(
 
         current_search_client.indices.refresh(index=percolator_index)
         sets_after_change = current_oaiserver.record_list_sets_fetcher(
-            [record1, record2]
+            [record1._record.dumps(), record2._record.dumps()]
         )
 
-        assert sets_before_change == [["test0"], []]
-        assert sets_after_change == [[], ["test0"]]
+        assert sets_before_change == [["test2"], []]
+        assert sets_after_change == [[], ["test2"]]
