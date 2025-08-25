@@ -6,6 +6,8 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
+from __future__ import annotations
+
 from invenio_access.permissions import system_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
 
@@ -40,11 +42,5 @@ def test_description_search(app, db, search_clear, identity_simple):
 
     rec_id = modelc_record2.data["id"]
     assert rec_id == results["hits"]["hits"][0]["id"]
-    assert (
-        results["links"]["self"]
-        == "http://localhost/user/records?page=1&q=jej&size=10&sort=bestmatch"
-    )
-    assert (
-        results["hits"]["hits"][0]["links"]["self"]
-        == f"http://localhost/modelc/{rec_id}/draft"
-    )
+    assert results["links"]["self"] == "http://localhost/user/records?page=1&q=jej&size=10&sort=bestmatch"
+    assert results["hits"]["hits"][0]["links"]["self"] == f"http://localhost/modelc/{rec_id}/draft"

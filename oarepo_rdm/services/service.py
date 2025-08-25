@@ -11,10 +11,9 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any, cast, override
+from typing import TYPE_CHECKING, Any, Literal, cast, override
 
 from invenio_rdm_records.services.services import RDMRecordService
-from invenio_records_resources.services.records.service import ServiceSchemaWrapper
 from invenio_records_resources.services.uow import UnitOfWork, unit_of_work
 from oarepo_runtime.proxies import current_runtime
 from werkzeug.exceptions import Forbidden
@@ -25,12 +24,16 @@ from .config import MultiplexingLinks, MultiplexingSchema
 
 if TYPE_CHECKING:
     import datetime
+    from collections.abc import Callable, Iterable
 
     from invenio_access.permissions import Identity
     from invenio_records_resources.services.records.results import (
         RecordItem,
     )
+    from invenio_records_resources.services.records.service import ServiceSchemaWrapper
+    from invenio_search import RecordsSearchV2
     from oarepo_runtime.api import Model
+
 
 pass_through = {
     "create_search",
@@ -62,7 +65,9 @@ pass_through = {
 }
 
 
-def check_fully_overridden(pass_through, base_class):
+def check_fully_overridden(
+    pass_through: Iterable[str], base_class: type
+) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
     """Check that all methods are fully overridden in the subclass."""
 
     def wrapper(cls: type) -> type:
@@ -74,22 +79,23 @@ def check_fully_overridden(pass_through, base_class):
 
             this_class_value = cls.__dict__.get(name, None)
             if this_class_value is value:
-                raise TypeError(
-                    f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
-                )
+                raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
         return cls
 
     return wrapper
 
 
-def pass_to_specialized_service(method_names):
+def pass_to_specialized_service(
+    method_names: Iterable[str],
+) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
     """Pass the call to the specialized service.
 
     The service is selected by converting the id to pid type and resolving
-    the service by pid type."""
+    the service by pid type.
+    """
 
-    def make_delegate(method_name: str):
-        def delegate(self, *args, **kwargs):
+    def make_delegate(method_name: str) -> Callable[..., Any]:
+        def delegate(self: OARepoRDMService, *args: Any, **kwargs: Any) -> Any:
             # might be called with positional arguments (almost always)
             # or with keyword arguments (lift embargoes are called this way)
             if "id_" in kwargs:
@@ -107,7 +113,7 @@ def pass_to_specialized_service(method_names):
 
         return delegate
 
-    def wrapper(cls: type) -> type:
+    def wrapper(cls: type[OARepoRDMService]) -> type[OARepoRDMService]:
         overriden_methods = {}
         for name in method_names:
             if not hasattr(cls, name):
@@ -160,12 +166,10 @@ class OARepoRDMService(RDMRecordService):
     def _get_specialized_service(self, pid_value: str) -> RDMRecordService:
         """Get a specialized service based on the pid_value of the record."""
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
-        return cast(
-            "RDMRecordService", current_runtime.model_by_pid_type[pid_type].service
-        )
+        return cast("RDMRecordService", current_runtime.model_by_pid_type[pid_type].service)
 
     @property
-    def links_item_tpl(self):
+    def links_item_tpl(self) -> MultiplexingLinks:
         """Item links template."""
         return MultiplexingLinks()
 
@@ -192,14 +196,10 @@ class OARepoRDMService(RDMRecordService):
         model = self._get_model_from_record_data(data, schema=schema)
         return cast(
             "RecordItem",
-            model.service.create(
-                identity=identity, data=data, uow=uow, expand=expand, **kwargs
-            ),
+            model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs),
         )
 
-    def _get_model_from_record_data(
-        self, data: dict[str, Any], schema: str | None = None
-    ) -> Model:
+    def _get_model_from_record_data(self, data: dict[str, Any], schema: str | None = None) -> Model:
         """Get the model from the record data."""
         if "$schema" in data:
             schema = data["$schema"]
@@ -217,28 +217,28 @@ class OARepoRDMService(RDMRecordService):
     @override
     def _search(
         self,
-        action,
-        identity,
-        params,
-        search_preference,
-        record_cls=None,
-        search_opts=None,
-        extra_filter=None,
-        permission_action="read",
-        versioning=True,
-        **kwargs,
-    ):
+        action: str,
+        identity: Identity,
+        params: dict[str, Any],
+        search_preference: str | None,
+        record_cls: type[RecordItem] | None = None,
+        search_opts: Any | None = None,
+        extra_filter: Any | None = None,
+        permission_action: str = "read",
+        versioning: bool = True,
+        **kwargs: Any,
+    ) -> RecordsSearchV2:
         """Create the search engine DSL."""
         params.update(kwargs)
         # get services that can handle the search request [pid_type -> service]
         services = self._search_eligible_services(identity, permission_action, **kwargs)
         if not services:
-            raise Forbidden()
+            raise Forbidden
 
         queries_list: dict[str, dict] = {}
 
         for jsonschema, service in services.items():
-            search = service._search(
+            search = service._search(  # noqa: SLF001 # calling the same method on delegated
                 action=action,
                 identity=identity,
                 params=copy.deepcopy(params),
@@ -267,7 +267,7 @@ class OARepoRDMService(RDMRecordService):
             **kwargs,
         )
 
-    def _search_options(self, service, search_opts):
+    def _search_options(self, service: RDMRecordService, search_opts: Any) -> Any:
         if search_opts is self.config.search:
             return service.config.search
         if search_opts is self.config.search_drafts:
@@ -281,30 +281,27 @@ class OARepoRDMService(RDMRecordService):
     ) -> dict[str, RDMRecordService]:
         """Get a list of eligible RDM record services."""
         return {
-            model.record_json_schema: model.service
+            model.record_json_schema: cast("RDMRecordService", model.service)
             for model in current_runtime.rdm_models
             if model.service.check_permission(identity, permission_action, **kwargs)
         }
 
     @override
-    def oai_result_item(
-        self, identity: Identity, oai_record_source: dict[str, Any]
-    ) -> RecordItem:
+    def oai_result_item(self, identity: Identity, oai_record_source: dict[str, Any]) -> RecordItem:
         """Serialize an oai record source to a record item."""
         model = self._get_model_from_record_data(oai_record_source)
         service: RDMRecordService = cast("RDMRecordService", model.service)
         return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
 
     @override
-    def rebuild_index(self, identity: Identity, uow: UnitOfWork | None = None) -> None:
+    def rebuild_index(self, identity: Identity, uow: UnitOfWork | None = None) -> Literal[True]:
         """Rebuild the search index for all records."""
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "rebuild_index"):
                 model.service.rebuild_index(identity, uow=uow)
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        return True
 
     @unit_of_work()
     @override
@@ -315,14 +312,11 @@ class OARepoRDMService(RDMRecordService):
         search_gc_deletes: int = 60,
     ) -> None:
         for model in current_runtime.rdm_models:
-            if hasattr(model.service, "cleanup_drafts"):
-                model.service.cleanup_drafts(
-                    timedelta, uow=uow, search_gc_deletes=search_gc_deletes
-                )
+            cleanup_drafts = getattr(model.service, "cleanup_drafts", None)
+            if cleanup_drafts:
+                cleanup_drafts(timedelta, uow=uow, search_gc_deletes=search_gc_deletes)
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support cleaning up drafts."
-                )
+                raise NotImplementedError(f"Model {model} does not support cleaning up drafts.")
 
     @unit_of_work()
     @override
@@ -333,10 +327,11 @@ class OARepoRDMService(RDMRecordService):
         extra_filter: Any | None = None,
         uow: UnitOfWork | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Literal[True]:
         for model in current_runtime.rdm_models:
-            if hasattr(model.service, "reindex_latest_first"):
-                model.service.reindex_latest_first(
+            reindex_latest_first = getattr(model.service, "reindex_latest_first", None)
+            if reindex_latest_first:
+                reindex_latest_first(
                     identity,
                     search_preference=search_preference,
                     extra_filter=extra_filter,
@@ -344,9 +339,9 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+
+        return True
 
     @override
     def reindex(
@@ -357,7 +352,7 @@ class OARepoRDMService(RDMRecordService):
         search_query: str | None = None,
         extra_filter: Any | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Literal[True]:
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "reindex"):
                 model.service.reindex(
@@ -369,9 +364,8 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        return True
 
     @override
     def on_relation_update(
@@ -381,17 +375,15 @@ class OARepoRDMService(RDMRecordService):
         records_info: Any,
         notif_time: datetime.datetime,
         limit: int = 100,
-    ) -> None:
+    ) -> Literal[True]:
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "on_relation_update"):
-                model.service.on_relation_update(
+                model.service.on_relation_update(  # type: ignore[no-any-return]
                     identity,
                     record_type,
                     records_info,
                     notif_time,
                     limit=limit,
                 )
-            else:
-                raise NotImplementedError(
-                    f"Model {model} does not support relation updates."
-                )
+            raise NotImplementedError(f"Model {model} does not support relation updates.")
+        return True

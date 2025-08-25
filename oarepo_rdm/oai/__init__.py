@@ -9,3 +9,7 @@
 """OARepo extension for RDM OAI server."""
 
 from __future__ import annotations
+
+from .presets import oai_presets
+
+__all__ = ("oai_presets",)

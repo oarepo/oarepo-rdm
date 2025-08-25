@@ -70,7 +70,7 @@ class OAIServerMetadataFormats(Dict):
             },
         ```
         """
-        infos = defaultdict[str, list]()
+        infos = defaultdict[str, list](list)
         for model in current_runtime.models.values():
             for export in model.exports:
                 if not export.oai_metadata_prefix:
@@ -79,7 +79,7 @@ class OAIServerMetadataFormats(Dict):
                     {
                         "namespace": export.oai_namespace,
                         "schema": export.oai_schema,
-                        "model_schema": model.record_cls.schema.value,
+                        "model_schema": model.record_cls.schema.value,  # type: ignore[reportAttributeAccessIssue]
                         "serializer": export.serializer,
                     }
                 )
