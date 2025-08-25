@@ -18,19 +18,28 @@ from werkzeug.local import LocalProxy
 
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
 
-# TODO: why is this needed? Why not to add other RDM routes here?
-APP_RDM_ROUTES = (
-    {
-        "record_detail": "/records/<pid_value>",
-        "record_file_download": "/records/<pid_value>/files/<path:filename>",
-    },
-)
+# TODO: Why not to add other RDM routes here?
+APP_RDM_ROUTES = {
+    "record_detail": "/records/<pid_value>",
+    "record_file_download": "/records/<pid_value>/files/<path:filename>",
+}
+
 
 RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceConfig"
 """Service config class."""
 
 RDM_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARepoRDMService"
 """Replacement for the plain RDM service class."""
+
+RDM_RECORDS_RESOURCE_CONFIG_CLASS = (
+    "oarepo_rdm.resources.records.config:OARepoRDMRecordResourceConfig"
+)
+"""Resource config class."""
+
+RDM_RECORDS_RESOURCE_CLASS = (
+    "oarepo_rdm.resources.records.resource:OARepoRDMRecordResource"
+)
+"""Replacement for the plain RDM resource class."""
 
 
 # OAI-PMH

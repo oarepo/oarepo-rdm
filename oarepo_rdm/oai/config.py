@@ -71,7 +71,7 @@ class OAIServerMetadataFormats(Dict):
         ```
         """
         infos = defaultdict[str, list](list)
-        for model in current_runtime.models.values():
+        for model in current_runtime.rdm_models:
             for export in model.exports:
                 if not export.oai_metadata_prefix:
                     continue
@@ -108,7 +108,12 @@ class OAIServerMetadataFormats(Dict):
                 "schema": serialization_infos[0]["schema"],
                 "serializer": (
                     multiplexing_oai_serializer,
-                    {"model_serializers": {x["model_schema"]: x["serializer"] for x in serialization_infos}},
+                    {
+                        "model_serializers": {
+                            x["model_schema"]: x["serializer"]
+                            for x in serialization_infos
+                        }
+                    },
                 ),
             }
         return ret

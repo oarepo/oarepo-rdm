@@ -108,8 +108,12 @@ def app_config(app_config, model_a, model_b, model_c):
     model_c.register()
 
     app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
-    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
+    app_config["RECORDS_REFRESOLVER_CLS"] = (
+        "invenio_records.resolver.InvenioRefResolver"
+    )
+    app_config["RECORDS_REFRESOLVER_STORE"] = (
+        "invenio_jsonschemas.proxies.current_refresolver_store"
+    )
     app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
     app_config["SEARCH_HOSTS"] = [
         {
@@ -143,6 +147,7 @@ def app_config(app_config, model_a, model_b, model_c):
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
+
     return app_config
 
 
