@@ -1,6 +1,6 @@
 [project]
 name = "oarepo-rdm"
-version = "1.0.0"
+dynamic = ["version"]
 description = ""
 readme = "README.md"
 authors = [
@@ -72,6 +72,13 @@ oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
 [project.entry-points."oarepo.cli.search.init"]
 install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
 
+[tool.hatch.version]
+path = "oarepo_rdm/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/oarepo_rdm",
+]
 
 [[tool.mypy.overrides]]
 follow_untyped_imports = true
