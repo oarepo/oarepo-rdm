@@ -108,12 +108,7 @@ class OAIServerMetadataFormats(Dict):
                 "schema": serialization_infos[0]["schema"],
                 "serializer": (
                     multiplexing_oai_serializer,
-                    {
-                        "model_serializers": {
-                            x["model_schema"]: x["serializer"]
-                            for x in serialization_infos
-                        }
-                    },
+                    {"model_serializers": {x["model_schema"]: x["serializer"] for x in serialization_infos}},
                 ),
             }
         return ret

@@ -9,13 +9,14 @@
 from __future__ import annotations
 
 from invenio_i18n import lazy_gettext as _
+from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
-from oarepo_model.customizations import AddMetadataExport
+from oarepo_model.customizations import AddMetadataExport, SetPermissionPolicy
 from oarepo_model.presets.drafts import drafts_presets
 from oarepo_model.presets.rdm import rdm_presets
 from oarepo_model.presets.records_resources import records_resources_presets
-from oarepo_runtime.api import Export
+from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.oai import oai_presets
 
@@ -24,6 +25,13 @@ from .exports import (
     ModelbDublinCoreXMLSerializer,
     ModelcDublinCoreXMLSerializer,
 )
+
+
+class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
+    """Permission policy that adds model_a_specific_action for testing."""
+
+    can_model_a_specific_action = (SystemProcess(), AnyUser())
+
 
 modela = model(
     "modela",
@@ -42,16 +50,15 @@ modela = model(
     metadata_type="Metadata",
     customizations=[
         AddMetadataExport(
-            Export(
-                code="dc_xml",
-                name=_("Dublin Core XML"),
-                mimetype="application/x-dc+xml",
-                serializer=ModelaDublinCoreXMLSerializer(),
-                oai_metadata_prefix="oai_dc",
-                oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-                oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
-            )
-        )
+            code="dc_xml",
+            name=_("Dublin Core XML"),
+            mimetype="application/x-dc+xml",
+            serializer=ModelaDublinCoreXMLSerializer(),
+            oai_metadata_prefix="oai_dc",
+            oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+            oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
+        ),
+        SetPermissionPolicy(PermissionPolicyWithModelAPermission),
     ],
 )
 
@@ -72,15 +79,13 @@ modelb = model(
     metadata_type="Metadata",
     customizations=[
         AddMetadataExport(
-            Export(
-                code="dc_xml",
-                name=_("Dublin Core XML"),
-                mimetype="application/x-dc+xml",
-                serializer=ModelbDublinCoreXMLSerializer(),
-                oai_metadata_prefix="oai_dc",
-                oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-                oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
-            )
+            code="dc_xml",
+            name=_("Dublin Core XML"),
+            mimetype="application/x-dc+xml",
+            serializer=ModelbDublinCoreXMLSerializer(),
+            oai_metadata_prefix="oai_dc",
+            oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+            oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         )
     ],
 )
@@ -102,15 +107,13 @@ modelc = model(
     metadata_type="Metadata",
     customizations=[
         AddMetadataExport(
-            Export(
-                code="dc_xml",
-                name=_("Dublin Core XML"),
-                mimetype="application/x-dc+xml",
-                serializer=ModelcDublinCoreXMLSerializer(),
-                oai_metadata_prefix="oai_dc",
-                oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-                oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
-            )
+            code="dc_xml",
+            name=_("Dublin Core XML"),
+            mimetype="application/x-dc+xml",
+            serializer=ModelcDublinCoreXMLSerializer(),
+            oai_metadata_prefix="oai_dc",
+            oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+            oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         )
     ],
 )

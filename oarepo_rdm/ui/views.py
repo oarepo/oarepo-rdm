@@ -7,6 +7,7 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 #
 """UI blueprints for invenio-app-rdm."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast

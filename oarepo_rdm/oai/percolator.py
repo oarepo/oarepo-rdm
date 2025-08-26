@@ -25,6 +25,8 @@ working in some places. We work around it by:
 
 from __future__ import annotations
 
+from typing import Any
+
 from deepmerge import always_merger
 from flask import current_app
 from invenio_search import current_search_client
@@ -99,5 +101,26 @@ def _create_default_percolator_mapping(mappings: dict[str, dict]) -> dict:
             percolator_mapping = settings["mappings"]
         else:
             percolator_mapping = always_merger.merge(percolator_mapping, settings["mappings"])
+
+    # dynamic_templates
+    if "dynamic_templates" in percolator_mapping:
+        percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(percolator_mapping["dynamic_templates"])
+
     # TODO: analyzers and so on
     return {"mappings": percolator_mapping}
+
+
+def _merge_dynamic_templates(dynamic_templates: list[dict]) -> list[dict[str, Any]]:
+    """Merge dynamic templates into the percolator mapping.
+
+    Dynamic templates define, for example, mapping of pid fields. It is a list
+    of dictionaries of type {"single_key": {definition}}, each describing a mapping
+    for a specific field.
+
+    We merge them by applying always_merger for each of the fields.
+    """
+    output: dict[str, Any] = {}
+    for template in dynamic_templates:
+        output = always_merger.merge(output, template)
+    # split the output dict to individual templates
+    return [{key: definition} for key, definition in output.items()]
