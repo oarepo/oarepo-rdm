@@ -10,26 +10,32 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from flask import current_app
 from invenio_app_rdm import config as rdm_config  # noqa
-from invenio_rdm_records.proxies import current_rdm_records_service
 from werkzeug.local import LocalProxy
 
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
 
-# TODO: why is this needed? Why not to add other RDM routes here?
-APP_RDM_ROUTES = (
-    {
-        "record_detail": "/records/<pid_value>",
-        "record_file_download": "/records/<pid_value>/files/<path:filename>",
-    },
-)
+# TODO: Why not to add other RDM routes here?
+APP_RDM_ROUTES = {
+    "record_detail": "/records/<pid_value>",
+    "record_file_download": "/records/<pid_value>/files/<path:filename>",
+}
+
 
 RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceConfig"
 """Service config class."""
 
 RDM_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARepoRDMService"
 """Replacement for the plain RDM service class."""
+
+RDM_RECORDS_RESOURCE_CONFIG_CLASS = "oarepo_rdm.resources.records.config:OARepoRDMRecordResourceConfig"
+"""Resource config class."""
+
+RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRecordResource"
+"""Replacement for the plain RDM resource class."""
 
 
 # OAI-PMH
@@ -44,9 +50,7 @@ def _site_name(site_url: str) -> str:
     return site_url.split("//")[-1].split("/")[0]
 
 
-OAISERVER_ID_PREFIX = LocalProxy(
-    lambda: f"oai:{_site_name(current_app.config['SITE_UI_URL'])}:"
-)
+OAISERVER_ID_PREFIX = LocalProxy(lambda: _site_name(current_app.config["SITE_UI_URL"]))
 """The prefix that will be applied to the generated OAI-PMH ids."""
 
 OAISERVER_SEARCH_CLS = "invenio_rdm_records.oai:OAIRecordSearch"
@@ -66,19 +70,26 @@ OAISERVER_CREATED_KEY = "created"
 OAISERVER_RECORD_CLS = "invenio_rdm_records.records.api:RDMRecord"
 """Record retrieval class."""
 
-OAISERVER_RECORD_SETS_FETCHER = "oarepo_rdm.oai.percolator:find_sets_for_record"
+OAISERVER_RECORD_SETS_FETCHER = "invenio_oaiserver.percolator:find_sets_for_record"
 """Record's OAI sets function."""
 
-OAISERVER_RECORD_INDEX = LocalProxy(
-    lambda: current_rdm_records_service.record_cls.index._name  # noqa: SLF001 # type: ignore[attr-defined]
-)
-OAISERVER_RECORD_LIST_SETS_FETCHER = "oarepo_rdm.oai.percolator:sets_search_all"
+OAISERVER_RECORD_INDEX = "oaisource"
+"""oaisource is a mapping alias for records that can be sent over OAI-PMH.
+
+To mark your model as oaisource, add `oarepo_rdm.oai.oai_presets` to your model's presets."""
+
+# TODO: oarepo extension, maybe not needed
+OAISERVER_RECORD_LIST_SETS_FETCHER = "invenio_oaiserver.percolator:sets_search_all"
 
 """Specify a search index with records that should be exposed via OAI-PMH."""
 
-OAISERVER_GETRECORD_FETCHER = "oarepo_rdm.oai.record:get_record"
+OAISERVER_GETRECORD_FETCHER = "invenio_rdm_records.oai:getrecord_fetcher"
 """Record data fetcher for serialization."""
 
-# extra oarepo extensions
-OAISERVER_NEW_PERCOLATOR_FUNCTION = "oarepo_rdm.oai.percolator:_new_percolator"
-OAISERVER_DELETE_PERCOLATOR_FUNCTION = "oarepo_rdm.oai.percolator:_delete_percolator"
+# extra oarepo extensions - TODO: maybe not needed
+OAISERVER_NEW_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_new_percolator"
+# TODO: maybe not needed
+OAISERVER_DELETE_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_delete_percolator"
+
+# cleared rest endpoints
+RECORDS_REST_ENDPOINTS: list[Any] = []

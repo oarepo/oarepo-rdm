@@ -11,7 +11,7 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     "oarepo-runtime>=2.0.0dev5,<3.0.0",
     "oarepo-model>=0.1.0dev0,<1.0.0",
-    "oarepo-ui==6.0.0dev1",
+    "oarepo-ui>=6.0.0dev1",
     "graphlib",
     "oarepo[rdm,tests]>=13.0.0,<14.0.0",
 ]
@@ -21,12 +21,14 @@ Homepage = "https://github.com/oarepo/oarepo-rdm"
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.11.13",
     "types-PyYAML",
+    "lxml-stubs"
 ]
 
 tests = [
     "pytest-invenio",
+    "types-PyYAML",
+    "lxml-stubs"
 ]
 
 [project.entry-points."invenio_config.module"]
@@ -57,6 +59,19 @@ oarepo_rdm = "oarepo_rdm.ext:finalize_app"
 [project.entry-points."invenio_base.api_finalize_app"]
 invenio_rdm_records = "invenio_rdm_records.ext:api_finalize_app"
 oarepo_rdm = "oarepo_rdm.ext:finalize_app"
+
+[project.entry-points."invenio_search.index_templates"]
+oarepo_rdm_oai = "oarepo_rdm.oai.index_templates"
+
+[project.entry-points."invenio_base.blueprints"]
+oarepo_invenio_app_rdm_records = "oarepo_rdm.ui.views:create_records_blueprint"
+
+[project.entry-points."invenio_search.mappings"]
+oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
+
+[project.entry-points."oarepo.cli.search.init"]
+install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
+
 
 [[tool.mypy.overrides]]
 follow_untyped_imports = true
