@@ -8,6 +8,7 @@
 #
 from __future__ import annotations
 
+from flask import Blueprint
 from invenio_i18n import lazy_gettext as _
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.facets import TermsFacet
@@ -15,6 +16,7 @@ from oarepo_model.api import model
 from oarepo_model.customizations import AddMetadataExport, SetPermissionPolicy
 from oarepo_model.presets.drafts import drafts_preset
 from oarepo_model.presets.records_resources import records_resources_preset
+from oarepo_model.presets.ui_links import ui_links_preset
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.model.presets.rdm import rdm_preset
@@ -36,7 +38,14 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
 modela = model(
     "modela",
     version="1.0.0",
-    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
+    presets=[
+        records_resources_preset,
+        drafts_preset,
+        rdm_preset,
+        oai_preset,
+        ui_links_preset,
+    ],
+    configuration={"ui_blueprint_name": "modela_ui"},
     types=[
         {
             "Metadata": {
@@ -125,3 +134,26 @@ assert "metadata_adescription" not in modela.RecordServiceConfig.search.facets, 
 modela.RecordServiceConfig.search.facets["metadata_adescription"] = TermsFacet(
     field="metadata.adescription", label="A Description"
 )
+
+
+def create_modela_ui_blueprint(app):
+    bp = Blueprint("modela_ui", __name__)
+
+    # mock UI resource
+    @bp.route("/modela_ui/preview/<pid_value>", methods=["GET"])
+    def preview(pid_value: str) -> str:
+        return "preview ok"
+
+    @bp.route("/modela_ui/detail/<pid_value>", methods=["GET"])
+    def detail(pid_value: str) -> str:
+        return "preview ok"
+
+    @bp.route("/modela_ui/latest/<pid_value>", methods=["GET"])
+    def latest(pid_value: str) -> str:
+        return "latest ok"
+
+    @bp.route("/modela_ui/search", methods=["GET"])
+    def search() -> str:
+        return "search ok"
+
+    return bp
