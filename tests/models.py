@@ -13,12 +13,12 @@ from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
 from oarepo_model.customizations import AddMetadataExport, SetPermissionPolicy
-from oarepo_model.presets.drafts import drafts_presets
-from oarepo_model.presets.rdm import rdm_presets
-from oarepo_model.presets.records_resources import records_resources_presets
+from oarepo_model.presets.drafts import drafts_preset
+from oarepo_model.presets.records_resources import records_resources_preset
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
-from oarepo_rdm.oai import oai_presets
+from oarepo_rdm.model.presets.rdm import rdm_preset
+from oarepo_rdm.oai import oai_preset
 
 from .exports import (
     ModelaDublinCoreXMLSerializer,
@@ -36,7 +36,7 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
 modela = model(
     "modela",
     version="1.0.0",
-    presets=[records_resources_presets, drafts_presets, rdm_presets, oai_presets],
+    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
     types=[
         {
             "Metadata": {
@@ -65,7 +65,7 @@ modela = model(
 modelb = model(
     "modelb",
     version="1.0.0",
-    presets=[records_resources_presets, drafts_presets, rdm_presets, oai_presets],
+    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
     types=[
         {
             "Metadata": {
@@ -93,7 +93,7 @@ modelb = model(
 modelc = model(
     "modelc",
     version="1.0.0",
-    presets=[records_resources_presets, drafts_presets, rdm_presets, oai_presets],
+    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
     types=[
         {
             "Metadata": {

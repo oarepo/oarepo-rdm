@@ -11,17 +11,19 @@ from __future__ import annotations
 import base64
 import os
 from datetime import UTC, datetime
+from io import BytesIO
 from typing import TYPE_CHECKING, Any
 from unittest import mock
+from unittest.mock import MagicMock
 
 import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from flask_security import login_user
 from invenio_accounts.testutils import login_user_via_session
-from invenio_app.factory import create_api
-from invenio_oaiserver.views.server import blueprint
+from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
+from oarepo_model.customizations import AddToList
 from sqlalchemy.exc import IntegrityError
 
 if TYPE_CHECKING:
@@ -33,17 +35,10 @@ if TYPE_CHECKING:
 # TODO: add pytest-oarepo and remove some of the fixtures below
 
 
-@pytest.fixture
-def app(app):
-    if "invenio_oaiserver" not in app.blueprints:
-        app.register_blueprint(blueprint)
-    return app
-
-
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
     """Application factory fixture."""
-    return create_api
+    return _create_app
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -100,12 +95,39 @@ def model_c(model_types):
     return modelc
 
 
+@pytest.fixture(scope="session")
+def finalization_called():
+    return MagicMock()
+
+
+@pytest.fixture(scope="session")
+def rdm_model(model_types, finalization_called):
+    from oarepo_model.api import model
+    from oarepo_model.presets.drafts import drafts_preset
+    from oarepo_model.presets.records_resources import records_resources_preset
+    from oarepo_model.presets.ui import ui_preset
+
+    from oarepo_rdm.model.presets.rdm import rdm_preset
+
+    return model(
+        name="rdm_test",
+        version="1.0.0",
+        presets=[records_resources_preset, drafts_preset, rdm_preset, ui_preset],
+        types=[model_types],
+        metadata_type="Metadata",
+        customizations=[
+            AddToList("api_finalizers", finalization_called),
+        ],
+    )
+
+
 @pytest.fixture(scope="module")
-def app_config(app_config, model_a, model_b, model_c):
+def app_config(app_config, model_a, model_b, model_c, rdm_model):
     """Mimic an instance's configuration."""
     model_a.register()
     model_b.register()
     model_c.register()
+    rdm_model.register()
 
     app_config["JSONSCHEMAS_HOST"] = "localhost"
     app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
@@ -340,3 +362,50 @@ def logged_client(client) -> Callable[[User], LoggedClient]:
 @pytest.fixture
 def oai_prefix(app):
     return f"oai:{app.config['OAISERVER_ID_PREFIX']}:"
+
+
+@pytest.fixture(scope="module")
+def test_rdm_service(app):
+    """Service instance."""
+    return app.extensions["rdm_test"].records_service
+
+
+@pytest.fixture(scope="module")
+def test_rdm_draft_files_service(app):
+    """Service instance."""
+    return app.extensions["rdm_test"].draft_files_service
+
+
+@pytest.fixture
+def input_data():
+    """Input data (as coming from the view layer)."""
+    return {
+        "metadata": {"title": "Test"},
+        "files": {
+            "enabled": True,
+        },
+    }
+
+
+@pytest.fixture
+def add_file_to_draft():
+    """Add a file to the record."""
+
+    def _add_file_to_draft(draft_file_service, draft_id, file_id, identity) -> dict[str, Any]:
+        result = draft_file_service.init_files(identity, draft_id, data=[{"key": file_id}])
+        file_md = next(iter(result.entries))
+        assert file_md["key"] == "test.txt"
+        assert file_md["status"] == "pending"
+
+        draft_file_service.set_file_content(
+            identity,
+            draft_id,
+            file_id,
+            BytesIO(b"test file content"),
+        )
+        result = draft_file_service.commit_file(identity, draft_id, file_id)
+        file_md = result.data
+        assert file_md["status"] == "completed"
+        return result
+
+    return _add_file_to_draft

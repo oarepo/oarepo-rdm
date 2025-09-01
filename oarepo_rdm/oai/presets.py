@@ -70,4 +70,4 @@ class OAIDraftMappingAliasPreset(Preset):
         )
 
 
-oai_presets = [OAIMappingAliasPreset, OAIDraftMappingAliasPreset]
+oai_preset = [OAIMappingAliasPreset, OAIDraftMappingAliasPreset]

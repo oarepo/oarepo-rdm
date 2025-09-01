@@ -112,6 +112,7 @@ def test_get_record(
     search,
     search_clear,
     percolators,
+    model_a,
 ):
     user = users[0]
     client = logged_client(user)
