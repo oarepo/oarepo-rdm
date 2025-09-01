@@ -6,10 +6,6 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""OARepo extension for RDM OAI server."""
+"""RDM model for oarepo-model package."""
 
 from __future__ import annotations
-
-from .presets import oai_preset
-
-__all__ = ("oai_preset",)

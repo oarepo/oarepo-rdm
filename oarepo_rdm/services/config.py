@@ -12,8 +12,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast, override
 
+from invenio_drafts_resources.services.records.config import (
+    SearchOptions,
+    is_record,
+)
 from invenio_rdm_records.services.config import RDMRecordServiceConfig
-from invenio_records_resources.services.base.links import LinksTemplate
+from invenio_records_resources.services.base.links import (
+    ConditionalLink,
+    LinksTemplate,
+)
+from invenio_records_resources.services.records.links import (
+    RecordEndpointLink,
+)
 from invenio_records_resources.services.records.service import ServiceSchemaWrapper
 from oarepo_runtime import current_runtime
 
@@ -94,6 +104,21 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     """OARepo extension to RDM record service configuration."""
 
     result_list_cls = MultiplexingResultList  # type: ignore[assignment]
+
+    # TODO: add proper links here, not just this subset
+    links_item = {  # type: ignore[misc] # in invenio this is mutable # noqa RUFF012
+        # Record
+        "self": ConditionalLink(
+            cond=is_record,
+            if_=RecordEndpointLink("records.read"),
+            else_=RecordEndpointLink("records.read_draft"),
+        ),
+        "self_html": ConditionalLink(
+            cond=is_record,
+            if_=RecordEndpointLink("invenio_app_rdm_records.record_detail"),
+            else_=RecordEndpointLink("invenio_app_rdm_records.deposit_edit"),
+        ),
+    }
 
     @property
     @override

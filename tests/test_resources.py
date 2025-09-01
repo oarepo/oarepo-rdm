@@ -31,7 +31,7 @@ def test_list(rdm_records_service, users, logged_client, search_clear):
     modela_service.indexer.refresh()
     modela_service.draft_indexer.refresh()
 
-    result = client.get("/records")
+    result = client.get("/api/records")
     assert len(result.json["hits"]["hits"]) == 1
 
 
@@ -48,5 +48,5 @@ def test_read(rdm_records_service, users, logged_client, search_clear):
     )
     _publish = rdm_records_service.publish(user.identity, sample["id"])
 
-    result = client.get(f"/records/{sample['id']}")
+    result = client.get(f"/api/records/{sample['id']}")
     assert result.status_code == 200

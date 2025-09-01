@@ -51,6 +51,7 @@ invenio_rdm_records_parent_links = "invenio_rdm_records.views:create_parent_reco
 invenio_rdm_records_parent_grants = "invenio_rdm_records.views:create_parent_grants_bp"
 invenio_rdm_records_user_access = "invenio_rdm_records.views:create_grant_user_access_bp"
 invenio_rdm_records_group_access = "invenio_rdm_records.views:create_grant_group_access_bp"
+invenio_rdm_iiif = "invenio_rdm_records.views:create_iiif_bp"
 
 [project.entry-points."invenio_base.finalize_app"]
 invenio_rdm_records = "invenio_rdm_records.ext:finalize_app"
