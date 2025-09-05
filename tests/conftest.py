@@ -204,6 +204,16 @@ def embargoed_files_record(rdm_records_service, identity_simple):
 
 
 @pytest.fixture(scope="module")
+def extra_entry_points():
+    """Extra entrypoints."""
+    return {
+        "invenio_base.blueprints": [
+            "modela_ui = tests.models:create_modela_ui_blueprint",
+        ],
+    }
+
+
+@pytest.fixture(scope="module")
 def search(search):
     from oarepo_runtime.services.records.mapping import update_all_records_mappings
 

@@ -50,3 +50,4 @@ def test_read(rdm_records_service, users, logged_client, search_clear):
 
     result = client.get(f"/api/records/{sample['id']}")
     assert result.status_code == 200
+    assert result.json["links"] != {}

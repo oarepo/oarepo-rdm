@@ -42,6 +42,9 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config import (
 from oarepo_rdm.model.presets.rdm.services.records.service_config_links import (
     RDMServiceConfigLinks,
 )
+from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links import (
+    RDMServiceConfigUILinks,
+)
 
 rdm_preset = [
     RDMMappingPreset,
@@ -57,4 +60,5 @@ rdm_preset = [
     RDMExtPreset,
     RDMRecordSchemaPreset,
     RDMServiceConfigLinks,
+    RDMServiceConfigUILinks,
 ]
