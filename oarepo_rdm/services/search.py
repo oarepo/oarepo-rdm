@@ -40,7 +40,7 @@ class DelegatedQueryParam(ParamInterpreter):
     ) -> RecordsSearchV2:
         """Evaluate the query str on the search."""
         if "delegated_query" in params:
-            queries_list, search_opts = params.pop("delegated_query")
+            queries_list, _ = params.pop("delegated_query")
 
             query, aggs, post_filter, sort = self._merge_queries(queries_list)
 

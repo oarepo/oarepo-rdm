@@ -18,7 +18,9 @@ from typing import TYPE_CHECKING, Any, override
 from invenio_drafts_resources.services.records.schema import RecordSchema
 
 # TODO: from oarepo_runtime.services.schema.marshmallow import RDMBaseRecordSchema
-from invenio_rdm_records.services.schemas.record import RDMRecordSchema as RDMBaseRecordSchema
+from invenio_rdm_records.services.schemas.record import (
+    RDMRecordSchema as RDMBaseRecordSchema,
+)
 from oarepo_model.customizations import ChangeBase, Customization
 from oarepo_model.presets import Preset
 
