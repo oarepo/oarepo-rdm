@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from .model.presets import rdm_preset
 
-__version__ = "1.0.0dev5"
+__version__ = "1.0.0dev6"
 """Version of the library."""
 
 __all__ = ("__version__", "rdm_preset")
