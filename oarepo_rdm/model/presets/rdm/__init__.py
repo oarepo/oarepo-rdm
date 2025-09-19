@@ -32,6 +32,7 @@ from oarepo_rdm.model.presets.rdm.resources.records.resource import (
 from oarepo_rdm.model.presets.rdm.resources.records.resource_config import (
     RDMRecordResourceConfigPreset,
 )
+from oarepo_rdm.model.presets.rdm.services.records.permission_policy import RDMPermissionPolicyPreset
 from oarepo_rdm.model.presets.rdm.services.records.record_schema import (
     RDMRecordSchemaPreset,
 )
@@ -61,4 +62,5 @@ rdm_preset = [
     RDMRecordSchemaPreset,
     RDMServiceConfigLinks,
     RDMServiceConfigUILinks,
+    RDMPermissionPolicyPreset,
 ]
