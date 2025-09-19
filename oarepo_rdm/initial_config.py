@@ -20,8 +20,23 @@ from oarepo_rdm.oai.config import OAIServerMetadataFormats
 
 # TODO: Why not to add other RDM routes here?
 APP_RDM_ROUTES = {
+    # "index": "/", #noqa
+    # "robots": "/robots.txt", #noqa
+    # "help_search": "/help/search", #noqa
+    # "help_statistics": "/help/statistics", #noqa
+    # "help_versioning": "/help/versioning", #noqa
+    "record_search": "/search",
     "record_detail": "/records/<pid_value>",
+    # "record_export": "/records/<pid_value>/export/<export_format>", #noqa
+    # "record_file_preview": "/records/<pid_value>/preview/<path:filename>", #noqa
     "record_file_download": "/records/<pid_value>/files/<path:filename>",
+    # "record_thumbnail": "/records/<pid_value>/thumb<int:size>", #noqa
+    # "record_media_file_download": "/records/<pid_value>/media-files/<path:filename>", #noqa
+    # "record_from_pid": "/<any({schemes}):pid_scheme>/<path:pid_value>", #noqa
+    # "record_latest": "/records/<pid_value>/latest", #noqa
+    # "dashboard_home": "/me", #noqa
+    # "deposit_create": "/uploads/new", #noqa
+    # "deposit_edit": "/uploads/<pid_value>", #noqa
 }
 
 
@@ -93,3 +108,25 @@ OAISERVER_DELETE_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_delete_per
 
 # cleared rest endpoints
 RECORDS_REST_ENDPOINTS: list[Any] = []
+
+APP_RDM_USER_DASHBOARD_ROUTES = {
+    "uploads": "/me/uploads",
+    "communities": "/me/communities",
+    "requests": "/me/requests",
+}
+"""Routes for user dashboard"""
+
+USER_DASHBOARD_MENU_OVERRIDES: dict[str, str] = {}
+"""Menu overrides for user dashboard"""
+
+RDM_SEARCH_USER_COMMUNITIES = {
+    "facets": ["visibility", "type"],
+    "sort": ["bestmatch", "newest", "oldest"],
+}
+"""User communities search configuration"""
+
+RDM_SEARCH_USER_REQUESTS = {
+    "facets": ["type", "status"],
+    "sort": ["bestmatch", "newest", "oldest"],
+}
+"""User requests search configuration"""
