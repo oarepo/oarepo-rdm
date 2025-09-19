@@ -9,7 +9,8 @@
 from __future__ import annotations
 
 import pytest
-from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
+from invenio_access.permissions import system_identity
+from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.services.errors import RecordDeletedException
 
 
@@ -95,7 +96,7 @@ def test_publish(
         "is_visible": True,
     }
 
-    test_rdm_service.delete_record(identity_simple, id_, data=delete_data)
+    test_rdm_service.delete_record(system_identity, id_, data=delete_data)
     test_rdm_service.indexer.refresh()
 
     # Retrieve it - deleted so cannot
@@ -103,8 +104,7 @@ def test_publish(
     pytest.raises(RecordDeletedException, test_rdm_service.read, identity_simple, id_)
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
-    assert res.total == 1  # deleted records are searchable?
-    assert next(iter(res.hits))["deletion_status"]["is_deleted"]
+    assert res.total == 0
 
 
 def test_rdm_publish(
@@ -130,12 +130,19 @@ def test_rdm_publish(
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)
 
-    test_rdm_service.delete(identity_simple, id_)
+    delete_data = {
+        "removal_reason": {"id": "your stuff is gone"},
+        "citation_text": "lalala",
+        "note": "note",
+        "is_visible": True,
+    }
+
+    test_rdm_service.delete_record(system_identity, id_, data=delete_data)
     test_rdm_service.indexer.refresh()
 
     # Retrieve it - deleted so cannot
     # - db
-    pytest.raises(PIDDeletedError, test_rdm_service.read, identity_simple, id_)
+    pytest.raises(RecordDeletedException, test_rdm_service.read, identity_simple, id_)
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
