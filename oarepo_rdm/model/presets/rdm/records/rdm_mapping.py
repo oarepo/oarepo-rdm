@@ -49,7 +49,12 @@ class RDMMappingPreset(Preset):
                                 "properties": {
                                     "identifier": {
                                         "type": "text",
-                                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                                        "fields": {
+                                            "keyword": {
+                                                "type": "keyword",
+                                                "ignore_above": 256,
+                                            }
+                                        },
                                     },
                                     "provider": {"type": "keyword"},
                                     "client": {"type": "keyword"},
@@ -66,7 +71,12 @@ class RDMMappingPreset(Preset):
                                 "properties": {
                                     "identifier": {
                                         "type": "text",
-                                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                                        "fields": {
+                                            "keyword": {
+                                                "type": "keyword",
+                                                "ignore_above": 256,
+                                            }
+                                        },
                                     },
                                     "provider": {"type": "keyword"},
                                     "client": {"type": "keyword"},
@@ -97,7 +107,10 @@ class RDMMappingPreset(Preset):
                                 "properties": {
                                     "active": {"type": "boolean"},
                                     "reason": {"type": "text"},
-                                    "until": {"type": "date", "format": "basic_date||strict_date"},
+                                    "until": {
+                                        "type": "date",
+                                        "format": "basic_date||strict_date",
+                                    },
                                 },
                             },
                             "files": {"type": "keyword", "ignore_above": 1024},
@@ -116,7 +129,10 @@ class RDMMappingPreset(Preset):
                                     "grants": {
                                         "properties": {
                                             "subject": {
-                                                "properties": {"type": {"type": "keyword"}, "id": {"type": "keyword"}}
+                                                "properties": {
+                                                    "type": {"type": "keyword"},
+                                                    "id": {"type": "keyword"},
+                                                }
                                             },
                                             "permission": {"type": "keyword"},
                                             "origin": {"type": "keyword"},
@@ -180,7 +196,10 @@ class RDMMappingPreset(Preset):
                                                                 "properties": {
                                                                     "@v": {"type": "keyword"},
                                                                     "id": {"type": "keyword"},
-                                                                    "title": {"type": "object", "dynamic": "true"},
+                                                                    "title": {
+                                                                        "type": "object",
+                                                                        "dynamic": "true",
+                                                                    },
                                                                     "number": {
                                                                         "type": "text",
                                                                         "fields": {"keyword": {"type": "keyword"}},
@@ -216,7 +235,10 @@ class RDMMappingPreset(Preset):
                                                 "properties": {
                                                     "enabled": {"type": "boolean"},
                                                     "brand": {"type": "keyword"},
-                                                    "style": {"type": "object", "enabled": False},
+                                                    "style": {
+                                                        "type": "object",
+                                                        "enabled": False,
+                                                    },
                                                 },
                                             },
                                             "parent": {
@@ -303,7 +325,10 @@ class RDMMappingPreset(Preset):
                                                         "properties": {
                                                             "enabled": {"type": "boolean"},
                                                             "brand": {"type": "keyword"},
-                                                            "style": {"type": "object", "enabled": False},
+                                                            "style": {
+                                                                "type": "object",
+                                                                "enabled": False,
+                                                            },
                                                         },
                                                     },
                                                 },
@@ -322,10 +347,36 @@ class RDMMappingPreset(Preset):
                             "id": {"type": "keyword"},
                             "note": {"type": "text"},
                             "timestamp": {"type": "date"},
-                            "added_by": {"type": "object", "properties": {"user": {"type": "keyword"}}},
+                            "added_by": {
+                                "type": "object",
+                                "properties": {"user": {"type": "keyword"}},
+                            },
                         },
                     },
                 },
+            }
+        }
+
+        tombstone_mapping = {
+            "mappings": {
+                "properties": {
+                    "tombstone": {
+                        "properties": {
+                            "removal_reason": {
+                                "properties": {
+                                    "@v": {"type": "keyword"},
+                                    "id": {"type": "keyword"},
+                                    "title": {"type": "object", "dynamic": "true"},
+                                }
+                            },
+                            "note": {"type": "text"},
+                            "removed_by": {"properties": {"user": {"type": "keyword"}}},
+                            "removal_date": {"type": "date"},
+                            "citation_text": {"type": "text"},
+                            "is_visible": {"type": "boolean"},
+                        }
+                    },
+                }
             }
         }
 
@@ -337,4 +388,9 @@ class RDMMappingPreset(Preset):
         yield PatchJSONFile(
             "record-mapping",
             parent_mapping,
+        )
+
+        yield PatchJSONFile(
+            "record-mapping",
+            tombstone_mapping,
         )

@@ -17,7 +17,9 @@ from typing import TYPE_CHECKING, Any, override
 from invenio_drafts_resources.resources import (
     RecordResourceConfig as DraftRecordResourceConfig,
 )
-from invenio_rdm_records.resources.config import RDMRecordResourceConfig as RDMBaseRecordResourceConfig
+from invenio_rdm_records.resources.config import (
+    RDMRecordResourceConfig as RDMBaseRecordResourceConfig,
+)
 
 # TODO: from oarepo_runtime.resources.config import BaseRecordResourceConfig as RDMBaseRecordResourceConfig
 from oarepo_model.customizations import (
@@ -45,4 +47,8 @@ class RDMRecordResourceConfigPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase("RecordResourceConfig", DraftRecordResourceConfig, RDMBaseRecordResourceConfig)
+        yield ChangeBase(
+            "RecordResourceConfig",
+            DraftRecordResourceConfig,
+            RDMBaseRecordResourceConfig,
+        )

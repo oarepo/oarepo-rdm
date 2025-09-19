@@ -16,7 +16,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, override
 
 from invenio_drafts_resources.resources import RecordResource as DraftRecordResource
-from invenio_rdm_records.resources.resources import RDMRecordResource as RDMBaseRecordResource
+from invenio_rdm_records.resources.resources import (
+    RDMRecordResource as RDMBaseRecordResource,
+)
 from oarepo_model.customizations import ChangeBase, Customization
 from oarepo_model.presets import Preset
 
