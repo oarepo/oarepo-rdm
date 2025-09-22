@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from flask import current_app
-from invenio_i18n import lazy_gettext as _
+from invenio_i18n import gettext as _
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.files import FilesSchema
 from invenio_rdm_records.services.schemas.parent import RDMParentSchema
