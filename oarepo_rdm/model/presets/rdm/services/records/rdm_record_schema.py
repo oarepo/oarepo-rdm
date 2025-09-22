@@ -10,26 +10,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
-
-from marshmallow_utils.fields import (
-    NestedAttribute,
-)
-
-from oarepo_model.customizations import AddMixins, Customization
-from oarepo_model.presets import Preset
-
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from flask import current_app
 from invenio_i18n import lazy_gettext as _
-from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_dump
-from marshmallow_utils.fields import (
-    EDTFDateTimeString,
-    SanitizedHTML,
-    SanitizedUnicode,
-)
-from marshmallow_utils.permissions import FieldPermissionsMixin
-
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.files import FilesSchema
 from invenio_rdm_records.services.schemas.parent import RDMParentSchema
@@ -41,6 +25,16 @@ from invenio_rdm_records.services.schemas.tombstone import (
     TombstoneSchema,
 )
 from invenio_rdm_records.services.schemas.versions import VersionsSchema
+from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_dump
+from marshmallow_utils.fields import (
+    EDTFDateTimeString,
+    NestedAttribute,
+    SanitizedHTML,
+    SanitizedUnicode,
+)
+from marshmallow_utils.permissions import FieldPermissionsMixin
+from oarepo_model.customizations import AddMixins, Customization
+from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -49,7 +43,7 @@ if TYPE_CHECKING:
     from oarepo_model.model import InvenioModel
 
 
-def validate_scheme(scheme):
+def validate_scheme(scheme: str) -> None:
     """Validate a PID scheme."""
     if scheme not in current_app.config["RDM_PERSISTENT_IDENTIFIERS"]:
         raise ValidationError(_("Invalid persistent identifier scheme."))
@@ -100,17 +94,17 @@ class RDMRecordSchemaMixin(FieldPermissionsMixin):
     deletion_status = fields.Nested(DeletionStatusSchema, dump_only=True)
     internal_notes = fields.List(fields.Nested(InternalNoteSchema))
     stats = NestedAttribute(StatsSchema, dump_only=True)
-    # schema_version = fields.Integer(dump_only=True)
+    # schema_version = fields.Integer(dump_only=True) # noqa
 
-    field_dump_permissions = {
+    field_dump_permissions: ClassVar[dict[str, str]] = {
         "internal_notes": "manage_internal",
     }
 
-    field_load_permissions = {
+    field_load_permissions: ClassVar[dict[str, str]] = {
         "internal_notes": "manage_internal",
     }
 
-    def default_nested(self, data):
+    def default_nested(self, data: dict[str, Any]) -> dict[str, Any]:
         """Serialize fields as empty dict for partial drafts.
 
         Cannot use marshmallow for Nested fields due to issue:
@@ -126,7 +120,7 @@ class RDMRecordSchemaMixin(FieldPermissionsMixin):
             data["custom_fields"] = {}
         return data
 
-    def hide_tombstone(self, data):
+    def hide_tombstone(self, data: dict[str, Any]) -> dict[str, Any]:
         """Hide tombstone info if the record isn't deleted and metadata if it is."""
         is_deleted = (data.get("deletion_status") or {}).get("is_deleted", False)
         tombstone_visible = (data.get("tombstone") or {}).get("is_visible", True)
@@ -137,11 +131,10 @@ class RDMRecordSchemaMixin(FieldPermissionsMixin):
         return data
 
     @post_dump
-    def post_dump(self, data, many, **kwargs):
+    def post_dump(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:  # noqa: ARG002
         """Perform some updates on the dumped data."""
         data = self.default_nested(data)
-        data = self.hide_tombstone(data)
-        return data
+        return self.hide_tombstone(data)
 
 
 class RDMRecordSchemaPreset(Preset):

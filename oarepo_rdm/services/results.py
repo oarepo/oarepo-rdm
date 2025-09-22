@@ -50,8 +50,6 @@ class MultiplexingResultList(RDMRecordList):
                 },
             )
             if self._links_item_tpl:
-                projection["links"] = delegated_service.links_item_tpl.expand(
-                    self._identity, record
-                )
+                projection["links"] = delegated_service.links_item_tpl.expand(self._identity, record)
 
             yield projection

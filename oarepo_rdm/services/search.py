@@ -66,9 +66,7 @@ class DelegatedQueryParam(ParamInterpreter):
 
         for pid_type, query_data in queries_list.items():
             schema_query = query_data.get("query", {})
-            shoulds.append(
-                {"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}}
-            )
+            shoulds.append({"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}})
 
             if "aggs" in query_data:
                 aggs.update(query_data["aggs"])
@@ -127,8 +125,6 @@ class MultiplexedSearchOptions(SearchOptions):
             if hasattr(model.service.config, config_field):
                 ret = always_merger.merge(
                     ret,
-                    self._search_opts_from_search_obj(
-                        getattr(model.service.config, config_field)
-                    ),
+                    self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
                 )
         return ret

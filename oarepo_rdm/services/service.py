@@ -85,9 +85,7 @@ def check_fully_overridden(
 
             this_class_value = cls.__dict__.get(name, None)
             if this_class_value is value:
-                raise TypeError(
-                    f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
-                )
+                raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
         return cls
 
     return wrapper
@@ -174,9 +172,7 @@ class OARepoRDMService(RDMRecordService):
     def _get_specialized_service(self, pid_value: str) -> RDMRecordService:
         """Get a specialized service based on the pid_value of the record."""
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
-        return cast(
-            "RDMRecordService", current_runtime.model_by_pid_type[pid_type].service
-        )
+        return cast("RDMRecordService", current_runtime.model_by_pid_type[pid_type].service)
 
     @property
     def links_item_tpl(self) -> MultiplexingLinks:
@@ -206,14 +202,10 @@ class OARepoRDMService(RDMRecordService):
         model = self._get_model_from_record_data(data, schema=schema)
         return cast(
             "RecordItem",
-            model.service.create(
-                identity=identity, data=data, uow=uow, expand=expand, **kwargs
-            ),
+            model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs),
         )
 
-    def _get_model_from_record_data(
-        self, data: dict[str, Any], schema: str | None = None
-    ) -> Model:
+    def _get_model_from_record_data(self, data: dict[str, Any], schema: str | None = None) -> Model:
         """Get the model from the record data."""
         if "$schema" in data:
             schema = data["$schema"]
@@ -298,10 +290,6 @@ class OARepoRDMService(RDMRecordService):
         self, identity: Identity, permission_action: str, **kwargs: Any
     ) -> dict[str, RDMRecordService]:
         """Get a list of eligible RDM record services."""
-        print(
-            "PER",
-            [model.service.config.schema.mro() for model in current_runtime.rdm_models],
-        )
         return {
             model.record_json_schema: cast("RDMRecordService", model.service)
             for model in current_runtime.rdm_models
@@ -309,26 +297,20 @@ class OARepoRDMService(RDMRecordService):
         }
 
     @override
-    def oai_result_item(
-        self, identity: Identity, oai_record_source: dict[str, Any]
-    ) -> RecordItem:
+    def oai_result_item(self, identity: Identity, oai_record_source: dict[str, Any]) -> RecordItem:
         """Serialize an oai record source to a record item."""
         model = self._get_model_from_record_data(oai_record_source)
         service: RDMRecordService = cast("RDMRecordService", model.service)
         return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
 
     @override
-    def rebuild_index(
-        self, identity: Identity, uow: UnitOfWork | None = None
-    ) -> Literal[True]:
+    def rebuild_index(self, identity: Identity, uow: UnitOfWork | None = None) -> Literal[True]:
         """Rebuild the search index for all records."""
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "rebuild_index"):
                 model.service.rebuild_index(identity, uow=uow)
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
         return True
 
     @unit_of_work()
@@ -344,9 +326,7 @@ class OARepoRDMService(RDMRecordService):
             if cleanup_drafts:
                 cleanup_drafts(timedelta, uow=uow, search_gc_deletes=search_gc_deletes)
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support cleaning up drafts."
-                )
+                raise NotImplementedError(f"Model {model} does not support cleaning up drafts.")
 
     @unit_of_work()
     @override
@@ -369,9 +349,7 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
 
         return True
 
@@ -396,9 +374,7 @@ class OARepoRDMService(RDMRecordService):
                     **kwargs,
                 )
             else:
-                raise NotImplementedError(
-                    f"Model {model} does not support rebuilding index."
-                )
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
         return True
 
     @override
@@ -419,7 +395,5 @@ class OARepoRDMService(RDMRecordService):
                     notif_time,
                     limit=limit,
                 )
-            raise NotImplementedError(
-                f"Model {model} does not support relation updates."
-            )
+            raise NotImplementedError(f"Model {model} does not support relation updates.")
         return True

@@ -48,9 +48,7 @@ class OARepoRDM:
             config.RDM_PERSISTENT_IDENTIFIER_PROVIDERS
         )
 
-        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(
-            config.RDM_PERSISTENT_IDENTIFIERS
-        )
+        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(config.RDM_PERSISTENT_IDENTIFIERS)
 
     @cached_property
     def search_options(self) -> SearchOptions:
@@ -90,6 +88,4 @@ def finalize_app(_app: Flask) -> None:
         None,
         search_alias=[*current_runtime.published_indices],
     )
-    InvenioRDMDraft.index = IndexField(
-        None, search_alias=[*current_runtime.draft_indices]
-    )
+    InvenioRDMDraft.index = IndexField(None, search_alias=[*current_runtime.draft_indices])

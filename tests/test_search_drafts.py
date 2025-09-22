@@ -42,11 +42,5 @@ def test_description_search(app, db, search_clear, identity_simple):
 
     rec_id = modelc_record2.data["id"]
     assert rec_id == results["hits"]["hits"][0]["id"]
-    assert (
-        results["links"]["self"]
-        == "http://localhost/user/records?page=1&q=jej&size=10&sort=bestmatch"
-    )
-    assert (
-        results["hits"]["hits"][0]["links"]["self"]
-        == f"http://localhost/modelc/{rec_id}/draft"
-    )
+    assert results["links"]["self"] == "http://localhost/user/records?page=1&q=jej&size=10&sort=bestmatch"
+    assert results["hits"]["hits"][0]["links"]["self"] == f"http://localhost/modelc/{rec_id}/draft"
