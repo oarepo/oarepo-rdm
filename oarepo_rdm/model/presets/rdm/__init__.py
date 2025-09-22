@@ -32,9 +32,8 @@ from oarepo_rdm.model.presets.rdm.resources.records.resource import (
 from oarepo_rdm.model.presets.rdm.resources.records.resource_config import (
     RDMRecordResourceConfigPreset,
 )
-from oarepo_rdm.model.presets.rdm.services.records.permission_policy import RDMPermissionPolicyPreset
-from oarepo_rdm.model.presets.rdm.services.records.record_schema import (
-    RDMRecordSchemaPreset,
+from oarepo_rdm.model.presets.rdm.services.records.permission_policy import (
+    RDMPermissionPolicyPreset,
 )
 from oarepo_rdm.model.presets.rdm.services.records.service import RDMRecordServicePreset
 from oarepo_rdm.model.presets.rdm.services.records.service_config import (
@@ -43,6 +42,11 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config import (
 from oarepo_rdm.model.presets.rdm.services.records.service_config_links import (
     RDMServiceConfigLinks,
 )
+
+from oarepo_rdm.model.presets.rdm.services.records.rdm_parent_record_schema import (
+    RDMParentRecordSchemaPreset,
+)
+from oarepo_rdm.model.presets.rdm.services.records.rdm_record_schema import RDMRecordSchemaPreset
 from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links import (
     RDMServiceConfigUILinks,
 )
@@ -60,6 +64,7 @@ rdm_preset = [
     RDMRecordMetadataWithFilesPreset,
     RDMExtPreset,
     RDMRecordSchemaPreset,
+    RDMParentRecordSchemaPreset,
     RDMServiceConfigLinks,
     RDMServiceConfigUILinks,
     RDMPermissionPolicyPreset,
