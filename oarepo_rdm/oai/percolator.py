@@ -41,9 +41,13 @@ def init_percolators() -> None:
     to the `oaisource` aliases.
     """
     oaiserver_record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
-    prefixed_oaiserver_record_index = build_index_name(oaiserver_record_index, suffix="", app=current_app)
+    prefixed_oaiserver_record_index = build_index_name(
+        oaiserver_record_index, suffix="", app=current_app
+    )
 
-    percolated_mappings = _get_percolated_mappings(oaiserver_record_index, prefixed_oaiserver_record_index)
+    percolated_mappings = _get_percolated_mappings(
+        oaiserver_record_index, prefixed_oaiserver_record_index
+    )
     if not percolated_mappings:
         return
 
@@ -65,14 +69,16 @@ def init_percolators() -> None:
 
 
 def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
-    mapping = current_app.config.get("OAREPO_PERCOLATOR_MAPPING", _create_default_percolator_mapping)(
-        percolated_mappings
-    )
+    mapping = current_app.config.get(
+        "OAREPO_PERCOLATOR_MAPPING", _create_default_percolator_mapping
+    )(percolated_mappings)
 
     mapping["mappings"]["properties"]["query"] = {"type": "percolator"}
 
     record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
-    percolator_index = build_index_name(record_index + "-percolators", suffix="", app=current_app)
+    percolator_index = build_index_name(
+        record_index + "-percolators", suffix="", app=current_app
+    )
 
     # remove the previous percolator index and build it again
     if current_search_client.indices.exists(percolator_index):  # type: ignore[attr-defined]
@@ -81,13 +87,18 @@ def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
     current_search_client.indices.create(index=percolator_index, body=mapping)  # type: ignore[attr-defined]
 
 
-def _get_percolated_mappings(oaiserver_record_index: str, prefixed_oaiserver_record_index: str) -> dict[str, dict]:
+def _get_percolated_mappings(
+    oaiserver_record_index: str, prefixed_oaiserver_record_index: str
+) -> dict[str, dict]:
     indices = current_search_client.indices.get("*")  # type: ignore[attr-defined]
 
     return {
         index_name: index
         for index_name, index in indices.items()
-        if (oaiserver_record_index in index["aliases"] or prefixed_oaiserver_record_index in index["aliases"])
+        if (
+            oaiserver_record_index in index["aliases"]
+            or prefixed_oaiserver_record_index in index["aliases"]
+        )
     }
 
 
@@ -100,11 +111,15 @@ def _create_default_percolator_mapping(mappings: dict[str, dict]) -> dict:
         if not percolator_mapping:
             percolator_mapping = settings["mappings"]
         else:
-            percolator_mapping = always_merger.merge(percolator_mapping, settings["mappings"])
+            percolator_mapping = always_merger.merge(
+                percolator_mapping, settings["mappings"]
+            )
 
     # dynamic_templates
     if "dynamic_templates" in percolator_mapping:
-        percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(percolator_mapping["dynamic_templates"])
+        percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(
+            percolator_mapping["dynamic_templates"]
+        )
 
     # TODO: analyzers and so on
     return {"mappings": percolator_mapping}

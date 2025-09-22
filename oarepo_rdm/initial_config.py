@@ -46,10 +46,14 @@ RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceC
 RDM_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARepoRDMService"
 """Replacement for the plain RDM service class."""
 
-RDM_RECORDS_RESOURCE_CONFIG_CLASS = "oarepo_rdm.resources.records.config:OARepoRDMRecordResourceConfig"
+RDM_RECORDS_RESOURCE_CONFIG_CLASS = (
+    "oarepo_rdm.resources.records.config:OARepoRDMRecordResourceConfig"
+)
 """Resource config class."""
 
-RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRecordResource"
+RDM_RECORDS_RESOURCE_CLASS = (
+    "oarepo_rdm.resources.records.resource:OARepoRDMRecordResource"
+)
 """Replacement for the plain RDM resource class."""
 
 

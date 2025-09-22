@@ -36,4 +36,9 @@ class RDMPermissionPolicyPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase("PermissionPolicy", RecordPermissionPolicy, RDMRecordPermissionPolicy, subclass=True)
+        yield ChangeBase(
+            "PermissionPolicy",
+            RecordPermissionPolicy,
+            RDMRecordPermissionPolicy,
+            subclass=True,
+        )

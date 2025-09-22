@@ -46,7 +46,9 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config_links import (
 from oarepo_rdm.model.presets.rdm.services.records.rdm_parent_record_schema import (
     RDMParentRecordSchemaPreset,
 )
-from oarepo_rdm.model.presets.rdm.services.records.rdm_record_schema import RDMRecordSchemaPreset
+from oarepo_rdm.model.presets.rdm.services.records.rdm_record_schema import (
+    RDMRecordSchemaPreset,
+)
 from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links import (
     RDMServiceConfigUILinks,
 )

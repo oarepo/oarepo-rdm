@@ -36,8 +36,12 @@ def restricted_record(rdm_records_service, identity_simple):
     draft = service.create(identity_simple, data)
 
     # Add a file
-    service.draft_files.init_files(identity_simple, draft.id, data=[{"key": "test.pdf"}])
-    service.draft_files.set_file_content(identity_simple, draft.id, "test.pdf", BytesIO(b"test file"))
+    service.draft_files.init_files(
+        identity_simple, draft.id, data=[{"key": "test.pdf"}]
+    )
+    service.draft_files.set_file_content(
+        identity_simple, draft.id, "test.pdf", BytesIO(b"test file")
+    )
     service.draft_files.commit_file(identity_simple, draft.id, "test.pdf")
 
     # Publish
@@ -50,14 +54,22 @@ def restricted_record(rdm_records_service, identity_simple):
 
 
 @pytest.mark.skip(reason="not used for now")
-def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
+def test_permission_levels(
+    rdm_records_service, restricted_record, identity_simple, search_clear
+):
     """Test invalid permission level."""
     service = rdm_records_service
 
     id_ = restricted_record.id
-    view_link = service.access.create_secret_link(identity_simple, id_, {"permission": "view"})
-    preview_link = service.access.create_secret_link(identity_simple, id_, {"permission": "preview"})
-    edit_link = service.access.create_secret_link(identity_simple, id_, {"permission": "edit"})
+    view_link = service.access.create_secret_link(
+        identity_simple, id_, {"permission": "view"}
+    )
+    preview_link = service.access.create_secret_link(
+        identity_simple, id_, {"permission": "preview"}
+    )
+    edit_link = service.access.create_secret_link(
+        identity_simple, id_, {"permission": "edit"}
+    )
 
     # == Anonymous user
     anon = AnonymousIdentity()

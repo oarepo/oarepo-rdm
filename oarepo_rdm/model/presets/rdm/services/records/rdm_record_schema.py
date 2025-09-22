@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-import marshmallow as ma
 from marshmallow_utils.fields import (
     NestedAttribute,
 )
@@ -20,15 +19,12 @@ from marshmallow_utils.fields import (
 from oarepo_model.customizations import AddMixins, Customization
 from oarepo_model.presets import Preset
 
-from datetime import datetime, timezone
-from functools import partial
 
 from flask import current_app
 from invenio_i18n import lazy_gettext as _
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_dump
 from marshmallow_utils.fields import (
     EDTFDateTimeString,
-    NestedAttribute,
     SanitizedHTML,
     SanitizedUnicode,
 )
@@ -40,7 +36,10 @@ from invenio_rdm_records.services.schemas.parent import RDMParentSchema
 from invenio_rdm_records.services.schemas.parent.access import Agent
 from invenio_rdm_records.services.schemas.pids import PIDSchema
 from invenio_rdm_records.services.schemas.stats import StatsSchema
-from invenio_rdm_records.services.schemas.tombstone import DeletionStatusSchema, TombstoneSchema
+from invenio_rdm_records.services.schemas.tombstone import (
+    DeletionStatusSchema,
+    TombstoneSchema,
+)
 from invenio_rdm_records.services.schemas.versions import VersionsSchema
 
 if TYPE_CHECKING:

@@ -300,10 +300,7 @@ class OARepoRDMService(RDMRecordService):
         """Get a list of eligible RDM record services."""
         print(
             "PER",
-            [
-                model.service.config.permission_policy_cls.mro()
-                for model in current_runtime.rdm_models
-            ],
+            [model.service.config.schema.mro() for model in current_runtime.rdm_models],
         )
         return {
             model.record_json_schema: cast("RDMRecordService", model.service)

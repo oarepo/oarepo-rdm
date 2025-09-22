@@ -82,7 +82,9 @@ class MultiplexingSchema(ServiceSchemaWrapper):
         schema = data["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.load(data, schema_args=schema_args, context=context, raise_errors=raise_errors)
+        return delegated_service.schema.load(
+            data, schema_args=schema_args, context=context, raise_errors=raise_errors
+        )
 
     @override
     def dump(
@@ -96,7 +98,9 @@ class MultiplexingSchema(ServiceSchemaWrapper):
         delegated_service = delegated_model.service
         return cast(
             "dict[str, Any]",
-            delegated_service.schema.dump(data, schema_args=schema_args, context=context),
+            delegated_service.schema.dump(
+                data, schema_args=schema_args, context=context
+            ),
         )
 
 
