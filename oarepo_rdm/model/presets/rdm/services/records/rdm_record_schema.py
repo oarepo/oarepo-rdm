@@ -63,7 +63,6 @@ class RDMRecordSchemaMixin(FieldPermissionsMixin):
     media_files = NestedAttribute(FilesSchema)
     revision = fields.Integer(dump_only=True)
     versions = NestedAttribute(VersionsSchema, dump_only=True)
-    parent = NestedAttribute(RDMParentSchema)
     is_published = fields.Boolean(dump_only=True)
     status = fields.String(dump_only=True)
     tombstone = fields.Nested(TombstoneSchema, dump_only=True)
