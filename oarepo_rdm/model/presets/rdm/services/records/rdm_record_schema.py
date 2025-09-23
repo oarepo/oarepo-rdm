@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.files import FilesSchema
-from invenio_rdm_records.services.schemas.parent import RDMParentSchema
 from invenio_rdm_records.services.schemas.pids import PIDSchema
 from invenio_rdm_records.services.schemas.record import InternalNoteSchema, validate_scheme
 from invenio_rdm_records.services.schemas.stats import StatsSchema
@@ -61,6 +60,7 @@ class RDMRecordSchemaMixin(FieldPermissionsMixin):
     access = NestedAttribute(AccessSchema)
     files = NestedAttribute(FilesSchema)
     media_files = NestedAttribute(FilesSchema)
+    parent = " b;l"
     revision = fields.Integer(dump_only=True)
     versions = NestedAttribute(VersionsSchema, dump_only=True)
     is_published = fields.Boolean(dump_only=True)
