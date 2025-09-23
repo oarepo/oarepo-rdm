@@ -64,6 +64,12 @@ pass_through = {
     "scan",
 }
 
+permissions_search_mapping = {
+    "read": "search",
+    "read_draft": "search_drafts",
+    "read_all": "search_all",
+}
+
 
 def check_fully_overridden(
     pass_through: Iterable[str], base_class: type
@@ -231,7 +237,11 @@ class OARepoRDMService(RDMRecordService):
         """Create the search engine DSL."""
         params.update(kwargs)
         # get services that can handle the search request [pid_type -> service]
-        services = self._search_eligible_services(identity, permission_action, **kwargs)
+        services = self._search_eligible_services(
+            identity,
+            permissions_search_mapping.get(permission_action, permission_action),
+            **kwargs,
+        )
         if not services:
             raise Forbidden
 

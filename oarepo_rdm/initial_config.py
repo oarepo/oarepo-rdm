@@ -20,9 +20,9 @@ from oarepo_rdm.oai.config import OAIServerMetadataFormats
 
 # TODO: Why not to add other RDM routes here?
 APP_RDM_ROUTES = {
-    # "index": "/", #noqa
-    # "robots": "/robots.txt", #noqa
-    # "help_search": "/help/search", #noqa
+    "index": "/",
+    "robots": "/robots.txt",
+    "help_search": "/help/search",
     # "help_statistics": "/help/statistics", #noqa
     # "help_versioning": "/help/versioning", #noqa
     "record_search": "/search",
