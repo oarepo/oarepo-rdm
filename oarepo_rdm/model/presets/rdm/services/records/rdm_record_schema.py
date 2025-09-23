@@ -12,24 +12,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, override
 
-from flask import current_app
-from invenio_i18n import gettext as _
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.files import FilesSchema
 from invenio_rdm_records.services.schemas.parent import RDMParentSchema
-from invenio_rdm_records.services.schemas.parent.access import Agent
 from invenio_rdm_records.services.schemas.pids import PIDSchema
+from invenio_rdm_records.services.schemas.record import InternalNoteSchema, validate_scheme
 from invenio_rdm_records.services.schemas.stats import StatsSchema
 from invenio_rdm_records.services.schemas.tombstone import (
     DeletionStatusSchema,
     TombstoneSchema,
 )
 from invenio_rdm_records.services.schemas.versions import VersionsSchema
-from marshmallow import EXCLUDE, Schema, ValidationError, fields, post_dump
+from marshmallow import EXCLUDE, fields, post_dump
 from marshmallow_utils.fields import (
-    EDTFDateTimeString,
     NestedAttribute,
-    SanitizedHTML,
     SanitizedUnicode,
 )
 from marshmallow_utils.permissions import FieldPermissionsMixin
@@ -41,26 +37,6 @@ if TYPE_CHECKING:
 
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
-
-
-def validate_scheme(scheme: str) -> None:
-    """Validate a PID scheme."""
-    if scheme not in current_app.config["RDM_PERSISTENT_IDENTIFIERS"]:
-        raise ValidationError(_("Invalid persistent identifier scheme."))
-
-
-class InternalNoteSchema(Schema):
-    """Schema for internal notes."""
-
-    id = SanitizedUnicode()
-    timestamp = EDTFDateTimeString(dump_only=True)
-    added_by = fields.Nested(Agent, dump_only=True)
-    note = SanitizedHTML()
-
-    class Meta:
-        """Meta attributes for the schema."""
-
-        unknown = EXCLUDE
 
 
 class RDMRecordSchemaMixin(FieldPermissionsMixin):
