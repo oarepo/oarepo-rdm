@@ -46,6 +46,6 @@ class OARepoRDMRecordResource(RDMRecordResource):
 
         items = search_all_records(
             g.identity,
-            params=resource_requestctx.args,  # type: ignore[attr-defined]
+            params=resource_requestctx.args,
         )
         return items.to_dict(), 200

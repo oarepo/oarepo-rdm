@@ -130,9 +130,9 @@ modelc = model(
 )
 modelc.register()
 
-assert (
-    "metadata_adescription" not in modela.RecordServiceConfig.search.facets
-), "Remove this assert when facets are supported in oarepo-model"
+assert "metadata_adescription" not in modela.RecordServiceConfig.search.facets, (
+    "Remove this assert when facets are supported in oarepo-model"
+)
 
 modela.RecordServiceConfig.search.facets["metadata_adescription"] = TermsFacet(
     field="metadata.adescription", label="A Description"

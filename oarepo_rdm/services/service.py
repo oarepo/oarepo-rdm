@@ -188,7 +188,7 @@ class OARepoRDMService(RDMRecordService):
 
     @unit_of_work()
     @override
-    def create(  # pyright: reportIncompatibleMethodOverride=False # type: ignore[override]
+    def create(
         self,
         identity: Identity,
         data: dict[str, Any],
@@ -391,7 +391,7 @@ class OARepoRDMService(RDMRecordService):
     ) -> Literal[True]:
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "on_relation_update"):
-                model.service.on_relation_update(  # type: ignore[no-any-return]
+                model.service.on_relation_update(
                     identity,
                     record_type,
                     records_info,
