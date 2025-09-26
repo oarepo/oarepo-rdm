@@ -12,6 +12,7 @@ import base64
 import os
 from datetime import UTC, datetime
 from io import BytesIO
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest import mock
 from unittest.mock import MagicMock
@@ -68,7 +69,7 @@ def model_types():
     return {
         "Metadata": {
             "properties": {
-                "title": {"type": "fulltext+keyword", "required": True},
+                "title": {"type": "keyword", "required": True},
             }
         }
     }
@@ -109,7 +110,7 @@ def rdm_model(model_types, finalization_called):
 
     from oarepo_rdm.model.presets.rdm import rdm_preset
 
-    return model(
+    ret = model(
         name="rdm_test",
         version="1.0.0",
         presets=[records_resources_preset, drafts_preset, rdm_preset, ui_preset],
@@ -119,19 +120,20 @@ def rdm_model(model_types, finalization_called):
             AddToList("api_finalizers", finalization_called),
         ],
     )
+    ret.register()
+    return ret
 
 
 @pytest.fixture(scope="module")
-def app_config(app_config, model_a, model_b, model_c, rdm_model):
+def app_config(app_config):
     """Mimic an instance's configuration."""
-    model_a.register()
-    model_b.register()
-    model_c.register()
-    rdm_model.register()
-
     app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
-    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
+    app_config["RECORDS_REFRESOLVER_CLS"] = (
+        "invenio_records.resolver.InvenioRefResolver"
+    )
+    app_config["RECORDS_REFRESOLVER_STORE"] = (
+        "invenio_jsonschemas.proxies.current_refresolver_store"
+    )
     app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
     app_config["SEARCH_HOSTS"] = [
         {
@@ -165,6 +167,11 @@ def app_config(app_config, model_a, model_b, model_c, rdm_model):
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
+
+    # if on macOS, we need to add homebrew path otherwise we'll have problems
+    # with loading cairo-2
+    if os.uname().sysname == "Darwin" and Path("/opt/homebrew/lib").exists():
+        os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib"
 
     return app_config
 
@@ -204,7 +211,7 @@ def embargoed_files_record(rdm_records_service, identity_simple):
 
 
 @pytest.fixture(scope="module")
-def extra_entry_points():
+def extra_entry_points(model_a, model_b, model_c, rdm_model):
     """Extra entrypoints."""
     return {
         "invenio_base.blueprints": [
@@ -401,8 +408,12 @@ def input_data():
 def add_file_to_draft():
     """Add a file to the record."""
 
-    def _add_file_to_draft(draft_file_service, draft_id, file_id, identity) -> dict[str, Any]:
-        result = draft_file_service.init_files(identity, draft_id, data=[{"key": file_id}])
+    def _add_file_to_draft(
+        draft_file_service, draft_id, file_id, identity
+    ) -> dict[str, Any]:
+        result = draft_file_service.init_files(
+            identity, draft_id, data=[{"key": file_id}]
+        )
         file_md = next(iter(result.entries))
         assert file_md["key"] == "test.txt"
         assert file_md["status"] == "pending"

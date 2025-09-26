@@ -11,14 +11,14 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, ClassVar, override
+from functools import cached_property
+from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
 from invenio_records_resources.services.records.config import SearchOptions
 from invenio_records_resources.services.records.params import (
-    PaginationParam,
+    FacetsParam,
     ParamInterpreter,
-    SortParam,
 )
 from oarepo_runtime import current_runtime
 from oarepo_runtime.services.facets.params import GroupedFacetsParam
@@ -66,7 +66,9 @@ class DelegatedQueryParam(ParamInterpreter):
 
         for pid_type, query_data in queries_list.items():
             schema_query = query_data.get("query", {})
-            shoulds.append({"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}})
+            shoulds.append(
+                {"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}}
+            )
 
             if "aggs" in query_data:
                 aggs.update(query_data["aggs"])
@@ -81,12 +83,24 @@ class DelegatedQueryParam(ParamInterpreter):
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
-    params_interpreters_cls: ClassVar[list[type[ParamInterpreter]]] = [
-        GroupedFacetsParam,
-        PaginationParam,
-        SortParam,
-        DelegatedQueryParam,
-    ]
+    @property
+    def params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
+        """Return the list of parameter interpreter classes."""
+        return self._cached_params_interpreters_cls
+
+    @params_interpreters_cls.setter
+    def params_interpreters_cls(self, _value: list[type[ParamInterpreter]]) -> None:
+        """Prevent setting params_interpreters."""
+        raise AttributeError("params_interpreters is read-only")
+
+    @cached_property
+    def _cached_params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
+        super_params = [*super().params_interpreters_cls]
+        # remove FacetsParam
+        super_params.remove(FacetsParam)
+        super_params.append(GroupedFacetsParam)
+        super_params.append(DelegatedQueryParam)
+        return super_params
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
@@ -126,6 +140,8 @@ class MultiplexedSearchOptions(SearchOptions):
             if hasattr(model.service.config, config_field):
                 ret = always_merger.merge(
                     ret,
-                    self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
+                    self._search_opts_from_search_obj(
+                        getattr(model.service.config, config_field)
+                    ),
                 )
         return ret
