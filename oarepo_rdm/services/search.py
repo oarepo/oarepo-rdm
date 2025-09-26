@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from deepmerge import always_merger
 from invenio_records_resources.services.records.config import SearchOptions
@@ -81,22 +81,23 @@ class DelegatedQueryParam(ParamInterpreter):
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
-    params_interpreters_cls = (
+    params_interpreters_cls: ClassVar[list[type[ParamInterpreter]]] = [
         GroupedFacetsParam,
         PaginationParam,
         SortParam,
         DelegatedQueryParam,
-    )
+    ]
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
         search_opts = self._search_opts(config_field)
 
-        self.facets = search_opts["facets"]
-        self.facet_groups = search_opts["facet_groups"]
-        self.sort_options = search_opts["sort_options"]
-        self.sort_default = search_opts["sort_default"]
-        self.sort_default_no_query = search_opts["sort_default_no_query"]
+        # TODO: we need to have a look at ClassVar typing !!!
+        self.facets = search_opts["facets"]  # type: ignore[assignment]
+        self.facet_groups = search_opts["facet_groups"]  # type: ignore[assignment]
+        self.sort_options = search_opts["sort_options"]  # type: ignore[assignment]
+        self.sort_default = search_opts["sort_default"]  # type: ignore[assignment]
+        self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
 
     def _search_opts_from_search_obj(self, search: Any) -> dict[str, Any]:
         facets: dict[str, Any] = {}

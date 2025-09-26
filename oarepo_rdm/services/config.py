@@ -24,7 +24,7 @@ from invenio_records_resources.services.base.links import (
 from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
 )
-from invenio_records_resources.services.records.service import ServiceSchemaWrapper
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from oarepo_runtime import current_runtime
 
 from oarepo_rdm.proxies import current_oarepo_rdm
@@ -87,7 +87,7 @@ class MultiplexingSchema(ServiceSchemaWrapper):
     @override
     def dump(
         self,
-        data: dict[str, Any],
+        data: Record,
         schema_args: Any | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:

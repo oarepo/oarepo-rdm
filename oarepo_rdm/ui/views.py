@@ -22,6 +22,7 @@ from invenio_records_resources.proxies import current_service_registry
 from werkzeug.utils import redirect
 
 if TYPE_CHECKING:
+    from invenio_rdm_records.services.services import RDMRecordService
     from werkzeug import Response
 
 
@@ -41,7 +42,7 @@ def create_records_blueprint(app: Flask) -> Blueprint:
 @pass_include_deleted
 def record_detail(pid_value: str, include_deleted: bool = False) -> Response:
     """Redirect to the record detail page."""
-    service = current_service_registry.get("records")  # type: ignore[attr-defined]
+    service = cast("RDMRecordService", current_service_registry.get("records"))
     rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
     data = rec.to_dict()
     self_html = data["links"]["self_html"]

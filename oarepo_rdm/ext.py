@@ -85,7 +85,10 @@ def finalize_app(_app: Flask) -> None:
     InvenioRDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
     InvenioRDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
     InvenioRDMRecord.index = IndexField(
-        None,
+        "never-used-for-indexing-records-search-alias-used-instead",
         search_alias=[*current_runtime.published_indices],
     )
-    InvenioRDMDraft.index = IndexField(None, search_alias=[*current_runtime.draft_indices])
+    InvenioRDMDraft.index = IndexField(
+        "never-used-for-indexing-drafts-search-alias-used-instead",
+        search_alias=[*current_runtime.draft_indices],
+    )

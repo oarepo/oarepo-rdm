@@ -40,7 +40,11 @@ class OARepoRDMRecordResource(RDMRecordResource):
     @response_handler(many=True)
     def search_all_records(self) -> tuple[dict[str, Any], int]:
         """Search all records, regardless if they are published or not."""
-        items = self.service.search_all_records(
+        search_all_records = getattr(self.service, "search_all_records", None)
+        if search_all_records is None:
+            return {"message": "Not implemented"}, 400
+
+        items = search_all_records(
             g.identity,
             params=resource_requestctx.args,  # type: ignore[attr-defined]
         )
