@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from oarepo_runtime import current_runtime
 
@@ -19,6 +19,9 @@ from .serializer import multiplexing_oai_serializer
 
 if TYPE_CHECKING:
     Dict = dict
+    from invenio_records.systemfields import ConstantField
+    from invenio_records_resources.records.api import Record
+
 else:
     Dict = object
 
@@ -75,11 +78,17 @@ class OAIServerMetadataFormats(Dict):
             for export in model.exports:
                 if not export.oai_metadata_prefix:
                     continue
+                schema = cast(
+                    "ConstantField[Record, str] | None",
+                    getattr(model.record_cls, "schema", None),
+                )
+                if not schema:
+                    continue
                 infos[export.oai_metadata_prefix].append(
                     {
                         "namespace": export.oai_namespace,
                         "schema": export.oai_schema,
-                        "model_schema": model.record_cls.schema.value,  # type: ignore[reportAttributeAccessIssue]
+                        "model_schema": schema.value,
                         "serializer": export.serializer,
                     }
                 )

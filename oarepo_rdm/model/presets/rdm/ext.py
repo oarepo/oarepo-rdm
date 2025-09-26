@@ -23,6 +23,7 @@ from oarepo_model.customizations import (
 )
 from oarepo_model.model import InvenioModel, ModelMixin
 from oarepo_model.presets import Preset
+from oarepo_model.presets.records_resources.ext import RecordExtensionProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -42,11 +43,11 @@ class RDMExtPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        class ExtRDMMixin(ModelMixin):
+        class ExtRDMMixin(ModelMixin, RecordExtensionProtocol):
             @property
             def records_service_params(self) -> dict[str, Any]:
                 """Parameters for the record service."""
-                params = super().records_service_params  # type: ignore[misc]
+                params = super().records_service_params
                 return {
                     **params,
                     "pids_service": PIDsService(params["config"], PIDManager),

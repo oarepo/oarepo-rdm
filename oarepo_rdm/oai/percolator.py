@@ -59,9 +59,7 @@ def init_percolators() -> None:
     # a change to invenio to start supporting this.
     for index_name, mapping in percolated_mappings.items():
         if prefixed_oaiserver_record_index not in mapping["aliases"]:
-            current_search_client.indices.put_alias(  # type: ignore[attr-defined]
-                index_name, prefixed_oaiserver_record_index
-            )
+            current_search_client.indices.put_alias(index_name, prefixed_oaiserver_record_index)
 
 
 def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
@@ -75,14 +73,14 @@ def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
     percolator_index = build_index_name(record_index + "-percolators", suffix="", app=current_app)
 
     # remove the previous percolator index and build it again
-    if current_search_client.indices.exists(percolator_index):  # type: ignore[attr-defined]
-        current_search_client.indices.delete(percolator_index)  # type: ignore[attr-defined]
+    if current_search_client.indices.exists(percolator_index):
+        current_search_client.indices.delete(percolator_index)
 
-    current_search_client.indices.create(index=percolator_index, body=mapping)  # type: ignore[attr-defined]
+    current_search_client.indices.create(index=percolator_index, body=mapping)
 
 
 def _get_percolated_mappings(oaiserver_record_index: str, prefixed_oaiserver_record_index: str) -> dict[str, dict]:
-    indices = current_search_client.indices.get("*")  # type: ignore[attr-defined]
+    indices = current_search_client.indices.get("*")
 
     return {
         index_name: index

@@ -70,6 +70,7 @@ modela = model(
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
     ],
 )
+modela.register()
 
 modelb = model(
     "modelb",
@@ -98,6 +99,7 @@ modelb = model(
         )
     ],
 )
+modelb.register()
 
 modelc = model(
     "modelc",
@@ -126,6 +128,7 @@ modelc = model(
         )
     ],
 )
+modelc.register()
 
 assert "metadata_adescription" not in modela.RecordServiceConfig.search.facets, (
     "Remove this assert when facets are supported in oarepo-model"

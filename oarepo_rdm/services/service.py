@@ -13,8 +13,9 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, Any, Literal, cast, override
 
+import marshmallow as ma
+from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.services import RDMRecordService
-from invenio_records_resources.services.uow import UnitOfWork, unit_of_work
 from oarepo_runtime.proxies import current_runtime
 from werkzeug.exceptions import Forbidden
 
@@ -27,10 +28,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
     from invenio_access.permissions import Identity
+    from invenio_rdm_records.services.config import RDMRecordServiceConfig
     from invenio_records_resources.services.records.results import (
         RecordItem,
     )
-    from invenio_records_resources.services.records.service import ServiceSchemaWrapper
+    from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
     from invenio_search import RecordsSearchV2
     from oarepo_runtime.api import Model
 
@@ -182,11 +184,11 @@ class OARepoRDMService(RDMRecordService):
     @property
     def schema(self) -> ServiceSchemaWrapper:
         """Schema for the service."""
-        return MultiplexingSchema(self, None)
+        return MultiplexingSchema(self, ma.Schema())
 
     @unit_of_work()
     @override
-    def create(  # pyright: reportIncompatibleMethodOverride=False # type: ignore[override]
+    def create(
         self,
         identity: Identity,
         data: dict[str, Any],
@@ -278,12 +280,13 @@ class OARepoRDMService(RDMRecordService):
         )
 
     def _search_options(self, service: RDMRecordService, search_opts: Any) -> Any:
-        if search_opts is self.config.search:
-            return service.config.search
-        if search_opts is self.config.search_drafts:
-            return service.config.search_drafts
-        if search_opts is self.config.search_versions:
-            return service.config.search_versions
+        rdm_config = cast("RDMRecordServiceConfig", service.config)
+        if search_opts is rdm_config.search:
+            return rdm_config.search
+        if search_opts is rdm_config.search_drafts:
+            return rdm_config.search_drafts
+        if search_opts is rdm_config.search_versions:
+            return rdm_config.search_versions
         return search_opts
 
     def _search_eligible_services(
@@ -359,7 +362,7 @@ class OARepoRDMService(RDMRecordService):
         identity: Identity,
         params: dict[str, tuple[str, ...]] | None = None,
         search_preference: str | None = None,
-        search_query: str | None = None,
+        search_query: Any | None = None,
         extra_filter: Any | None = None,
         **kwargs: Any,
     ) -> Literal[True]:
@@ -382,13 +385,13 @@ class OARepoRDMService(RDMRecordService):
         self,
         identity: Identity,
         record_type: str,
-        records_info: Any,
-        notif_time: datetime.datetime,
+        records_info: list[Any],
+        notif_time: str,
         limit: int = 100,
     ) -> Literal[True]:
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "on_relation_update"):
-                model.service.on_relation_update(  # type: ignore[no-any-return]
+                model.service.on_relation_update(
                     identity,
                     record_type,
                     records_info,

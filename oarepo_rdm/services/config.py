@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast, override
+from typing import TYPE_CHECKING, Any, ClassVar, cast, override
 
 from invenio_drafts_resources.services.records.config import (
     SearchOptions,
@@ -24,7 +24,7 @@ from invenio_records_resources.services.base.links import (
 from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
 )
-from invenio_records_resources.services.records.service import ServiceSchemaWrapper
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from oarepo_runtime import current_runtime
 
 from oarepo_rdm.proxies import current_oarepo_rdm
@@ -47,20 +47,18 @@ class MultiplexingLinks(LinksTemplate):
     """
 
     @override
-    def expand(  # type: ignore[override]
-        self, identity: Identity, record: Record | None = None, **kwargs: Any
-    ) -> dict[str, str]:
+    def expand(self, identity: Identity, obj: Any, **kwargs: Any) -> dict[str, str]:
         """Expand links for the given record."""
-        if record is None:
+        if obj is None:
             return {}
 
-        schema = record["$schema"]
+        schema = obj["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
         return cast(
             "dict[str, str]",
             # TODO: seems to be correct but what to do with kwargs?
-            delegated_service.links_item_tpl.expand(identity, record),
+            delegated_service.links_item_tpl.expand(identity, obj),
         )
 
 
@@ -87,7 +85,7 @@ class MultiplexingSchema(ServiceSchemaWrapper):
     @override
     def dump(
         self,
-        data: dict[str, Any],
+        data: Record,
         schema_args: Any | None = None,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
@@ -103,10 +101,10 @@ class MultiplexingSchema(ServiceSchemaWrapper):
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     """OARepo extension to RDM record service configuration."""
 
-    result_list_cls = MultiplexingResultList  # type: ignore[assignment]
+    result_list_cls = MultiplexingResultList
 
     # TODO: add proper links here, not just this subset
-    links_item = {  # type: ignore[misc] # in invenio this is mutable # noqa RUFF012
+    links_item: ClassVar[dict[str, Any]] = {
         # Record
         "self": ConditionalLink(
             cond=is_record,

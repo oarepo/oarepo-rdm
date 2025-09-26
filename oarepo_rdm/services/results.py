@@ -10,13 +10,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from invenio_rdm_records.services.results import RDMRecordList
 from oarepo_runtime import current_runtime
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+    from invenio_rdm_records.services.services import RDMRecordService
 
 
 class MultiplexingResultList(RDMRecordList):
@@ -33,10 +35,10 @@ class MultiplexingResultList(RDMRecordList):
             publication_status = hit.get("publication_status", "published")
 
             delegated_model = current_runtime.rdm_models_by_schema[schema]
-            delegated_service = delegated_model.service
+            delegated_service = cast("RDMRecordService", delegated_model.service)
 
             if publication_status == "draft":
-                record = delegated_service.draft_cls.loads(record_dict)  # type: ignore[reportAttributeAccessIssue]
+                record = delegated_service.draft_cls.loads(record_dict)
             else:
                 record = delegated_service.record_cls.loads(record_dict)
 

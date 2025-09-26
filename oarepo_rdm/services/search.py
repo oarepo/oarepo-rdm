@@ -11,14 +11,14 @@
 from __future__ import annotations
 
 import logging
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
 from invenio_records_resources.services.records.config import SearchOptions
 from invenio_records_resources.services.records.params import (
-    PaginationParam,
+    FacetsParam,
     ParamInterpreter,
-    SortParam,
 )
 from oarepo_runtime import current_runtime
 from oarepo_runtime.services.facets.params import GroupedFacetsParam
@@ -35,9 +35,7 @@ class DelegatedQueryParam(ParamInterpreter):
     """Evaluate the 'json' parameter."""
 
     @override
-    def apply(  # type: ignore[reportIncompatibleMethodOverride]
-        self, identity: Identity, search: RecordsSearchV2, params: dict[str, Any]
-    ) -> RecordsSearchV2:
+    def apply(self, identity: Identity, search: RecordsSearchV2, params: dict[str, Any]) -> RecordsSearchV2:
         """Evaluate the query str on the search."""
         if "delegated_query" in params:
             queries_list, _ = params.pop("delegated_query")
@@ -46,7 +44,7 @@ class DelegatedQueryParam(ParamInterpreter):
 
             for agg in aggs:
                 search.aggs.bucket(agg, aggs[agg])
-            search = search.query(query)  # type: ignore[reportCallIssue] # done via proxy, not understood by mypy
+            search = search.query(query)
             if post_filter != {}:
                 search = search.post_filter(post_filter)
             if sort:
@@ -81,22 +79,35 @@ class DelegatedQueryParam(ParamInterpreter):
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
-    params_interpreters_cls = (
-        GroupedFacetsParam,
-        PaginationParam,
-        SortParam,
-        DelegatedQueryParam,
-    )
+    @property
+    def params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
+        """Return the list of parameter interpreter classes."""
+        return self._cached_params_interpreters_cls
+
+    @params_interpreters_cls.setter
+    def params_interpreters_cls(self, _value: list[type[ParamInterpreter]]) -> None:
+        """Prevent setting params_interpreters."""
+        raise AttributeError("params_interpreters is read-only")
+
+    @cached_property
+    def _cached_params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
+        super_params = [*super().params_interpreters_cls]
+        # remove FacetsParam
+        super_params.remove(FacetsParam)
+        super_params.append(GroupedFacetsParam)
+        super_params.append(DelegatedQueryParam)
+        return super_params
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
         search_opts = self._search_opts(config_field)
 
-        self.facets = search_opts["facets"]
-        self.facet_groups = search_opts["facet_groups"]
-        self.sort_options = search_opts["sort_options"]
-        self.sort_default = search_opts["sort_default"]
-        self.sort_default_no_query = search_opts["sort_default_no_query"]
+        # TODO: we need to have a look at ClassVar typing !!!
+        self.facets = search_opts["facets"]  # type: ignore[assignment]
+        self.facet_groups = search_opts["facet_groups"]  # type: ignore[assignment]
+        self.sort_options = search_opts["sort_options"]  # type: ignore[assignment]
+        self.sort_default = search_opts["sort_default"]  # type: ignore[assignment]
+        self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
 
     def _search_opts_from_search_obj(self, search: Any) -> dict[str, Any]:
         facets: dict[str, Any] = {}
