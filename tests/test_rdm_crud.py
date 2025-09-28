@@ -89,6 +89,16 @@ def test_publish(
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)
 
+    test_rdm_service.indexer.refresh()
+
+    # search for all versions
+    versions = test_rdm_service.search_versions(identity_simple, id_)
+    assert versions.total == 1
+    first_hit = next(iter(versions.hits))
+    assert first_hit["id"] == id_
+
+    assert "self" in versions.to_dict()["links"]
+
     delete_data = {
         "removal_reason": {"id": "your stuff is gone"},
         "citation_text": "lalala",
