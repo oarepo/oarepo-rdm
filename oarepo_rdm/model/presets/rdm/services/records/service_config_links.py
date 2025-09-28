@@ -35,6 +35,7 @@ from oarepo_model.presets import Preset
 from oarepo_runtime.services.config import (
     is_published_record,
 )
+from oarepo_runtime.services.records.links import rdm_pagination_record_endpoint_links
 from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
@@ -47,7 +48,7 @@ if TYPE_CHECKING:
 class RDMServiceConfigLinks(Preset):
     """Preset for extra RDM service config links."""
 
-    modifies = ("record_links_item",)
+    modifies = ("record_links_item", "record_version_search_links")
 
     @override
     def apply(
@@ -112,4 +113,10 @@ class RDMServiceConfigLinks(Preset):
                 "access_request": RecordEndpointLink("records.create_access_request"),
                 "access": RecordEndpointLink("records.update_access_settings"),
             },
+        )
+
+        # Versions
+        yield AddToDictionary(
+            "record_version_search_links",
+            rdm_pagination_record_endpoint_links(f"{model.blueprint_base}.search_versions"),
         )
