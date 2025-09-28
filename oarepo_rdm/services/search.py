@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import logging
-from functools import cached_property
 from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
@@ -76,27 +75,22 @@ class DelegatedQueryParam(ParamInterpreter):
         return query, aggs, post_filter, sort
 
 
+def update_param_interpreters(
+    existing: tuple[type[ParamInterpreter], ...],
+) -> tuple[type[ParamInterpreter], ...]:
+    """Update the list of parameter interpreters."""
+    existing_list = list(existing)
+    # remove FacetsParam
+    existing_list.remove(FacetsParam)
+    existing_list.append(GroupedFacetsParam)
+    existing_list.append(DelegatedQueryParam)
+    return tuple(existing_list)
+
+
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
-    @property
-    def params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
-        """Return the list of parameter interpreter classes."""
-        return self._cached_params_interpreters_cls
-
-    @params_interpreters_cls.setter
-    def params_interpreters_cls(self, _value: list[type[ParamInterpreter]]) -> None:
-        """Prevent setting params_interpreters."""
-        raise AttributeError("params_interpreters is read-only")
-
-    @cached_property
-    def _cached_params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
-        super_params = [*super().params_interpreters_cls]
-        # remove FacetsParam
-        super_params.remove(FacetsParam)
-        super_params.append(GroupedFacetsParam)
-        super_params.append(DelegatedQueryParam)
-        return super_params
+    params_interpreters_cls = update_param_interpreters(SearchOptions.params_interpreters_cls)
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
