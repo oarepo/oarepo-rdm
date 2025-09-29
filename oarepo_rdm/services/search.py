@@ -80,14 +80,9 @@ class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
     @property
-    def params_interpreters_cls(self) -> list[type[ParamInterpreter]]:
+    def params_interpreters_cls(self) -> list[type[ParamInterpreter]]:  # type: ignore[override]
         """Return the list of parameter interpreter classes."""
         return self._cached_params_interpreters_cls
-
-    @params_interpreters_cls.setter
-    def params_interpreters_cls(self, _value: list[type[ParamInterpreter]]) -> None:
-        """Prevent setting params_interpreters."""
-        raise AttributeError("params_interpreters is read-only")
 
     @cached_property
     def _cached_params_interpreters_cls(self) -> list[type[ParamInterpreter]]:

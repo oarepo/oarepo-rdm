@@ -20,7 +20,6 @@ from .serializer import multiplexing_oai_serializer
 if TYPE_CHECKING:
     Dict = dict
     from invenio_records.systemfields import ConstantField
-    from invenio_records_resources.records.api import Record
 
 else:
     Dict = object
@@ -79,7 +78,7 @@ class OAIServerMetadataFormats(Dict):
                 if not export.oai_metadata_prefix:
                     continue
                 schema = cast(
-                    "ConstantField[Record, str] | None",
+                    "ConstantField | None",
                     getattr(model.record_cls, "schema", None),
                 )
                 if not schema:
