@@ -1,21 +1,24 @@
-from flask_resources import ResponseHandler
-from oarepo_global_search.resources.records.response import GlobalSearchResponseHandler
-from oarepo_rdm.proxies import current_oarepo_rdm
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""UI serializer for RDM records."""
 
-def global_search_response_handlers():
-    serializers = []
+from __future__ import annotations
 
-    for model in current_oarepo_rdm.rdm_models:
-        serializers.append(
-            {
-                "schema": model.api_service.record_cls.schema.value,
-                "serializer": model.api_resource.config.response_handlers[
-                    "application/vnd.inveniordm.v1+json"
-                ].serializer,
-            }
-        )
+from typing import ClassVar
 
-    return GlobalSearchResponseHandler(
-                serializers
-            )
+from invenio_rdm_records.resources.config import RDMRecordResourceConfig
 
+
+class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
+    """OARepo extension to RDM record resource configuration."""
+
+    routes: ClassVar[dict[str, str]] = {
+        **RDMRecordResourceConfig.routes,
+        "all-prefix": "/all",  # /api/all/records
+    }

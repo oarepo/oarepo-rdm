@@ -7,27 +7,35 @@
 #
 """oarepo oaiserver serializer functions."""
 
-from oarepo_runtime.resources.responses import OAIExportableResponseHandler
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, cast
+
 from lxml import etree
-from invenio_rdm_records.proxies import current_rdm_records
-from invenio_access.permissions import system_identity
-from invenio_records_resources.services.records.results import RecordItem
-from oarepo_rdm.proxies import current_oarepo_rdm
+from oarepo_runtime import current_runtime
 
-def get_handler_from_metadata_prefix_and_record_schema(metadata_prefix, record_schema):
-    for model in current_oarepo_rdm.rdm_models:
-        if model.api_service_config.record_cls.schema.value == record_schema:
-            for handler in model.api_resource_config.response_handlers.values():
-                if isinstance(handler, OAIExportableResponseHandler) and handler.oai_metadata_prefix == metadata_prefix:
-                    return handler
-    return None
+if TYPE_CHECKING:
+    from flask_resources.serializers import BaseSerializer
 
-def oai_serializer(pid, record, **serializer_kwargs):
-    record_item = record["_source"]
-    if not isinstance(record_item, RecordItem):
-        record_item = current_rdm_records.records_service.read(system_identity, record_item['id'])
-    serializer = get_handler_from_metadata_prefix_and_record_schema(serializer_kwargs["metadata_prefix"],
-                                                                    record_item._record.schema).serializer
-    return etree.fromstring(
-        serializer.serialize_object(record_item.to_dict()).encode(encoding="utf-8")
-    )
+
+def multiplexing_oai_serializer(
+    pid: Any,  # noqa: ARG001 # invenio callback api needs this
+    record: dict[str, Any],
+    model_serializers: dict[str, BaseSerializer],
+    **serializer_kwargs: Any,  # noqa: ARG001 # invenio callback api needs this
+) -> etree._Element:
+    """Multiplexing OAI serializer that dispatches to the correct model serializer.
+
+    :param pid: The PID of the record.
+    :param record: The opensearch serialization of the record, [_source] is the record data.
+    :param model_serializers: A mapping of JSON schema identifiers to their corresponding serializers.
+    :param serializer_kwargs: Additional keyword arguments for the serializer, not used.
+    """
+    source = record["_source"]
+    json_schema = source.get("$schema")
+    if not json_schema:
+        raise ValueError(f"Missing JSON schema on record {record}")
+    model = current_runtime.models_by_schema[json_schema]
+    loaded_record = model.record_cls.loads(source)
+    resp = cast("str", model_serializers[json_schema].serialize_object(loaded_record))
+    return etree.fromstring(resp.encode("utf-8"))

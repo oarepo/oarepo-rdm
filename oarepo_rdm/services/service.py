@@ -1,300 +1,402 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""RDM service extension to use specialized records instead of generic RDM records."""
+
+from __future__ import annotations
+
+import copy
+from typing import TYPE_CHECKING, Any, Literal, cast, override
+
+import marshmallow as ma
+from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.services import RDMRecordService
-from invenio_records_resources.services.uow import unit_of_work
-from oarepo_global_search.proxies import (
-    current_global_search,
-    current_global_search_service,
-)
+from oarepo_runtime.proxies import current_runtime
+from werkzeug.exceptions import Forbidden
 
 from oarepo_rdm.errors import UndefinedModelError
-from oarepo_rdm.proxies import current_oarepo_rdm
+
+from .config import MultiplexingLinks, MultiplexingSchema
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Callable, Iterable
+
+    from invenio_access.permissions import Identity
+    from invenio_rdm_records.services.config import RDMRecordServiceConfig
+    from invenio_records_resources.services.records.results import (
+        RecordItem,
+    )
+    from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+    from invenio_search import RecordsSearchV2
+    from oarepo_runtime.api import Model
 
 
-def check_fully_overridden(cls):
-    exceptions = {
-        "create_search",
-        "search_request",
-        "check_revision_id",
-        "read_many",
-        "read_all",
-        "delete",
-        "permission_policy",
-        "check_permission",
-        "require_permission",
-        "run_components",
-        "result_item",
-        "result_list",
-        "record_to_index",
-        "scan_expired_embargos",
-        "exists",
-        "cleanup_record",
-    }
-    # what to do with delete? rdm uses delete_record but does not ban it
-    # perhaps it's simpler to just list exceptions than explicitly call super(), it does the same thing?
+pass_through = {
+    "create_search",
+    "search_request",
+    "check_revision_id",
+    "read_many",
+    "read_all",
+    "delete",
+    "permission_policy",
+    "check_permission",
+    "require_permission",
+    "run_components",
+    "result_item",
+    "result_list",
+    "record_to_index",
+    "scan_expired_embargos",
+    "exists",
+    "cleanup_record",
+    "search_revisions",
+    "read_revision",
+    "create_or_update_many",
+    "result_bulk_item",
+    "result_bulk_list",
+    # out of place
+    "set_user_quota",
+    "search",
+    "search_drafts",
+    "scan",
+}
 
-    for m in cls.mro():
-        for name, value in m.__dict__.items():
-            if callable(value) and not name.startswith("_"):
-                assert (
-                    name in cls.__dict__ or name in exceptions
-                ), f"Method with name {value.__qualname__} is not overridden in OARepoRDMService."
-    return cls
+permissions_search_mapping = {
+    "read": "search",
+    "read_draft": "search_drafts",
+    "read_all": "search_all",
+}
 
 
-@check_fully_overridden
+def check_fully_overridden(
+    pass_through: Iterable[str], base_class: type
+) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
+    """Check that all methods are fully overridden in the subclass."""
+
+    def wrapper(cls: type) -> type:
+        # go through base classes and check if methods defined on them
+        # are either in the list of exceptions, or are overriden in the class
+        for name, value in base_class.__dict__.items():
+            if not callable(value) or name.startswith("_") or name in pass_through:
+                continue
+
+            this_class_value = cls.__dict__.get(name, None)
+            if this_class_value is value:
+                raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
+        return cls
+
+    return wrapper
+
+
+def pass_to_specialized_service(
+    method_names: Iterable[str],
+) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
+    """Pass the call to the specialized service.
+
+    The service is selected by converting the id to pid type and resolving
+    the service by pid type.
+    """
+
+    def make_delegate(method_name: str) -> Callable[..., Any]:
+        def delegate(self: OARepoRDMService, *args: Any, **kwargs: Any) -> Any:
+            # might be called with positional arguments (almost always)
+            # or with keyword arguments (lift embargoes are called this way)
+            if "id_" in kwargs:
+                id_ = kwargs["id_"]
+            elif "_id" in kwargs:
+                # lift_embargo is the only one having it this way
+                id_ = kwargs["_id"]
+            else:
+                # called as (identity, id_)
+                id_ = args[1]
+
+            specialized_service = self._get_specialized_service(id_)
+            method = getattr(specialized_service, method_name)
+            return method(*args, **kwargs)
+
+        return delegate
+
+    def wrapper(cls: type[OARepoRDMService]) -> type[OARepoRDMService]:
+        overriden_methods = {}
+        for name in method_names:
+            if not hasattr(cls, name):
+                raise TypeError(f"Method {name} is not implemented in {cls.__name__}")
+            overriden_methods[name] = make_delegate(name)
+        return type(cls.__name__, (cls,), overriden_methods)
+
+    return wrapper
+
+
+@check_fully_overridden(pass_through, RDMRecordService)
+@pass_to_specialized_service(
+    [
+        "read",
+        "read_draft",
+        "read_latest",
+        "scan_versions",
+        "search_versions",
+        "update",
+        "update_draft",
+        "validate_draft",
+        "edit",
+        "new_version",
+        "import_files",
+        "delete_record",
+        "delete_draft",
+        "update_tombstone",
+        "publish",
+        "set_quota",
+        "mark_record_for_purge",
+        "purge_record",
+        "restore_record",
+        "unmark_record_for_purge",
+        "lift_embargo",
+    ]
+)
 class OARepoRDMService(RDMRecordService):
-    """"""
+    """RDM service replacement that delegates calls to a specialized services.
 
-    def _get_specialized_service(self, id_):
-        pid_type = current_oarepo_rdm.get_pid_type_from_pid(id_)
-        return current_oarepo_rdm.record_service_from_pid_type(pid_type)
+    For methods that accept record id, it does so by looking up the persistent identifier
+    type and delegating to the service that handles that PID type.
+
+    For create method, it looks at the jsonschema declaration in the data ("$schema" top-level
+    property), looks up the service by this schema and calls it.
+
+    Searches have specific handling - a query is run against all the indices and
+    then the results are converted to appropripate result classes.
+    """
+
+    def _get_specialized_service(self, pid_value: str) -> RDMRecordService:
+        """Get a specialized service based on the pid_value of the record."""
+        pid_type = current_runtime.find_pid_type_from_pid(pid_value)
+        return cast("RDMRecordService", current_runtime.model_by_pid_type[pid_type].service)
+
+    @property
+    def links_item_tpl(self) -> MultiplexingLinks:
+        """Item links template."""
+        return MultiplexingLinks()
+
+    @property
+    def schema(self) -> ServiceSchemaWrapper:
+        """Schema for the service."""
+        return MultiplexingSchema(self, ma.Schema())
 
     @unit_of_work()
-    def create(self, identity, data, schema=None, uow=None, expand=False, **kwargs):
+    @override
+    def create(
+        self,
+        identity: Identity,
+        data: dict[str, Any],
+        uow: UnitOfWork | None = None,
+        expand: bool = False,
+        schema: str | None = None,
+        **kwargs: Any,
+    ) -> RecordItem:
         """Create a draft for a new record.
 
         It does NOT eagerly create the associated record.
         """
+        model = self._get_model_from_record_data(data, schema=schema)
+        return cast(
+            "RecordItem",
+            model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs),
+        )
+
+    def _get_model_from_record_data(self, data: dict[str, Any], schema: str | None = None) -> Model:
+        """Get the model from the record data."""
         if "$schema" in data:
             schema = data["$schema"]
-        services = (
-            current_global_search.global_search_model_services
-        )  # eventually there might be non-global search service that should work with this?
-        if len(services) > 1 and not schema:
-            raise UndefinedModelError(
-                "Cannot create a draft without specifying its type."
-            )
-        if len(services) == 1:
-            service = services[0]
-        else:
-            for service in services:
-                if service.record_cls.schema.value == schema:
-                    break
-            else:
+
+        if schema is None:
+            if len(current_runtime.rdm_models_by_schema) > 1:
                 raise UndefinedModelError(
-                    f"Service for record with schema {schema} does not exist."
+                    "Cannot create a draft without specifying its type. Please add top-level $schema property."
                 )
-        return service.create(
-            identity=identity, data=data, uow=uow, expand=expand, **kwargs
-        )
+            return next(iter(current_runtime.rdm_models_by_schema.values()))
+        if schema in current_runtime.rdm_models_by_schema:
+            return current_runtime.rdm_models_by_schema[schema]
+        raise UndefinedModelError(f"Model for schema {schema} does not exist.")
 
-    def read(self, identity, id_, expand=False, include_deleted=False):
-        return self._get_specialized_service(id_).read(
-            identity, id_, expand=expand, include_deleted=include_deleted
-        )
-
-    @unit_of_work()
-    def delete_record(
-        self, identity, id_, data, expand=False, uow=None, revision_id=None
-    ):
-        return self._get_specialized_service(id_).delete_record(
-            identity, id_, expand=expand, uow=uow, revision_id=revision_id
-        )
-
-    @unit_of_work()
-    def delete_draft(self, identity, id_, revision_id=None, uow=None, **kwargs):
-        return self._get_specialized_service(id_).delete_draft(
-            identity, id_, revision_id=revision_id, uow=uow, **kwargs
-        )
-
-    @unit_of_work()
-    def lift_embargo(self, identity, _id, uow=None):
-        return self._get_specialized_service(_id).lift_embargo(identity, _id, uow=uow)
-
-    @unit_of_work()
-    def import_files(self, identity, id_, uow=None, **kwargs):
-        return self._get_specialized_service(id_).import_files(
-            identity, id_, uow=uow, **kwargs
-        )
-
-    @unit_of_work()
-    def mark_record_for_purge(self, identity, id_, expand=False, uow=None):
-        return self._get_specialized_service(id_).mark_record_for_purge(
-            identity, id_, expand=expand, uow=uow
-        )
-
-    @unit_of_work()
-    def publish(self, identity, id_, uow=None, expand=False):
-        return self._get_specialized_service(id_).publish(
-            identity, id_, expand=expand, uow=uow
-        )
-
-    @unit_of_work()
-    def purge_record(self, identity, id_, uow=None):
-        return self._get_specialized_service(id_).purge_record(identity, id_, uow=uow)
-
-    def read_draft(self, identity, id_, expand=False):
-        return self._get_specialized_service(id_).read_draft(
-            identity, id_, expand=expand
-        )
-
-    def read_latest(self, identity, id_, expand=False, **kwargs):
-        return self._get_specialized_service(id_).read_latest(
-            identity, id_, expand=expand, **kwargs
-        )
-
-    @unit_of_work()
-    def update(
-        self, identity, id_, data, revision_id=None, uow=None, expand=False, **kwargs
-    ):
-        return self._get_specialized_service(id_).update(
+    @override
+    def _search(
+        self,
+        action: str,
+        identity: Identity,
+        params: dict[str, Any],
+        search_preference: str | None,
+        record_cls: type[RecordItem] | None = None,
+        search_opts: Any | None = None,
+        extra_filter: Any | None = None,
+        permission_action: str = "read",
+        versioning: bool = True,
+        **kwargs: Any,
+    ) -> RecordsSearchV2:
+        """Create the search engine DSL."""
+        params.update(kwargs)
+        # get services that can handle the search request [pid_type -> service]
+        services = self._search_eligible_services(
             identity,
-            id_,
-            data,
-            revision_id=revision_id,
-            uow=uow,
-            expand=expand,
+            permissions_search_mapping.get(permission_action, permission_action),
             **kwargs,
         )
+        if not services:
+            raise Forbidden
 
-    @unit_of_work()
-    def update_draft(
-        self, identity, id_, data, revision_id=None, uow=None, expand=False
-    ):
-        return self._get_specialized_service(id_).update_draft(
-            identity, id_, data, revision_id=revision_id, uow=uow, expand=expand
-        )
+        queries_list: dict[str, dict] = {}
 
-    @unit_of_work()
-    def restore_record(self, identity, id_, expand=False, uow=None):
-        return self._get_specialized_service(id_).restore_record(
-            identity, id_, expand=expand, uow=uow
-        )
+        for jsonschema, service in services.items():
+            search = service._search(  # noqa: SLF001 # calling the same method on delegated
+                action=action,
+                identity=identity,
+                params=copy.deepcopy(params),
+                search_preference=search_preference,
+                record_cls=record_cls,
+                search_opts=self._search_options(service, search_opts),
+                extra_filter=extra_filter,
+                permission_action=permission_action,
+                versioning=versioning,
+                **kwargs,
+            )
+            queries_list[jsonschema] = search.to_dict()
 
-    def scan_versions(
-        self,
-        identity,
-        id_,
-        params=None,
-        search_preference=None,
-        expand=False,
-        permission_action="read_deleted",
-        **kwargs,
-    ):
-        return self._get_specialized_service(id_).scan_versions(
-            identity,
-            id_,
+        params["delegated_query"] = [queries_list, search_opts or self.config.search]
+
+        return super()._search(
+            action=action,
+            identity=identity,
             params=params,
-            search_preferences=search_preference,
-            expand=expand,
-            permissions_action=permission_action,
-            **kwargs,
-        )
-
-    def search_versions(
-        self, identity, id_, params=None, search_preference=None, expand=False, **kwargs
-    ):
-        return self._get_specialized_service(id_).search_versions(
-            identity,
-            id_,
-            params=params,
-            search_preferences=search_preference,
-            expand=expand,
-            **kwargs,
-        )
-
-    @unit_of_work()
-    def set_quota(
-        self,
-        identity,
-        id_,
-        data,
-        files_attr="files",
-        uow=None,
-    ):
-        return self._get_specialized_service(id_).set_quota(
-            identity, id_, data=data, files_attr=files_attr, uow=uow
-        )
-
-    @unit_of_work()
-    def set_user_quota(
-        self,
-        identity,
-        id_,
-        data,
-        uow=None,
-    ):
-        return self._get_specialized_service(id_).set_user_quota(
-            identity, id_, data=data, uow=uow
-        )
-
-    @unit_of_work()
-    def unmark_record_for_purge(self, identity, id_, expand=False, uow=None):
-        return self._get_specialized_service(id_).unmark_record_for_purge(
-            identity, id_, expand=expand, uow=uow
-        )
-
-    @unit_of_work()
-    def update_tombstone(self, identity, id_, data, expand=False, uow=None):
-        return self._get_specialized_service(id_).update_tombstone(
-            identity, id_, data=data, expand=expand, uow=uow
-        )
-
-    def validate_draft(self, identity, id_, ignore_field_permissions=False):
-        return self._get_specialized_service(id_).validate_draft(
-            identity, id_, ignore_field_permissions=ignore_field_permissions
-        )
-
-    @unit_of_work()
-    def edit(self, identity, id_, uow=None, expand=False, **kwargs):
-        return self._get_specialized_service(id_).edit(
-            identity, id_, uow=uow, expand=expand, **kwargs
-        )
-
-    @unit_of_work()
-    def new_version(self, identity, id_, uow=None, expand=False, **kwargs):
-        return self._get_specialized_service(id_).new_version(
-            identity, id_, uow=uow, expand=expand, **kwargs
-        )
-
-    def search(self, identity, params, *args, extra_filter=None, **kwargs):
-        return current_global_search_service.search(
-            identity, params, *args, extra_filter=extra_filter, **kwargs
-        )
-
-    def search_drafts(self, identity, params, *args, extra_filter=None, **kwargs):
-        return current_global_search_service.search_drafts(
-            identity, params, *args, extra_filter=extra_filter, **kwargs
-        )
-
-    def scan(
-        self, identity, params=None, search_preference=None, expand=False, **kwargs
-    ):
-        return current_global_search_service.scan(
-            identity,
-            params,
             search_preference=search_preference,
-            expand=expand,
+            record_cls=record_cls,
+            search_opts=search_opts,
+            extra_filter=extra_filter,
+            permission_action=permission_action,
+            versioning=versioning,
             **kwargs,
         )
 
-    def oai_result_item(self, identity, oai_record_source):
-        raise NotImplementedError() # used in oai serializer in invenio rdm, we use service read
+    def _search_options(self, service: RDMRecordService, search_opts: Any) -> Any:
+        rdm_config = cast("RDMRecordServiceConfig", service.config)
+        if search_opts is rdm_config.search:
+            return rdm_config.search
+        if search_opts is rdm_config.search_drafts:
+            return rdm_config.search_drafts
+        if search_opts is rdm_config.search_versions:
+            return rdm_config.search_versions
+        return search_opts
 
-    def rebuild_index(self, identity, uow=None):
-        raise NotImplementedError()
+    def _search_eligible_services(
+        self, identity: Identity, permission_action: str, **kwargs: Any
+    ) -> dict[str, RDMRecordService]:
+        """Get a list of eligible RDM record services."""
+        return {
+            model.record_json_schema: cast("RDMRecordService", model.service)
+            for model in current_runtime.rdm_models
+            if model.service.check_permission(identity, permission_action, **kwargs)
+        }
+
+    @override
+    def oai_result_item(self, identity: Identity, oai_record_source: dict[str, Any]) -> RecordItem:
+        """Serialize an oai record source to a record item."""
+        model = self._get_model_from_record_data(oai_record_source)
+        service: RDMRecordService = cast("RDMRecordService", model.service)
+        return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
+
+    @override
+    def rebuild_index(self, identity: Identity, uow: UnitOfWork | None = None) -> Literal[True]:
+        """Rebuild the search index for all records."""
+        for model in current_runtime.rdm_models:
+            if hasattr(model.service, "rebuild_index"):
+                model.service.rebuild_index(identity, uow=uow)
+            else:
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        return True
 
     @unit_of_work()
-    def cleanup_drafts(self, timedelta, uow=None, search_gc_deletes=60):
-        raise NotImplementedError()
+    @override
+    def cleanup_drafts(
+        self,
+        timedelta: datetime.timedelta,
+        uow: UnitOfWork | None = None,
+        search_gc_deletes: int = 60,
+    ) -> None:
+        for model in current_runtime.rdm_models:
+            cleanup_drafts = getattr(model.service, "cleanup_drafts", None)
+            if cleanup_drafts:
+                cleanup_drafts(timedelta, uow=uow, search_gc_deletes=search_gc_deletes)
+            else:
+                raise NotImplementedError(f"Model {model} does not support cleaning up drafts.")
 
     @unit_of_work()
+    @override
     def reindex_latest_first(
-        self, identity, search_preference=None, extra_filter=None, uow=None, **kwargs
-    ):
-        raise NotImplementedError()
+        self,
+        identity: Identity,
+        search_preference: str | None = None,
+        extra_filter: Any | None = None,
+        uow: UnitOfWork | None = None,
+        **kwargs: Any,
+    ) -> Literal[True]:
+        for model in current_runtime.rdm_models:
+            reindex_latest_first = getattr(model.service, "reindex_latest_first", None)
+            if reindex_latest_first:
+                reindex_latest_first(
+                    identity,
+                    search_preference=search_preference,
+                    extra_filter=extra_filter,
+                    uow=uow,
+                    **kwargs,
+                )
+            else:
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
 
+        return True
+
+    @override
     def reindex(
         self,
-        identity,
-        params=None,
-        search_preference=None,
-        search_query=None,
-        extra_filter=None,
-        **kwargs,
-    ):
-        raise NotImplementedError()
+        identity: Identity,
+        params: dict[str, tuple[str, ...]] | None = None,
+        search_preference: str | None = None,
+        search_query: Any | None = None,
+        extra_filter: Any | None = None,
+        **kwargs: Any,
+    ) -> Literal[True]:
+        for model in current_runtime.rdm_models:
+            if hasattr(model.service, "reindex"):
+                model.service.reindex(
+                    identity,
+                    params=params,
+                    search_preference=search_preference,
+                    search_query=search_query,
+                    extra_filter=extra_filter,
+                    **kwargs,
+                )
+            else:
+                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        return True
 
+    @override
     def on_relation_update(
-        self, identity, record_type, records_info, notif_time, limit=100
-    ):
-        raise NotImplementedError()
+        self,
+        identity: Identity,
+        record_type: str,
+        records_info: list[Any],
+        notif_time: str,
+        limit: int = 100,
+    ) -> Literal[True]:
+        for model in current_runtime.rdm_models:
+            if hasattr(model.service, "on_relation_update"):
+                model.service.on_relation_update(
+                    identity,
+                    record_type,
+                    records_info,
+                    notif_time,
+                    limit=limit,
+                )
+            raise NotImplementedError(f"Model {model} does not support relation updates.")
+        return True
