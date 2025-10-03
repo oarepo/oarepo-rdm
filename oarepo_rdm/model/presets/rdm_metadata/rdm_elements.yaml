@@ -5,11 +5,34 @@
 # WIP: do not use yet!
 #
 
+RDMPublicationDate:
+  type: edtf
+  label:
+    en: Publication date
+    cs: Datum publikace
+  hint:
+    en: The date when the resource was or will be made publicly available.
+    cs: Datum, kdy byl/bude zdroj zveřejněn.
+  help:
+    en: Provide the publication date in ISO 8601 format (YYYY-MM-DD). If the exact date is unknown, use the earliest known date.
+    cs: Uveďte datum publikace ve formátu ISO 8601 (RRRR-MM-DD). Pokud není přesné datum známo, použijte nejdříve známé datum.
+
+RDMPublisher:
+  type: fulltext+keyword
+  label:
+    en: Publisher
+    cs: Vydavatel
+  hint:
+    en: The entity responsible for making the resource available.
+    cs: Subjekt odpovědný za zpřístupnění zdroje.
+  help:
+    en: Provide the name of the publisher or organization that published the resource. This could be an institution, company, or individual.
+    cs: Uveďte název vydavatele nebo organizace, která zdroj vydala. Může to být instituce, společnost nebo jednotlivec.
+
 RDMIdentifier:
   label:
     cs: Identifikátor
     en: Identifier
-  ui_marshmallow_schema_class: oarepo_runtime.services.schema.rdm_ui.RDMIdentifierWithSchemaUISchema
   marshmallow_schema_class: marshmallow_utils.schemas.identifier.IdentifierSchema
   properties:
     identifier:
@@ -31,11 +54,11 @@ RDMCreatibutor:
       type: vocabulary
       vocabulary-type: contributor-types
       label:
-        cs: Role přispěvatele
+        cs: Role
         en: Role
       hint:
-        cs: Vyberte roli přispěvatele z nabídky (editor, ilustrátor…).
-        en: Choose the role of the contributor (editor, illustrator…).
+        cs: Vyberte roli tvůrce/přispěvatele z nabídky (editor, ilustrátor…).
+        en: Choose the role of the creator/contributor (editor, illustrator…).
     affiliations:
       type: array
       label:
@@ -45,24 +68,18 @@ RDMCreatibutor:
         type: vocabulary
         vocabulary-type: affiliations
         keys:
-          - key: name
-            model:
+          - name:
               type: keyword
-          - key: identifiers
-            model:
+          - identifiers:
               type: array
               items:
-                type: object
-                properties:
-                  identifier: keyword
-                  scheme: keyword
+                type: RDMIdentifier
     person_or_org:
       type: RDMPersonOrOrg
       label:
         cs: Osoba nebo organizace
         en: Person or Organization
   marshmallow-schema-class: invenio_rdm_records.services.schemas.metadata.CreatorSchema
-  marshmallow-ui-schema-class: oarepo_runtime.services.schema.rdm_ui.RDMCreatorsUISchema
 
 RDMFunding:
   label:
@@ -75,17 +92,12 @@ RDMFunding:
       type: vocabulary
       class: oarepo_runtime.records.relations.UnstrictPIDRelation
       keys:
-        - key: name
-          model:
+        - name:
             type: fulltext
-        - key: identifiers
-          model:
+        - identifiers:
             type: array
             items:
-              type: object
-              properties:
-                identifier: keyword
-                scheme: keyword
+              type: RDMIdentifier
       vocabulary-type: funders
       label:
         cs: Poskytovatel financí
@@ -97,37 +109,35 @@ RDMFunding:
     award:
       keys:
         - title
-        - key: number
-          model:
+        - number:
             type: keyword
-        - key: identifiers
-          model:
+        - identifiers:
+            type: array
+            items:
+              type: RDMIdentifier
+        - acronym:
+            type: keyword
+        - program:
+            type: keyword
+        - subjects:
+            type: array
+            items:
+              properties:
+                id: 
+                  type: keyword
+                subject: 
+                  type: keyword
+        - organizations:
             type: array
             items:
               type: object
               properties:
-                identifier: keyword
-                scheme: keyword
-        - key: acronym
-          model:
-            type: keyword
-        - key: program
-          model:
-            type: keyword
-        - key: subjects
-          model:
-            type: array
-            items:
-              properties:
-                id: keyword
-                subject: keyword
-        - key: organizations
-          model:
-            type: object
-            properties:
-              scheme: keyword
-              id: keyword
-              organization: keyword
+                scheme: 
+                  type: keyword
+                id: 
+                  type: keyword
+                organization: 
+                  type: keyword
       type: vocabulary
       vocabulary-type: awards
       label:
@@ -135,19 +145,17 @@ RDMFunding:
         en: Award number
 
     subjects:
-      type: vocabulary
-      vocabulary-type: subjects
-      keys:
-        - key: subject
-          model:
-            type: keyword
-        - key: scheme
-          model:
-            type: keyword
-        - key: props
-          model:
-            type: object
-            additionalProperties: true
+      type: array
+      items:
+        type: vocabulary
+        vocabulary-type: subjects
+        keys:
+          - subject:
+              type: keyword
+          - scheme:
+              type: keyword
+          - props:
+              type: dynamic-object
       label:
         cs: Předměty
         en: Subjects
@@ -264,13 +272,21 @@ RDMIdentifiers:
   items:
     type: RDMIdentifier
 
+RDMCreator:
+  type: RDMCreatibutor
+  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMCreatorUIField
+
+RDMContributor:
+  type: RDMCreatibutor
+  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMContributorUIField
+
 RDMCreators:
   label:
     en: Creators
     cs: Autoři
   type: array
   items:
-    type: RDMCreatibutor
+    type: RDMCreator
 
 RDMContributors:
   label:
@@ -278,7 +294,7 @@ RDMContributors:
     cs: Přispěvatelé
   type: array
   items:
-    type: RDMCreatibutor
+    type: RDMContributor
 
 RDMSubjects:
   label:
@@ -315,17 +331,12 @@ RDMLanguages:
     type: vocabulary
     vocabulary-type: languages
 
+RDMSizes:
+  type: array
+  items:
+    type: keyword
 
-# TODO: look at this, we might want to use some parts of RDM to be compatible.
-terms_of_use:
-  # sawsdl:modelReference=https://model.ccmm.cz/vocabulary/datacite#hasVersion
-  type: TermsOfUse
-  label:
-    en: Terms of use
-    cs: Podmínky užití
-  hint:
-    en: License, access rights, and usage conditions.
-    cs: Licence, přístupová práva a podmínky použití.
-  help:
-    en: Specify legal terms governing access and reuse. Include license documents and any restrictions.
-    cs: Uveďte právní podmínky upravující přístup a opětovné použití. Zahrňte licenční dokumenty a případná omezení.
+RDMFormats:
+  type: array
+  items:
+    type: keyword

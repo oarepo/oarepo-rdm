@@ -10,6 +10,45 @@
 
 from __future__ import annotations
 
-from .rdm import rdm_preset
+from typing import TYPE_CHECKING
 
-__all__ = ("rdm_preset",)
+from .rdm import rdm_static_preset
+from .rdm_metadata import RDMMetadataPreset
+
+if TYPE_CHECKING:
+    from oarepo_model.api import FunctionalPreset
+    from oarepo_model.presets import Preset
+
+
+class RDMMinimalMetadataPreset(RDMMetadataPreset):
+    """Preset for RDM minimal metadata schema."""
+
+    kind = "minimal"
+
+
+class RDMBasicMetadataPreset(RDMMetadataPreset):
+    """Preset for RDM basic metadata schema."""
+
+    kind = "basic"
+
+
+class RDMCompleteMetadataPreset(RDMMetadataPreset):
+    """Preset for RDM complete metadata schema."""
+
+    kind = "complete"
+
+
+rdm_complete_preset: list[type[Preset | FunctionalPreset]] = [
+    *rdm_static_preset,
+    RDMCompleteMetadataPreset,
+]
+rdm_basic_preset: list[type[Preset | FunctionalPreset]] = [
+    *rdm_static_preset,
+    RDMBasicMetadataPreset,
+]
+rdm_minimal_preset: list[type[Preset | FunctionalPreset]] = [
+    *rdm_static_preset,
+    RDMMinimalMetadataPreset,
+]
+
+__all__ = ("rdm_basic_preset", "rdm_complete_preset", "rdm_minimal_preset")

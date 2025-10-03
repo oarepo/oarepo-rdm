@@ -13,13 +13,22 @@ from invenio_i18n import lazy_gettext as _
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
-from oarepo_model.customizations import AddMetadataExport, SetPermissionPolicy
+from oarepo_model.customizations import (
+    AddDefaultSearchFields,
+    AddMetadataExport,
+    SetPermissionPolicy,
+)
 from oarepo_model.presets.drafts import drafts_preset
 from oarepo_model.presets.records_resources import records_resources_preset
+from oarepo_model.presets.ui import ui_preset
 from oarepo_model.presets.ui_links import ui_links_preset
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
-from oarepo_rdm.model.presets.rdm import rdm_preset
+from oarepo_rdm.model.presets import (
+    rdm_basic_preset,
+    rdm_complete_preset,
+    rdm_minimal_preset,
+)
 from oarepo_rdm.oai import oai_preset
 
 from .exports import (
@@ -41,8 +50,9 @@ modela = model(
     presets=[
         records_resources_preset,
         drafts_preset,
-        rdm_preset,
+        rdm_minimal_preset,
         oai_preset,
+        ui_preset,
         ui_links_preset,
     ],
     configuration={"ui_blueprint_name": "modela_ui"},
@@ -50,7 +60,7 @@ modela = model(
         {
             "Metadata": {
                 "properties": {
-                    "title": {"type": "keyword"},
+                    "title": {"type": "fulltext+keyword"},
                     "adescription": {"type": "keyword"},
                 },
             },
@@ -68,6 +78,7 @@ modela = model(
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         ),
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
+        AddDefaultSearchFields("metadata.title", "metadata.adescription"),
     ],
 )
 modela.register()
@@ -75,12 +86,18 @@ modela.register()
 modelb = model(
     "modelb",
     version="1.0.0",
-    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
+    presets=[
+        records_resources_preset,
+        drafts_preset,
+        rdm_basic_preset,
+        oai_preset,
+        ui_preset,
+    ],
     types=[
         {
             "Metadata": {
                 "properties": {
-                    "title": {"type": "keyword"},
+                    # "title": {"type": "fulltext+keyword"}, - comes from rdb_basic
                     "bdescription": {"type": "keyword"},
                 },
             },
@@ -96,7 +113,8 @@ modelb = model(
             oai_metadata_prefix="oai_dc",
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
-        )
+        ),
+        AddDefaultSearchFields("metadata.title", "metadata.bdescription"),
     ],
 )
 modelb.register()
@@ -104,12 +122,18 @@ modelb.register()
 modelc = model(
     "modelc",
     version="1.0.0",
-    presets=[records_resources_preset, drafts_preset, rdm_preset, oai_preset],
+    presets=[
+        records_resources_preset,
+        drafts_preset,
+        rdm_complete_preset,
+        oai_preset,
+        ui_preset,
+    ],
     types=[
         {
             "Metadata": {
                 "properties": {
-                    "title": {"type": "keyword"},
+                    # "title": {"type": "fulltext+keyword"}, - comes from rdm_complete
                     "cdescription": {"type": "keyword"},
                 },
             },
@@ -125,7 +149,8 @@ modelc = model(
             oai_metadata_prefix="oai_dc",
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
-        )
+        ),
+        AddDefaultSearchFields("metadata.title", "metadata.cdescription"),
     ],
 )
 modelc.register()
@@ -147,16 +172,20 @@ def create_modela_ui_blueprint(app):
     def preview(pid_value: str) -> str:
         return "preview ok"
 
-    @bp.route("/modela_ui/detail/<pid_value>", methods=["GET"])
-    def detail(pid_value: str) -> str:
+    @bp.route("/modela_ui/record_detail/<pid_value>", methods=["GET"])
+    def record_detail(pid_value: str) -> str:
         return "preview ok"
 
-    @bp.route("/modela_ui/latest/<pid_value>", methods=["GET"])
-    def latest(pid_value: str) -> str:
+    @bp.route("/modela_ui/record_latest/<pid_value>", methods=["GET"])
+    def record_latest(pid_value: str) -> str:
         return "latest ok"
 
     @bp.route("/modela_ui/search", methods=["GET"])
     def search() -> str:
         return "search ok"
+
+    @bp.route("/modela_ui/deposit_edit/<pid_value>", methods=["GET"])
+    def deposit_edit(pid_value: str) -> str:
+        return "deposit_edit ok"
 
     return bp

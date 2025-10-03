@@ -52,7 +52,7 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links impor
     RDMServiceConfigUILinks,
 )
 
-rdm_preset = [
+rdm_static_preset = [
     RDMMappingPreset,
     RDMDraftRecordPreset,
     RDMParentRecordPreset,

@@ -9,9 +9,9 @@ authors = [
 requires-python = ">=3.13,<3.14"
 
 dependencies = [
-    "oarepo[rdm,tests]>=13.0.0,<15.0.0",
+    "oarepo[rdm,tests]>=14.0.0,<15.0.0",
     "oarepo-runtime>=2.0.0dev5,<3.0.0",
-    "oarepo-model>=0.1.0dev0,<1.0.0",
+    "oarepo-model>=0.1.0dev17,<1.0.0",
     "oarepo-ui>=6.0.0dev1",
     "graphlib"
 ]
@@ -27,9 +27,6 @@ dev = [
 ]
 tests = [
     "pytest-invenio",
-]
-oarepo13 = [
-    "oarepo[rdm,tests]>=13.0.0,<14.0.0",
 ]
 oarepo14 = [
     "oarepo[rdm,tests]>=14.0.0,<15.0.0",

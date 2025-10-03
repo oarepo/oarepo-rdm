@@ -1,0 +1,175 @@
+#
+# This file provides a subset of RDM metadata that is useful for other repositories
+# within the Czech National Repository platform. Other metadata are added by CCMM core
+# and CCMM profiles.
+#
+# * RDMFullMetadata provides the full RDM metadata schema.
+# * RDMBasicMetadata provides a basic subset of RDM metadata that is useful for
+#   extending a minimal schema (title, creators, contributors). Admin pages will
+#   mostly work with this schema.
+# * RDMEmptyMetadata provides an empty schema with only the version field.
+#   admin pages will not work with this schema, will not show title, for example.
+#
+RDMCompleteMetadata:
+  type: object
+  properties:
+
+    resource_type:
+      type: RDMResourceType
+      label:
+        en: Resource type
+        cs: Typ záznamu
+
+    creators:
+      label:
+        en: Creators
+        cs: Autoři
+      type: RDMCreators
+
+    title:
+      type: RDMTitle
+      label:
+        en: Title
+        cs: Název
+
+    additional_titles:
+      type: RDMAdditionalTitles
+      label:
+        en: Additional titles
+        cs: Další názvy záznamu
+
+    publisher:
+      type: RDMPublisher
+      label:
+        en: Publisher
+        cs: Vydavatel
+
+    publication_date:
+      type: RDMPublicationDate
+      label:
+        en: Publication date
+        cs: Datum publikace
+
+    subjects:
+      label:
+        en: Subjects
+        cs: Předměty
+      type: RDMSubjects
+
+    contributors:
+      label:
+        en: Contributors
+        cs: Přispěvatelé
+      type: RDMContributors
+
+    # TODO: dates
+
+    languages:
+      type: RDMLanguages
+      label:
+        en: Languages
+        cs: Jazyky
+
+    identifiers:
+      label:
+        en: Identifiers
+        cs: Identifikátory
+      hint:
+        en: Alternate identifiers for the record.
+        cs: Alternativní identifikátory záznamu.
+      help:
+        en: Include any identifiers that reference this record, such as DOIs, Handles, or other scheme-based IDs.
+        cs: Uveďte jakékoliv identifikátory, které odkazují na tento záznam, jako jsou DOI, Handle nebo jiné identifikátory založené na schématu.
+      type: RDMIdentifiers
+
+    # TODO: related_identifiers
+    sizes:
+      type: RDMSizes
+      label:
+        en: Sizes
+        cs: Velikosti
+
+    formats:
+      type: RDMFormats
+      label:
+        en: Formats
+        cs: Formáty
+
+    version:
+      type: RDMRecordVersion
+      label:
+        en: Record Version
+        cs: Verze záznamu
+
+    # TODO: rights
+    # TODO: copyritght
+    # TODO: description
+
+    additional_descriptions:
+      type: RDMAdditionalDescriptions
+      label:
+        en: Additional descriptions
+        cs: Další popisy záznamu
+
+    # TODO: locations
+
+    funding:
+      type: RDMFundings
+      label:
+        en: Funding references
+        cs: Financování
+      hint:
+        en: Information about grants or other funding sources supporting this research.
+        cs: Informace o grantech nebo jiných zdrojích financování podporujících tento výzkum.
+      help:
+        en: Include details of funding bodies, grant numbers, and related information.
+        cs: Uveďte podrobnosti o financujících institucích, číslech grantů a související informace.
+
+    # TODO: references
+
+
+
+RDMBasicMetadata:
+  type: object
+  properties:
+
+    resource_type:
+      type: RDMResourceType
+      label:
+        en: Resource type
+        cs: Typ záznamu
+
+    creators:
+      label:
+        en: Creators
+        cs: Autoři
+      type: RDMCreators
+
+    title:
+      type: RDMTitle
+      label:
+        en: Title
+        cs: Název
+
+    contributors:
+      label:
+        en: Contributors
+        cs: Přispěvatelé
+      type: RDMContributors
+
+    version:
+      type: RDMRecordVersion
+      label:
+        en: Record Version
+        cs: Verze záznamu
+
+
+RDMMinimalMetadata:
+  type: object
+  properties:
+    version:
+      type: RDMRecordVersion
+      label:
+        en: Record Version
+        cs: Verze záznamu
+
