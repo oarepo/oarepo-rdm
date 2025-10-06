@@ -104,9 +104,6 @@ def finalization_called():
 @pytest.fixture(scope="session")
 def rdm_model(model_types, finalization_called):
     from oarepo_model.api import model
-    from oarepo_model.presets.drafts import drafts_preset
-    from oarepo_model.presets.records_resources import records_resources_preset
-    from oarepo_model.presets.ui import ui_preset
 
     from oarepo_rdm.model.presets import rdm_minimal_preset
 
@@ -114,10 +111,7 @@ def rdm_model(model_types, finalization_called):
         name="rdm_test",
         version="1.0.0",
         presets=[
-            records_resources_preset,
-            drafts_preset,
             rdm_minimal_preset,
-            ui_preset,
         ],
         types=[model_types],
         metadata_type="Metadata",

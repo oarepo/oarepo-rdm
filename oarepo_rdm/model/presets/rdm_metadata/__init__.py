@@ -16,6 +16,12 @@ from typing import TYPE_CHECKING, Any, Literal, cast, override
 from deepmerge import always_merger
 from oarepo_model import from_yaml
 from oarepo_model.api import FunctionalPreset
+from oarepo_model.presets.drafts import drafts_preset
+from oarepo_model.presets.records_resources import records_resources_preset
+from oarepo_model.presets.ui import ui_preset
+from oarepo_model.presets.ui_links import ui_links_preset
+
+from oarepo_rdm.oai import oai_preset
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -48,6 +54,16 @@ class RDMMetadataPreset(FunctionalPreset):
         """Perform extra action before the Invenio model is created."""
         if "metadata_type" not in params:
             params["metadata_type"] = self.metadata_types[self.kind]
+
+        # add required presets
+        extra_presets = [
+            records_resources_preset,
+            drafts_preset,
+            oai_preset,
+            ui_preset,
+            ui_links_preset,
+        ]
+        params["presets"][:0] = extra_presets
 
     @override
     def before_populate_type_registry(
