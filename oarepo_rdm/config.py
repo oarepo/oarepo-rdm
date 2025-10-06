@@ -11,10 +11,10 @@
 from __future__ import annotations
 
 from invenio_i18n import lazy_gettext as _
-from invenio_rdm_records.services.pids import providers
+from invenio_rdm_records.services.pids.providers.oai import OAIPIDProvider
 
 RDM_PERSISTENT_IDENTIFIER_PROVIDERS = [
-    providers.OAIPIDProvider(
+    OAIPIDProvider(
         "oai",
         label=_("OAI ID"),
     ),
@@ -25,6 +25,6 @@ RDM_PERSISTENT_IDENTIFIERS = {
         "providers": ["oai"],
         "required": True,
         "label": _("OAI"),
-        "is_enabled": providers.OAIPIDProvider.is_enabled,
+        "is_enabled": OAIPIDProvider.is_enabled,
     },
 }

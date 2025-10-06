@@ -10,15 +10,18 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import TYPE_CHECKING
 
 from invenio_rdm_records.resources.config import RDMRecordResourceConfig
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
     """OARepo extension to RDM record resource configuration."""
 
-    routes: ClassVar[dict[str, str]] = {
+    routes: Mapping[str, str] = {
         **RDMRecordResourceConfig.routes,
         "all-prefix": "/all",  # /api/all/records
     }

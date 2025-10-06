@@ -184,7 +184,7 @@ class OARepoRDMService(RDMRecordService):
     @property
     def schema(self) -> ServiceSchemaWrapper:
         """Schema for the service."""
-        return MultiplexingSchema(self, ma.Schema())
+        return MultiplexingSchema(self, ma.Schema)
 
     @unit_of_work()
     @override
@@ -192,7 +192,7 @@ class OARepoRDMService(RDMRecordService):
         self,
         identity: Identity,
         data: dict[str, Any],
-        uow: UnitOfWork | None = None,
+        uow: UnitOfWork,
         expand: bool = False,
         schema: str | None = None,
         **kwargs: Any,
@@ -307,11 +307,11 @@ class OARepoRDMService(RDMRecordService):
         return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
 
     @override
-    def rebuild_index(self, identity: Identity, uow: UnitOfWork | None = None) -> Literal[True]:
+    def rebuild_index(self, identity: Identity) -> Literal[True]:
         """Rebuild the search index for all records."""
         for model in current_runtime.rdm_models:
             if hasattr(model.service, "rebuild_index"):
-                model.service.rebuild_index(identity, uow=uow)
+                model.service.rebuild_index(identity)
             else:
                 raise NotImplementedError(f"Model {model} does not support rebuilding index.")
         return True

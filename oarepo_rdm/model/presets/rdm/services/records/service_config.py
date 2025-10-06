@@ -13,7 +13,7 @@ This module provides a preset that modifies record service config to RDM compati
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, override
+from typing import TYPE_CHECKING, Any, override
 
 from invenio_checks.components import ChecksComponent
 from invenio_drafts_resources.services import (
@@ -35,7 +35,7 @@ from oarepo_model.customizations import AddToList, ChangeBase, Customization
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Mapping
 
     from invenio_records_resources.services.base.links import (
         NestedLinks,
@@ -47,8 +47,8 @@ if TYPE_CHECKING:
 class RDMRecordServiceConfigWithoutLinks(RDMRecordServiceConfig):
     """TODO: this is just a quick hack before we have links working."""
 
-    links_item: ClassVar[dict[str, Any]] = {}
-    nested_links_item: ClassVar[list[NestedLinks]] = []
+    links_item: Mapping[str, Any] = {}
+    nested_links_item: tuple[NestedLinks, ...] = ()
 
 
 class RDMDraftFilesComponent(InvenioRDMDraftFilesComponent):

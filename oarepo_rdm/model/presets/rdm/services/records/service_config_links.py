@@ -75,7 +75,7 @@ class RDMServiceConfigLinks(Preset):
                     else_=RecordEndpointLink(f"{model.blueprint_base}_draft_media_files.search"),
                 ),
                 "thumbnails": ThumbnailLinks(
-                    sizes=LocalProxy(record_thumbnail_sizes),
+                    sizes=LocalProxy(record_thumbnail_sizes),  # type: ignore[assignment]
                     when=has_image_files,
                 ),
                 # Reads a zipped version of all files

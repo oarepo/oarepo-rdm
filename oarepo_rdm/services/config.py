@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, cast, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from invenio_drafts_resources.services.records.config import (
     SearchOptions,
@@ -32,6 +32,8 @@ from oarepo_rdm.proxies import current_oarepo_rdm
 from .results import MultiplexingResultList
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from flask_principal import Identity
     from invenio_records_resources.records.api import Record
     from invenio_records_resources.services.records.config import (
@@ -104,7 +106,7 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     result_list_cls = MultiplexingResultList
 
     # TODO: add proper links here, not just this subset
-    links_item: ClassVar[dict[str, Any]] = {
+    links_item: Mapping[str, Any] = {
         # Record
         "self": ConditionalLink(
             cond=is_record,
@@ -120,30 +122,30 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:
+    def search(self) -> SearchOptions:  # type: ignore[override]
         return current_oarepo_rdm.search_options
 
     @search.setter
-    def search(self, _value: Any) -> None:
-        raise AttributeError("search is read-only")
+    def search(self, _value: Any) -> None:  # type: ignore[override]
+        raise AttributeError("search is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_drafts(self) -> SearchOptions:
+    def search_drafts(self) -> SearchOptions:  # type: ignore[override]
         return current_oarepo_rdm.draft_search_options
 
     @search_drafts.setter
-    def search_drafts(self, _value: Any) -> None:
-        raise AttributeError("search_drafts is read-only")
+    def search_drafts(self, _value: Any) -> None:  # type: ignore[override]
+        raise AttributeError("search_drafts is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:
+    def search_versions(self) -> SearchOptions:  # type: ignore[override]
         return current_oarepo_rdm.versions_search_options
 
     @search_versions.setter
-    def search_versions(self, _value: Any) -> None:
-        raise AttributeError("search_versions is read-only")
+    def search_versions(self, _value: Any) -> None:  # type: ignore[override]
+        raise AttributeError("search_versions is read-only")  # pragma: no cover
 
     @property
     def search_all(self) -> SearchOptions:
@@ -152,4 +154,4 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
 
     @search_all.setter
     def search_all(self, _value: Any) -> None:
-        raise AttributeError("search_all is read-only")
+        raise AttributeError("search_all is read-only")  # pragma: no cover

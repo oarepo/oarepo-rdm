@@ -9,7 +9,9 @@
 from __future__ import annotations
 
 import pytest
+from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_records_resources.proxies import current_service_registry
 
 from oarepo_rdm.errors import UndefinedModelError
 
@@ -106,3 +108,16 @@ def test_publish(rdm_records_service, identity_simple, search_clear):
 
     _publish = rdm_records_service.publish(identity_simple, sample_draft["id"])
     _record = rdm_records_service.read(identity_simple, sample_draft["id"])
+
+
+def test_rebuild_index(rdm_records_service, identity_simple, search_clear):
+    modelc_service.create(
+        identity_simple,
+        {
+            "metadata": {"title": "blah", "cdescription": "kch"},
+            "files": {"enabled": False},
+        },
+    )
+    modelc_service.indexer.refresh()
+    modelc_service.rebuild_index(system_identity)
+    current_service_registry.get("records").rebuild_index(system_identity)

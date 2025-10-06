@@ -82,13 +82,13 @@ def finalize_app(_app: Flask) -> None:
     #
     # if this was not the case, we could have just set draft_cls and record_cls
     # on our service config.
-    InvenioRDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
-    InvenioRDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
-    InvenioRDMRecord.index = IndexField(
+    InvenioRDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)  # type: ignore[assignment]
+    InvenioRDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)  # type: ignore[assignment]
+    InvenioRDMRecord.index = IndexField(  # type: ignore[assignment]
         "never-used-for-indexing-records-search-alias-used-instead",
         search_alias=[*current_runtime.published_indices],
     )
-    InvenioRDMDraft.index = IndexField(
+    InvenioRDMDraft.index = IndexField(  # type: ignore[assignment]
         "never-used-for-indexing-drafts-search-alias-used-instead",
         search_alias=[*current_runtime.draft_indices],
     )
