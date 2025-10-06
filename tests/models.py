@@ -18,10 +18,6 @@ from oarepo_model.customizations import (
     AddMetadataExport,
     SetPermissionPolicy,
 )
-from oarepo_model.presets.drafts import drafts_preset
-from oarepo_model.presets.records_resources import records_resources_preset
-from oarepo_model.presets.ui import ui_preset
-from oarepo_model.presets.ui_links import ui_links_preset
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.model.presets import (
@@ -29,7 +25,6 @@ from oarepo_rdm.model.presets import (
     rdm_complete_preset,
     rdm_minimal_preset,
 )
-from oarepo_rdm.oai import oai_preset
 
 from .exports import (
     ModelaDublinCoreXMLSerializer,
@@ -48,12 +43,7 @@ modela = model(
     "modela",
     version="1.0.0",
     presets=[
-        records_resources_preset,
-        drafts_preset,
         rdm_minimal_preset,
-        oai_preset,
-        ui_preset,
-        ui_links_preset,
     ],
     configuration={"ui_blueprint_name": "modela_ui"},
     types=[
@@ -87,11 +77,7 @@ modelb = model(
     "modelb",
     version="1.0.0",
     presets=[
-        records_resources_preset,
-        drafts_preset,
         rdm_basic_preset,
-        oai_preset,
-        ui_preset,
     ],
     types=[
         {
@@ -123,11 +109,7 @@ modelc = model(
     "modelc",
     version="1.0.0",
     presets=[
-        records_resources_preset,
-        drafts_preset,
         rdm_complete_preset,
-        oai_preset,
-        ui_preset,
     ],
     types=[
         {
