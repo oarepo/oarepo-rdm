@@ -24,7 +24,7 @@ from oarepo_model.presets.ui_links import ui_links_preset
 from oarepo_rdm.oai import oai_preset
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Mapping
 
     from oarepo_model.customizations import Customization
     from oarepo_model.model import InvenioModel
@@ -34,8 +34,8 @@ if TYPE_CHECKING:
 def rdm_model_types() -> dict[str, Any]:
     """Return RDM specific model types."""
     return {
-        **from_yaml("rdm.yaml", __file__)(),
-        **from_yaml("rdm_elements.yaml", __file__)(),
+        **from_yaml("rdm.yaml", __file__),
+        **from_yaml("rdm_elements.yaml", __file__),
     }
 
 
@@ -69,7 +69,7 @@ class RDMMetadataPreset(FunctionalPreset):
     def before_populate_type_registry(
         self,
         model: InvenioModel,
-        types: list[dict[str, Any] | Callable[[], dict]],
+        types: list[dict[str, Any]],
         presets: list[type[Preset] | list[type[Preset]] | tuple[type[Preset]]],
         customizations: list[Customization],
         params: dict[str, Any],
@@ -80,7 +80,7 @@ class RDMMetadataPreset(FunctionalPreset):
         merge_metadata(types, metadata_type, self.metadata_types[self.kind])
 
 
-def merge_metadata(types: list[dict[str, Any] | Callable[[], dict]], metadata_type: str, rdm_type: str) -> None:
+def merge_metadata(types: list[dict[str, Any]], metadata_type: str, rdm_type: str) -> None:
     """Merge metadata from one type to another.
 
     :param types: The list of types to modify.
@@ -93,8 +93,6 @@ def merge_metadata(types: list[dict[str, Any] | Callable[[], dict]], metadata_ty
 
     def select_type(type_name: str, copy_value: bool = False) -> dict[str, Any] | None:
         for type_dict in types:
-            if callable(type_dict):
-                raise TypeError("Cannot select type from callable")
             if type_name not in type_dict:
                 continue
             tested_type_def = type_dict[type_name]
