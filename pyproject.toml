@@ -74,6 +74,13 @@ oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
 [project.entry-points."oarepo.cli.search.init"]
 install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
 
+[project.entry-points."invenio_celery.tasks"]
+invenio_rdm_records_fixtures = "invenio_rdm_records.fixtures.tasks"
+invenio_rdm_records_services = "invenio_rdm_records.services.tasks"
+invenio_rdm_records_access_requests = "invenio_rdm_records.requests.access.tasks"
+invenio_rdm_records_iiif = "invenio_rdm_records.services.iiif.tasks"
+invenio_rdm_records_user_moderation = "invenio_rdm_records.requests.user_moderation.tasks"
+
 [tool.hatch.version]
 path = "oarepo_rdm/__init__.py"
 
