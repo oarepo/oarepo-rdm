@@ -67,6 +67,14 @@ oarepo_rdm_oai = "oarepo_rdm.oai.index_templates"
 
 [project.entry-points."invenio_base.blueprints"]
 oarepo_invenio_app_rdm_records = "oarepo_rdm.ui.views:create_records_blueprint"
+# just to have html templates available. Does not register anything else
+templates_app_rdm_records = "oarepo_rdm.ui.templates:records_blueprint"
+templates_app_rdm = "oarepo_rdm.ui.templates:rdm_blueprint"
+templates_app_rdm_requests = "oarepo_rdm.ui.templates:requests_blueprint"
+templates_app_rdm_communities = "oarepo_rdm.ui.templates:communities_blueprint"
+templates_app_rdm_users = "oarepo_rdm.ui.templates:users_blueprint"
+templates_app_rdm_administration = "oarepo_rdm.ui.templates:administration_blueprint"
+invenio_rdm_records_ext = "invenio_rdm_records.views:blueprint"
 
 [project.entry-points."invenio_search.mappings"]
 oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
