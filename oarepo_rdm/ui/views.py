@@ -10,12 +10,12 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from flask import Blueprint, Flask
-from invenio_app_rdm.records_ui.views.decorators import (
-    pass_include_deleted)
+from invenio_access.permissions import system_identity
 from invenio_app_rdm.records_ui.searchapp import search_app_context
+from invenio_app_rdm.records_ui.views.decorators import pass_include_deleted
 from invenio_app_rdm.records_ui.views.filters import (
     can_list_files,
     compact_number,
@@ -52,14 +52,19 @@ from invenio_pidstore.errors import (
     PIDDoesNotExistError,
     PIDUnregistered,
 )
-from invenio_rdm_records.views import file_transfer_type
 from invenio_rdm_records.services.errors import RecordDeletedException
+from invenio_records_resources.proxies import current_service_registry
 from invenio_records_resources.services.errors import (
     FileKeyNotFoundError,
     PermissionDeniedError,
     RecordPermissionDeniedError,
 )
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound
+from werkzeug.utils import redirect
+
+if TYPE_CHECKING:
+    from invenio_rdm_records.services.services import RDMRecordService
+    from werkzeug import Response
 
 
 def create_records_blueprint(app: Flask) -> Blueprint:
@@ -83,7 +88,8 @@ def create_records_blueprint(app: Flask) -> Blueprint:
         **create_url_rule(
             routes["record_detail"],
             default_view_func=record_detail,
-        ))
+        )
+    )
 
     blueprint.add_url_rule(
         **create_url_rule(
@@ -150,7 +156,6 @@ def create_records_blueprint(app: Flask) -> Blueprint:
 
     # Register context processors
     blueprint.app_context_processor(search_app_context)
-    # blueprint.app_context_processor(file_transfer_type)
 
     return blueprint
 
