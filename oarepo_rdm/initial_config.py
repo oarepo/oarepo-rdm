@@ -27,13 +27,13 @@ APP_RDM_ROUTES = {
     # "help_versioning": "/help/versioning", #noqa
     "record_search": "/search",
     "record_detail": "/records/<pid_value>",
-    # "record_export": "/records/<pid_value>/export/<export_format>", #noqa
-    # "record_file_preview": "/records/<pid_value>/preview/<path:filename>", #noqa
+    "record_export": "/records/<pid_value>/export/<export_format>",
+    "record_file_preview": "/records/<pid_value>/preview/<path:filename>",
     "record_file_download": "/records/<pid_value>/files/<path:filename>",
-    # "record_thumbnail": "/records/<pid_value>/thumb<int:size>", #noqa
-    # "record_media_file_download": "/records/<pid_value>/media-files/<path:filename>", #noqa
-    # "record_from_pid": "/<any({schemes}):pid_scheme>/<path:pid_value>", #noqa
-    # "record_latest": "/records/<pid_value>/latest", #noqa
+    "record_thumbnail": "/records/<pid_value>/thumb<int:size>",
+    "record_media_file_download": "/records/<pid_value>/media-files/<path:filename>",
+    "record_from_pid": "/<any({schemes}):pid_scheme>/<path:pid_value>",
+    "record_latest": "/records/<pid_value>/latest",
     # "dashboard_home": "/me", #noqa
     # "deposit_create": "/uploads/new", #noqa
     # "deposit_edit": "/uploads/<pid_value>", #noqa
