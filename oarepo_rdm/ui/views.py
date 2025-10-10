@@ -13,6 +13,8 @@ from __future__ import annotations
 from typing import Any, cast
 
 from flask import Blueprint, Flask
+from invenio_app_rdm.records_ui.views.decorators import (
+    pass_include_deleted)
 from invenio_app_rdm.records_ui.searchapp import search_app_context
 from invenio_app_rdm.records_ui.views.filters import (
     can_list_files,
@@ -50,6 +52,7 @@ from invenio_pidstore.errors import (
     PIDDoesNotExistError,
     PIDUnregistered,
 )
+from invenio_rdm_records.views import file_transfer_type
 from invenio_rdm_records.services.errors import RecordDeletedException
 from invenio_records_resources.services.errors import (
     FileKeyNotFoundError,
@@ -75,6 +78,12 @@ def create_records_blueprint(app: Flask) -> Blueprint:
                 default_view_func=record_from_pid,
             )
         )
+
+    blueprint.add_url_rule(
+        **create_url_rule(
+            routes["record_detail"],
+            default_view_func=record_detail,
+        ))
 
     blueprint.add_url_rule(
         **create_url_rule(
@@ -139,7 +148,18 @@ def create_records_blueprint(app: Flask) -> Blueprint:
     blueprint.add_app_template_filter(custom_fields_search)
     blueprint.add_app_template_filter(transform_record)
 
-    # Register context processor
+    # Register context processors
     blueprint.app_context_processor(search_app_context)
+    # blueprint.app_context_processor(file_transfer_type)
 
     return blueprint
+
+
+@pass_include_deleted
+def record_detail(pid_value: str, include_deleted: bool = False) -> Response:
+    """Redirect to the record detail page."""
+    service = cast("RDMRecordService", current_service_registry.get("records"))
+    rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
+    data = rec.to_dict()
+    self_html = data["links"]["self_html"]
+    return redirect(self_html)
