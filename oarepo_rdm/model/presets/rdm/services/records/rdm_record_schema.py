@@ -15,7 +15,10 @@ from typing import TYPE_CHECKING, Any, ClassVar, override
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.files import FilesSchema
 from invenio_rdm_records.services.schemas.pids import PIDSchema
-from invenio_rdm_records.services.schemas.record import InternalNoteSchema, validate_scheme
+from invenio_rdm_records.services.schemas.record import (
+    InternalNoteSchema,
+    validate_scheme,
+)
 from invenio_rdm_records.services.schemas.stats import StatsSchema
 from invenio_rdm_records.services.schemas.tombstone import (
     DeletionStatusSchema,

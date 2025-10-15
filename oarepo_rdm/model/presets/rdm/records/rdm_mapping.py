@@ -121,6 +121,32 @@ class RDMMappingPreset(Preset):
                     "deletion_status": {"type": "keyword", "ignore_above": 1024},
                     "is_deleted": {"type": "boolean"},
                     "pids": {"type": "object", "dynamic": "true"},
+                    "files": {
+                        "type": "object",
+                        "properties": {
+                            "default_preview": {"type": "keyword"},
+                            "count": {"type": "integer"},
+                            "totalbytes": {"type": "long"},
+                            "mimetypes": {"type": "keyword"},
+                            "types": {"type": "keyword"},
+                            "entries": {
+                                "type": "object",
+                                "properties": {
+                                    "uuid": {"enabled": False},
+                                    "version_id": {"enabled": False},
+                                    "metadata": {"type": "object", "dynamic": "true"},
+                                    "checksum": {"type": "keyword"},
+                                    "key": {"type": "keyword"},
+                                    "mimetype": {"type": "keyword"},
+                                    "size": {"type": "long"},
+                                    "ext": {"type": "keyword"},
+                                    "object_version_id": {"enabled": False},
+                                    "file_id": {"enabled": False},
+                                    "access": {"type": "object", "properties": {"hidden": {"type": "boolean"}}},
+                                },
+                            },
+                        },
+                    },
                     "parent": {
                         "properties": {
                             "access": {
