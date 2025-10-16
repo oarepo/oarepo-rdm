@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
+# TODO: do this properly
 def make_affiliation_index_metadata_hack(
     attr: str, obj: Mapping[str, Any], *args: Any
 ) -> Mapping[str, Any] | fields._MissingType:  # type: ignore[reportAttributeAccessIssue]
