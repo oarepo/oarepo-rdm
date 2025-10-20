@@ -6,14 +6,12 @@
 # oarepo-model is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""UI JSON serializer preset for Invenio record resources.
+"""RDM Record UI Schema Preset.
 
-This module provides a preset that creates a JSON serializer specifically designed
-for user interface contexts. It includes:
-
-- JSONUISerializerPreset: A preset that provides the JSONUISerializer class
-- JSONUISerializer: A Marshmallow-based serializer that uses the RecordUISchema
-  for object serialization and outputs JSON format with UI-specific context
+This preset modifies the RecordUISchema to remember the serialized record
+in a context variable during serialization. This is needed as we reuse
+Invenio RDM UI serialization functions that are called from within the metadata
+section of the record but they require access to the full serialized record.
 """
 
 from __future__ import annotations

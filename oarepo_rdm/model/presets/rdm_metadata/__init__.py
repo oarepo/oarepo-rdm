@@ -18,6 +18,7 @@ from oarepo_model import from_yaml
 from oarepo_model.api import FunctionalPreset
 from oarepo_model.presets.drafts import drafts_preset
 from oarepo_model.presets.records_resources import records_resources_preset
+from oarepo_model.presets.relations import relations_preset
 from oarepo_model.presets.ui import ui_preset
 from oarepo_model.presets.ui_links import ui_links_preset
 
@@ -62,6 +63,7 @@ class RDMMetadataPreset(FunctionalPreset):
             oai_preset,
             ui_preset,
             ui_links_preset,
+            relations_preset,
         ]
         params["presets"][:0] = extra_presets
 

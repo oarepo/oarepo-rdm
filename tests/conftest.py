@@ -13,7 +13,7 @@ import os
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -21,9 +21,16 @@ import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from flask_security import login_user
+from flask_webpackext.manifest import (
+    JinjaManifest,
+    JinjaManifestEntry,
+    JinjaManifestLoader,
+)
+from invenio_access.permissions import system_identity
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_vocabularies.proxies import current_service as current_vocabularies_service
 from oarepo_model.customizations import AddToList
 from sqlalchemy.exc import IntegrityError
 
@@ -167,6 +174,14 @@ def app_config(app_config):
     # with loading cairo-2
     if os.uname().sysname == "Darwin" and Path("/opt/homebrew/lib").exists():
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib"
+
+    # TODO: move this to pytest-oarepo
+    # Misc / frontend
+    app_config.update(
+        IIIF_FORMATS=["jpg", "png"],
+        APP_RDM_RECORD_THUMBNAIL_SIZES=[500],
+        WEBPACKEXT_MANIFEST_LOADER=MockManifestLoader,
+    )
 
     return app_config
 
@@ -421,3 +436,46 @@ def add_file_to_draft():
         return result
 
     return _add_file_to_draft
+
+
+@pytest.fixture
+def contributor_role_editor():
+    """Contributor role fixture."""
+    current_vocabularies_service.create_type(system_identity, "contributor-types", "v-ct")
+
+    current_vocabularies_service.create(
+        system_identity,
+        {
+            "type": "contributor-types",
+            "id": "editor",
+            "title": {
+                "en": "Editor",
+                "cs": "Redaktor",
+            },
+        },
+    )
+    current_vocabularies_service.indexer.refresh()
+
+
+#
+# Mock the webpack manifest to avoid having to compile the full assets.
+#
+class MockJinjaManifest(JinjaManifest):
+    """Mock manifest."""
+
+    def __getitem__(self, key):
+        """Get a manifest entry."""
+        return JinjaManifestEntry(key, [key])
+
+    def __getattr__(self, name):
+        """Get a manifest entry."""
+        return JinjaManifestEntry(name, [name])
+
+
+class MockManifestLoader(JinjaManifestLoader):
+    """Manifest loader creating a mocked manifest."""
+
+    @override
+    def load(self, filepath):
+        """Load the manifest."""
+        return MockJinjaManifest()

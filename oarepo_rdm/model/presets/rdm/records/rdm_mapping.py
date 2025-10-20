@@ -142,7 +142,10 @@ class RDMMappingPreset(Preset):
                                     "ext": {"type": "keyword"},
                                     "object_version_id": {"enabled": False},
                                     "file_id": {"enabled": False},
-                                    "access": {"type": "object", "properties": {"hidden": {"type": "boolean"}}},
+                                    "access": {
+                                        "type": "object",
+                                        "properties": {"hidden": {"type": "boolean"}},
+                                    },
                                 },
                             },
                         },
@@ -383,7 +386,7 @@ class RDMMappingPreset(Preset):
             }
         }
 
-        tombstone_mapping = {
+        record_mapping = {
             "mappings": {
                 "properties": {
                     "tombstone": {
@@ -402,6 +405,28 @@ class RDMMappingPreset(Preset):
                             "is_visible": {"type": "boolean"},
                         }
                     },
+                    "stats": {
+                        "properties": {
+                            "this_version": {
+                                "properties": {
+                                    "views": {"type": "integer"},
+                                    "unique_views": {"type": "integer"},
+                                    "downloads": {"type": "integer"},
+                                    "unique_downloads": {"type": "integer"},
+                                    "data_volume": {"type": "double"},
+                                }
+                            },
+                            "all_versions": {
+                                "properties": {
+                                    "views": {"type": "integer"},
+                                    "unique_views": {"type": "integer"},
+                                    "downloads": {"type": "integer"},
+                                    "unique_downloads": {"type": "integer"},
+                                    "data_volume": {"type": "double"},
+                                }
+                            },
+                        }
+                    },
                 }
             }
         }
@@ -418,5 +443,5 @@ class RDMMappingPreset(Preset):
 
         yield PatchJSONFile(
             "record-mapping",
-            tombstone_mapping,
+            record_mapping,
         )

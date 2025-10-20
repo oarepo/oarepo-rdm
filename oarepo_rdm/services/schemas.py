@@ -38,27 +38,29 @@ def make_affiliation_index(attr: str, _obj: Mapping[str, Any], *args: Any) -> Ma
 
     As invenio's make_affiliation_index expects the full record object, we need to
     store it in a context variable during serialization
-    (happens in the oarepo_rdm.model.resources.records.ui_json_serializer) and
+    (happens in the oarepo_rdm.model.services.records.rdm_record_ui_schema) and
     retrieve it here.
     """
     return invenio_rdm_make_affiliation_index(attr, ui_serialized_record.get(), *args)
 
 
-class RDMCreatorUIField(fields.Function):
+class RDMCreatorListUIField(fields.Function):
     """Custom field for RDM Creator."""
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Create the field."""
-        super().__init__(partial(make_affiliation_index, "creators"), *args, **kwargs)
+        # the first argument to the field is the "nested" part, pop it out
+        super().__init__(partial(make_affiliation_index, "creators"), *args[1:], **kwargs)
 
 
-class RDMContributorUIField(fields.Function):
+class RDMContributorListUIField(fields.Function):
     """Custom field for RDM Contributor."""
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Create the field."""
+        # the first argument to the field is the "nested" part, pop it out
         super().__init__(
             partial(make_affiliation_index, "contributors"),
-            *args,
+            *args[1:],
             **kwargs,
         )

@@ -35,7 +35,7 @@ def test_list(rdm_records_service, users, logged_client, search_clear):
     assert len(result.json["hits"]["hits"]) == 1
 
 
-def test_read(rdm_records_service, users, client, search_clear):
+def test_read(rdm_records_service, users, client, search_clear, contributor_role_editor):
     user = users[0]
 
     sample = rdm_records_service.create(
@@ -68,7 +68,7 @@ def test_read(rdm_records_service, users, client, search_clear):
                         },
                         "affiliations": [{"name": "Technische Universität Wien"}],
                         "title": "Blah",
-                        "role": {"id": "editor"},
+                        "role": {"id": "editor", "title": "Editor"},
                     }
                 ],
             },
@@ -79,6 +79,47 @@ def test_read(rdm_records_service, users, client, search_clear):
     result = client.get(f"/api/records/{sample['id']}")
     assert result.status_code == 200
     assert result.json["links"] != {}
+
+    # 1. get UI representation from the self url
+    result = client.get(
+        result.json["links"]["self"].replace("http://localhost/", "/api/"),
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
+    )
+    assert result.status_code == 200
+    ui = result.json["ui"]
+    assert ui["creators"] == {
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "name": "Böhm, Johannes",
+                    "given_name": "Johannes",
+                    "family_name": "Böhm",
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
+                },
+                "affiliations": [[1, "Technische Universität Wien"]],
+            }
+        ],
+        "affiliations": [[1, "Technische Universität Wien", None]],
+    }
+    assert ui["contributors"] == {
+        "contributors": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "name": "Böhm, Johannes",
+                    "given_name": "Johannes",
+                    "family_name": "Böhm",
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
+                },
+                "affiliations": [[1, "Technische Universität Wien"]],
+                "role": {"id": "editor", "title": "Editor"},
+            }
+        ],
+        "affiliations": [[1, "Technische Universität Wien", None]],
+    }
+
+    # 2. get UI representation from the /api/records url
 
     result = client.get(
         f"/api/records/{sample['id']}",
@@ -112,7 +153,7 @@ def test_read(rdm_records_service, users, client, search_clear):
                     "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                 },
                 "affiliations": [[1, "Technische Universität Wien"]],
-                "role": {"id": "editor"},
+                "role": {"id": "editor", "title": "Editor"},
             }
         ],
         "affiliations": [[1, "Technische Universität Wien", None]],
