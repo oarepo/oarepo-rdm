@@ -282,12 +282,10 @@ RDMIdentifiers:
 
 RDMCreator:
   type: RDMCreatibutor
-  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMCreatorUIField
   marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.CreatorSchema
 
 RDMContributor:
   type: RDMCreatibutor
-  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMContributorUIField
   marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.ContributorSchema
 
 RDMCreators:
@@ -297,6 +295,7 @@ RDMCreators:
   type: array
   items:
     type: RDMCreator
+  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMCreatorListUIField
 
 RDMContributors:
   label:
@@ -305,6 +304,7 @@ RDMContributors:
   type: array
   items:
     type: RDMContributor
+  ui_marshmallow_field_class: oarepo_rdm.services.schemas.RDMContributorListUIField
 
 RDMSubjects:
   label:
