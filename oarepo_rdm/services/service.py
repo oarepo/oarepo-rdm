@@ -68,6 +68,7 @@ pass_through = {
 
 permissions_search_mapping = {
     "read": "search",
+    "read_deleted": "search",
     "read_draft": "search_drafts",
     "read_all": "search_all",
 }
