@@ -23,7 +23,7 @@ APP_RDM_ROUTES = {
     "index": "/",
     "robots": "/robots.txt",
     "help_search": "/help/search",
-    # "help_statistics": "/help/statistics", #noqa
+    "help_statistics": "/help/statistics",
     # "help_versioning": "/help/versioning", #noqa
     "record_search": "/search",
     "record_detail": "/records/<pid_value>",
