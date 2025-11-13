@@ -81,6 +81,8 @@ RDMCreatibutor:
 
     person_or_org:
       type: RDMPersonOrOrg
+      marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.PersonOrOrganizationSchema
+      
       label:
         cs: Osoba nebo organizace
         en: Person or Organization
@@ -266,7 +268,7 @@ RDMAdditionalDescriptions:
         type: vocabulary
         vocabulary-type: languages
 
-RDMIdentifiers:
+RDMRecordIdentifiers:
   label:
     en: Identifiers
     cs: Identifikátory
@@ -279,6 +281,7 @@ RDMIdentifiers:
   type: array
   items:
     type: RDMIdentifier
+  marshmallow_field_class: oarepo_rdm.services.schemas.RDMRecordIdentifiers
 
 RDMCreator:
   type: RDMCreatibutor
@@ -334,6 +337,7 @@ RDMResourceType:
   label:
     en: Resource type
     cs: Typ záznamu
+  
 
 RDMLanguages:
   type: array

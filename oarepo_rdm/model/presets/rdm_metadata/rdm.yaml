@@ -80,7 +80,7 @@ RDMCompleteMetadata:
       help:
         en: Include any identifiers that reference this record, such as DOIs, Handles, or other scheme-based IDs.
         cs: Uveďte jakékoliv identifikátory, které odkazují na tento záznam, jako jsou DOI, Handle nebo jiné identifikátory založené na schématu.
-      type: RDMIdentifiers
+      type: RDMRecordIdentifiers
 
     # TODO: related_identifiers
     sizes:

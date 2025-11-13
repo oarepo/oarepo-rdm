@@ -17,7 +17,10 @@ from typing import TYPE_CHECKING, Any
 from invenio_rdm_records.resources.serializers.ui.schema import (
     make_affiliation_index as invenio_rdm_make_affiliation_index,
 )
+from invenio_rdm_records.services.schemas.metadata import record_identifiers_schemes
 from marshmallow import fields
+from marshmallow_utils.fields import IdentifierValueSet
+from marshmallow_utils.schemas import IdentifierSchema
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -64,3 +67,13 @@ class RDMContributorListUIField(fields.Function):
             *args[1:],
             **kwargs,
         )
+
+
+# identifiers
+class RDMRecordIdentifiers(IdentifierValueSet):
+    """RDM Record Identifiers field."""
+
+    def __init__(self, **kwargs: Any):
+        """Create the field."""
+        kwargs["cls_or_instance"] = fields.Nested(partial(IdentifierSchema, allowed_schemes=record_identifiers_schemes))
+        super().__init__(**kwargs)
