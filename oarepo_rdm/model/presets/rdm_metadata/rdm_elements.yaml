@@ -34,7 +34,7 @@ RDMIdentifier:
     cs: Identifikátor
     en: Identifier
   # we can't use IdentifierSchema class here as it needs to get an argument with
-  # a list of allowed schemes 
+  # a list of allowed schemes
   # marshmallow_schema_class: marshmallow_utils.schemas.identifier.IdentifierSchema
   properties:
     identifier:
@@ -56,7 +56,7 @@ RDMCreatibutor:
   properties:
     role:
       type: vocabulary
-      vocabulary-type: contributor-types
+      vocabulary-type: contributorsroles
       label:
         cs: Role
         en: Role
@@ -82,11 +82,11 @@ RDMCreatibutor:
     person_or_org:
       type: RDMPersonOrOrg
       marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.PersonOrOrganizationSchema
-      
+
       label:
         cs: Osoba nebo organizace
         en: Person or Organization
-  
+
 RDMFunding:
   label:
     cs: "Granty a financování"
@@ -130,20 +130,20 @@ RDMFunding:
             type: array
             items:
               properties:
-                id: 
+                id:
                   type: keyword
-                subject: 
+                subject:
                   type: keyword
         - organizations:
             type: array
             items:
               type: object
               properties:
-                scheme: 
+                scheme:
                   type: keyword
-                id: 
+                id:
                   type: keyword
-                organization: 
+                organization:
                   type: keyword
       type: vocabulary
       vocabulary-type: awards
@@ -241,11 +241,11 @@ RDMAdditionalTitles:
     type: object
     marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.TitleSchema
     properties:
-      title: 
+      title:
         type: fulltext
       type:
         type: vocabulary
-        vocabulary-type: title-types
+        vocabulary-type: titletypes
       lang:
         type: vocabulary
         vocabulary-type: languages
@@ -263,7 +263,7 @@ RDMAdditionalDescriptions:
         type: fulltext
       type:
         type: vocabulary
-        vocabulary-type: description-types
+        vocabulary-type: descriptiontypes
       lang:
         type: vocabulary
         vocabulary-type: languages
@@ -333,11 +333,10 @@ RDMFundings:
 
 RDMResourceType:
   type: vocabulary
-  vocabulary-type: resource-types
+  vocabulary-type: resourcetypes
   label:
     en: Resource type
     cs: Typ záznamu
-  
 
 RDMLanguages:
   type: array
