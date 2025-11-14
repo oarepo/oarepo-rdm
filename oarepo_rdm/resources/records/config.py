@@ -13,6 +13,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from invenio_rdm_records.resources.config import RDMRecordResourceConfig
+from proxytypes import LazyProxy
+
+from .response_handlers import get_response_handlers
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -25,3 +28,5 @@ class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
         **RDMRecordResourceConfig.routes,
         "all-prefix": "/all",  # /api/all/records
     }
+
+    response_handlers = LazyProxy(get_response_handlers)  # type: ignore[reportAssignmentType]
