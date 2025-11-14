@@ -15,7 +15,18 @@ modelb_service = modelb.proxies.current_service
 modelc_service = modelc.proxies.current_service
 
 
-def test_list(rdm_records_service, users, logged_client, search_clear):
+def test_empty_list(db, rdm_records_service, users, logged_client, search_clear):
+    user = users[0]
+    client = logged_client(user)
+
+    # test if empty list is serialized correctly
+    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    assert result.status_code == 200
+    assert len(result.json["hits"]["hits"]) == 0
+    assert "test-ok" in result.json["hits"]
+
+
+def test_list_with_model_a(db, rdm_records_service, users, logged_client, search_clear):
     user = users[0]
     client = logged_client(user)
 
@@ -31,8 +42,101 @@ def test_list(rdm_records_service, users, logged_client, search_clear):
     modela_service.indexer.refresh()
     modela_service.draft_indexer.refresh()
 
-    result = client.get("/api/records")
+    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    assert result.status_code == 200
     assert len(result.json["hits"]["hits"]) == 1
+    assert "test-ok" in result.json["hits"]
+    assert "test-a-ok" in result.json["hits"]["hits"][0]
+
+
+def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, search_clear):
+    user = users[0]
+    client = logged_client(user)
+
+    sample_draft = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modela-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    _publish = rdm_records_service.publish(user.identity, sample_draft["id"])
+
+    modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+
+    sample_draft_b = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modelb-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    _publish = rdm_records_service.publish(user.identity, sample_draft_b["id"])
+
+    modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
+
+    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    assert result.status_code == 200
+    assert len(result.json["hits"]["hits"]) == 2
+    assert "test-ok" in result.json["hits"]
+    md = {}
+    for hit in result.json["hits"]["hits"]:
+        md.update(hit)
+    assert "test-a-ok" in md
+    assert "test-b-ok" in md
+
+
+def test_list_with_model_a_and_b_and_c(db, rdm_records_service, users, logged_client, search_clear):
+    # model c does not have test exporter, so it should be skipped in the list
+    user = users[0]
+    client = logged_client(user)
+
+    sample_draft = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modela-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    _publish = rdm_records_service.publish(user.identity, sample_draft["id"])
+
+    modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+
+    sample_draft_b = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modelb-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    _publish = rdm_records_service.publish(user.identity, sample_draft_b["id"])
+
+    modelb_service.indexer.refresh()
+    modelb_service.draft_indexer.refresh()
+
+    sample_draft_c = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modelc-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    _publish = rdm_records_service.publish(user.identity, sample_draft_c["id"])
+    modelc_service.indexer.refresh()
+    modelc_service.draft_indexer.refresh()
+
+    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    assert result.status_code == 200
+    assert len(result.json["hits"]["hits"]) == 2
+    assert "test-ok" in result.json["hits"]
+    md = {}
+    for hit in result.json["hits"]["hits"]:
+        md.update(hit)
+    assert "test-a-ok" in md
+    assert "test-b-ok" in md
 
 
 def test_read(rdm_records_service, users, client, search_clear, contributor_role_editor):

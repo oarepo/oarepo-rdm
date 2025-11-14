@@ -28,7 +28,9 @@ from oarepo_rdm.model.presets import (
 
 from .exports import (
     ModelaDublinCoreXMLSerializer,
+    ModelaTestSerializer,
     ModelbDublinCoreXMLSerializer,
+    ModelbTestSerializer,
     ModelcDublinCoreXMLSerializer,
 )
 
@@ -67,6 +69,12 @@ modela = model(
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         ),
+        AddMetadataExport(
+            code="test",
+            name=_("Test export"),
+            mimetype="application/test+json",
+            serializer=ModelaTestSerializer(),
+        ),
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
         AddDefaultSearchFields("metadata.title", "metadata.adescription"),
     ],
@@ -99,6 +107,12 @@ modelb = model(
             oai_metadata_prefix="oai_dc",
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
+        ),
+        AddMetadataExport(
+            code="test",
+            name=_("Test export"),
+            mimetype="application/test+json",
+            serializer=ModelbTestSerializer(),
         ),
         AddDefaultSearchFields("metadata.title", "metadata.bdescription"),
     ],
