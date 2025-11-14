@@ -441,12 +441,12 @@ def add_file_to_draft():
 @pytest.fixture
 def contributor_role_editor():
     """Contributor role fixture."""
-    current_vocabularies_service.create_type(system_identity, "contributor-types", "v-ct")
+    current_vocabularies_service.create_type(system_identity, "contributorsroles", "v-ct")
 
     current_vocabularies_service.create(
         system_identity,
         {
-            "type": "contributor-types",
+            "type": "contributorsroles",
             "id": "editor",
             "title": {
                 "en": "Editor",
