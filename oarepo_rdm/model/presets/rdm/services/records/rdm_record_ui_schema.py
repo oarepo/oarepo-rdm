@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
+from invenio_rdm_records.resources.serializers.ui.schema import record_version
+from marshmallow import fields as ma_fields
 from oarepo_model.customizations import AddMixins, Customization
 from oarepo_model.presets import Preset
 
@@ -46,6 +48,8 @@ class RDMRecordUISchemaPreset(Preset):
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
         class RDMUISchemaMixin(BaseSchema):
+            version = ma_fields.Function(record_version)
+
             @override
             def dump(self, obj: Any, *, many: bool | None = None) -> Any:
                 many = self.many if many is None else bool(many)
