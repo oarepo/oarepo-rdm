@@ -91,7 +91,7 @@ RDMFunding:
   label:
     cs: "Granty a financování"
     en: "Funding Reference"
-  marshmallow_ui_schema_class: oarepo_runtime.services.schema.rdm_ui.RDMFundersUISchema
+  ui_marshmallow_schema_class: invenio_rdm_records.resources.serializers.ui.schema.FundingSchema
   marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.FundingSchema
   properties:
     funder:
@@ -172,7 +172,6 @@ RDMSubject:
   label:
     cs: Předmět
     en: Subject
-  marshmallow_ui_schema_class: oarepo_runtime.services.schema.rdm_ui.RDMSubjectUISchema
   marshmallow_schema_class: invenio_vocabularies.contrib.subjects.schema.SubjectRelationSchema
   properties:
     id:
@@ -189,7 +188,6 @@ RDMSubject:
 
 RDMPersonOrOrg:
   marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.PersonOrOrganizationSchema
-  marshmallow_ui_schema_class: oarepo_runtime.services.schema.rdm_ui.RDMPersonOrOrganizationUISchema
   properties:
     name:
       type: keyword
@@ -240,6 +238,7 @@ RDMAdditionalTitles:
   items:
     type: object
     marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.TitleSchema
+    ui_marshmallow_schema_class: invenio_rdm_records.resources.serializers.ui.schema.AdditionalTitlesSchema
     properties:
       title:
         type: fulltext
@@ -258,6 +257,7 @@ RDMAdditionalDescriptions:
   items:
     type: object
     marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.DescriptionSchema
+    ui_marshmallow_schema_class: invenio_rdm_records.resources.serializers.ui.schema.AdditionalDescriptionsSchema
     properties:
       description:
         type: fulltext
