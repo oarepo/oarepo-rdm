@@ -115,7 +115,8 @@ RDMFunding:
 
     award:
       keys:
-        - title
+        - title:
+            type: i18ndict
         - number:
             type: keyword
         - identifiers:
