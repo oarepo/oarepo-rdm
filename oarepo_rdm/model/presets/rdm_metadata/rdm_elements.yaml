@@ -115,7 +115,8 @@ RDMFunding:
 
     award:
       keys:
-        - title
+        - title:
+            type: i18ndict
         - number:
             type: keyword
         - identifiers:
@@ -182,7 +183,8 @@ RDMSubject:
     subject:
       # TODO: in RDM, subjects are not yet multilingual in their serialization to record
       # (they are internally), this probably will change in the future
-      type: multilingual
+      # type: multilingual
+      type: keyword
       label.cs: Předmět
       label.en: Subject
 
