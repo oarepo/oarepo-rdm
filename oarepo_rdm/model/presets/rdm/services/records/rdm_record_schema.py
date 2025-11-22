@@ -31,7 +31,7 @@ from marshmallow_utils.fields import (
     SanitizedUnicode,
 )
 from marshmallow_utils.permissions import FieldPermissionsMixin
-from oarepo_model.customizations import AddMixins, Customization
+from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -126,4 +126,4 @@ class RDMRecordSchemaPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield AddMixins("RecordSchema", RDMRecordSchemaMixin)
+        yield PrependMixin("RecordSchema", RDMRecordSchemaMixin)

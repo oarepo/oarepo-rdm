@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, override
 
 from invenio_drafts_resources.records import Draft as InvenioDraftRecord
 from invenio_rdm_records.records.api import RDMDraft
-from oarepo_model.customizations import ChangeBase, Customization
+from oarepo_model.customizations import Customization, ReplaceBaseClass
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -40,4 +40,4 @@ class RDMDraftRecordPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase("Draft", InvenioDraftRecord, RDMDraft)
+        yield ReplaceBaseClass("Draft", InvenioDraftRecord, RDMDraft)

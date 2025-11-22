@@ -15,7 +15,9 @@ templates & statics from various invenio-app-rdm blueprint entry-points.
 from __future__ import annotations
 
 from flask import Blueprint, Flask
-from invenio_app_rdm.records_ui.searchapp import search_app_context as records_search_app_context
+from invenio_app_rdm.records_ui.searchapp import (
+    search_app_context as records_search_app_context,
+)
 from invenio_app_rdm.records_ui.views.filters import (
     can_list_files,
     compact_number,
@@ -33,7 +35,9 @@ from invenio_app_rdm.records_ui.views.filters import (
     transform_record,
     truncate_number,
 )
-from invenio_app_rdm.users_ui.searchapp import search_app_context as users_search_app_context
+from invenio_app_rdm.users_ui.searchapp import (
+    search_app_context as users_search_app_context,
+)
 from invenio_collections.searchapp import search_app_context as c_search_app_context
 
 

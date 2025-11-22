@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING, Any, override
 
 from invenio_rdm_records.services.pids import PIDManager, PIDsService
 from oarepo_model.customizations import (
-    AddMixins,
     Customization,
+    PrependMixin,
 )
 from oarepo_model.model import InvenioModel, ModelMixin
 from oarepo_model.presets import Preset
@@ -53,4 +53,4 @@ class RDMExtPreset(Preset):
                     "pids_service": PIDsService(params["config"], PIDManager),
                 }
 
-        yield AddMixins("Ext", ExtRDMMixin)
+        yield PrependMixin("Ext", ExtRDMMixin)

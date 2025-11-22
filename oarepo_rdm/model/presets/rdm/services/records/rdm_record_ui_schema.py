@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, override
 
 from invenio_rdm_records.resources.serializers.ui.schema import record_version
 from marshmallow import fields as ma_fields
-from oarepo_model.customizations import AddMixins, Customization
+from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
 
 from oarepo_rdm.services.schemas import ui_serialized_record
@@ -63,4 +63,4 @@ class RDMRecordUISchemaPreset(Preset):
                 finally:
                     ui_serialized_record.reset(token)
 
-        yield AddMixins("RecordUISchema", RDMUISchemaMixin)
+        yield PrependMixin("RecordUISchema", RDMUISchemaMixin)
