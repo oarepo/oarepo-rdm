@@ -23,8 +23,8 @@ from invenio_rdm_records.resources.config import (
 
 # TODO: from oarepo_runtime.resources.config import BaseRecordResourceConfig as RDMBaseRecordResourceConfig
 from oarepo_model.customizations import (
-    ChangeBase,
     Customization,
+    ReplaceBaseClass,
 )
 from oarepo_model.presets import Preset
 
@@ -47,7 +47,7 @@ class RDMRecordResourceConfigPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase(
+        yield ReplaceBaseClass(
             "RecordResourceConfig",
             DraftRecordResourceConfig,
             RDMBaseRecordResourceConfig,

@@ -31,7 +31,7 @@ from invenio_rdm_records.services.components.pids import (
 )
 from invenio_rdm_records.services.components.verified import ContentModerationComponent
 from invenio_rdm_records.services.config import RDMRecordServiceConfig
-from oarepo_model.customizations import AddToList, ChangeBase, Customization
+from oarepo_model.customizations import AddToList, Customization, ReplaceBaseClass
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ class RDMRecordServiceConfigPreset(Preset):
         yield AddToList("record_service_components", ContentModerationComponent)
         yield AddToList("record_service_components", InternalNotesComponent)
         yield AddToList("record_service_components", ChecksComponent)
-        yield ChangeBase(
+        yield ReplaceBaseClass(
             "RecordServiceConfig",
             DraftRecordServiceConfig,
             RDMRecordServiceConfigWithoutLinks,

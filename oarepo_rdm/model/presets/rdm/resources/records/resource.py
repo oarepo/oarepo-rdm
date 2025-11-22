@@ -19,7 +19,7 @@ from invenio_drafts_resources.resources import RecordResource as DraftRecordReso
 from invenio_rdm_records.resources.resources import (
     RDMRecordResource as RDMBaseRecordResource,
 )
-from oarepo_model.customizations import ChangeBase, Customization
+from oarepo_model.customizations import Customization, ReplaceBaseClass
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -41,4 +41,4 @@ class RDMRecordResourcePreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase("RecordResource", DraftRecordResource, RDMBaseRecordResource)
+        yield ReplaceBaseClass("RecordResource", DraftRecordResource, RDMBaseRecordResource)

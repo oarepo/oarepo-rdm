@@ -42,7 +42,12 @@ def test_runtime_model(
     assert isinstance(runtime_model.resource_config, rdm_model.RecordResourceConfig)
     assert isinstance(runtime_model.resource, rdm_model.RecordResource)
 
-    assert {exp.code for exp in runtime_model.exports} == {"json", "jsonlset", "lset", "ui_json"}
+    assert {exp.code for exp in runtime_model.exports} == {
+        "json",
+        "jsonlset",
+        "lset",
+        "ui_json",
+    }
     assert runtime_model.response_handlers.keys() == {
         "application/json",
         "application/linkset",

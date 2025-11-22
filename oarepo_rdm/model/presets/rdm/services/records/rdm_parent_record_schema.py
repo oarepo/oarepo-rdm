@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, override
 
 from invenio_rdm_records.services.schemas.parent import RDMParentSchema
-from oarepo_model.customizations import AddMixins, Customization
+from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -35,4 +35,4 @@ class RDMParentRecordSchemaPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield AddMixins("ParentRecordSchema", RDMParentSchema)
+        yield PrependMixin("ParentRecordSchema", RDMParentSchema)

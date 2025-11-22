@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, override
 
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.policies.records import RecordPermissionPolicy
-from oarepo_model.customizations import ChangeBase, Customization
+from oarepo_model.customizations import Customization, ReplaceBaseClass
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -36,7 +36,7 @@ class RDMPermissionPolicyPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ChangeBase(
+        yield ReplaceBaseClass(
             "PermissionPolicy",
             RecordPermissionPolicy,
             RDMRecordPermissionPolicy,

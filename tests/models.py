@@ -14,8 +14,8 @@ from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
 from oarepo_model.customizations import (
-    AddDefaultSearchFields,
     AddMetadataExport,
+    SetDefaultSearchFields,
     SetPermissionPolicy,
 )
 from oarepo_runtime.services.config import EveryonePermissionPolicy
@@ -76,7 +76,7 @@ modela = model(
             serializer=ModelaTestSerializer(),
         ),
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
-        AddDefaultSearchFields("metadata.title", "metadata.adescription"),
+        SetDefaultSearchFields("metadata.title", "metadata.adescription"),
     ],
 )
 modela.register()
@@ -114,7 +114,7 @@ modelb = model(
             mimetype="application/test+json",
             serializer=ModelbTestSerializer(),
         ),
-        AddDefaultSearchFields("metadata.title", "metadata.bdescription"),
+        SetDefaultSearchFields("metadata.title", "metadata.bdescription"),
     ],
 )
 modelb.register()
@@ -146,7 +146,7 @@ modelc = model(
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         ),
-        AddDefaultSearchFields("metadata.title", "metadata.cdescription"),
+        SetDefaultSearchFields("metadata.title", "metadata.cdescription"),
     ],
 )
 modelc.register()
