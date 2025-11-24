@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2024 CESNET z.s.p.o.
 #
-# oarepo-requests is free software; you can redistribute it and/or
+# oarepo-rdm is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
 # details.
 #
@@ -49,6 +49,8 @@ class OARepoRDM:
         )
 
         app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(config.RDM_PERSISTENT_IDENTIFIERS)
+
+        app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).extend(config.INFO_ENDPOINT_COMPONENTS)
 
     @cached_property
     def search_options(self) -> SearchOptions:

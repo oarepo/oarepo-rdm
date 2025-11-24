@@ -6,7 +6,7 @@
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""Configuration for OAI persistent identifiers."""
+"""Configuration for RDM overlay."""
 
 from __future__ import annotations
 
@@ -28,3 +28,7 @@ RDM_PERSISTENT_IDENTIFIERS = {
         "is_enabled": OAIPIDProvider.is_enabled,
     },
 }
+
+INFO_ENDPOINT_COMPONENTS = [
+    "oarepo_rdm.info:RDMInfoComponent",
+]
