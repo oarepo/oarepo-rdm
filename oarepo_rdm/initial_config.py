@@ -130,3 +130,20 @@ RDM_SEARCH_USER_REQUESTS = {
     "sort": ["bestmatch", "newest", "oldest"],
 }
 """User requests search configuration"""
+
+
+RDM_COMMUNITIES_ROUTES = {
+    "community-detail": "/communities/<pid_value>/records",
+    "community-home": "/communities/<pid_value>/",
+    "community-browse": "/communities/<pid_value>/browse",
+    "community-static-page": "/communities/<pid_value>/pages/<path:page_slug>",
+    "community-collection": "/communities/<pid_value>/collections/<tree_slug>/<collection_slug>",
+}
+"""Communities routes from app RDM."""
+
+
+COMMUNITIES_RECORDS_SEARCH = {
+    "facets": ["access_status", "resource_type", "language"],
+    "sort": ["bestmatch", "newest", "oldest", "version"],
+}
+"""Communities records search configuration."""
