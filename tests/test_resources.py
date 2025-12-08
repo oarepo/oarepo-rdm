@@ -88,7 +88,9 @@ def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, 
     assert "test-b-ok" in md
 
 
-def test_list_with_model_a_and_b_and_c(db, rdm_records_service, users, logged_client, search_clear):
+def test_list_with_model_a_and_b_and_c(
+    db, rdm_records_service, users, logged_client, vocab_fixtures, required_rdm_metadata, search_clear
+):
     # model c does not have test exporter, so it should be skipped in the list
     user = users[0]
     client = logged_client(user)
@@ -119,10 +121,7 @@ def test_list_with_model_a_and_b_and_c(db, rdm_records_service, users, logged_cl
 
     sample_draft_c = rdm_records_service.create(
         user.identity,
-        data={
-            "$schema": "local://modelc-v1.0.0.json",
-            "files": {"enabled": False},
-        },
+        data={"$schema": "local://modelc-v1.0.0.json", "files": {"enabled": False}, "metadata": required_rdm_metadata},
     )
     _publish = rdm_records_service.publish(user.identity, sample_draft_c["id"])
     modelc_service.indexer.refresh()
@@ -139,7 +138,7 @@ def test_list_with_model_a_and_b_and_c(db, rdm_records_service, users, logged_cl
     assert "test-b-ok" in md
 
 
-def test_read(rdm_records_service, users, client, search_clear, contributor_role_editor):
+def test_read(rdm_records_service, users, client, vocab_fixtures, required_rdm_metadata, search_clear):
     user = users[0]
 
     sample = rdm_records_service.create(
@@ -148,6 +147,7 @@ def test_read(rdm_records_service, users, client, search_clear, contributor_role
             "$schema": "local://modelc-v1.0.0.json",
             "files": {"enabled": False},
             "metadata": {
+                **required_rdm_metadata,
                 "creators": [
                     {
                         "person_or_org": {

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import marshmallow as ma
 from invenio_rdm_records.services.schemas.metadata import CreatorSchema
+from invenio_rdm_records.services.schemas.metadata import MetadataSchema as RDMMetadataSchema
 
 from tests.models import modelc
 
@@ -28,3 +29,13 @@ def test_schema():
 
     creators_schema = metadata_schema.fields["creators"].inner.schema
     assert isinstance(creators_schema, CreatorSchema)
+
+
+def test_rdm_complete_metadata():
+    schema = modelc.RecordSchema()
+
+    rdm_fields = RDMMetadataSchema._declared_fields  # noqa SLF001
+    model_fields = schema.fields["metadata"].nested()._declared_fields  # noqa SLF001
+
+    assert set(rdm_fields.items()) <= set(model_fields.items())
+    assert "cdescription" in model_fields
