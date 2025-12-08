@@ -247,6 +247,31 @@ def percolators():
     init_percolators()
 
 
+@pytest.fixture
+def required_rdm_metadata():
+    return {
+        "resource_type": {"id": "image-photo"},
+        "creators": [
+            {
+                "person_or_org": {
+                    "name": "Nielsen, Lars Holm",
+                    "type": "personal",
+                    "given_name": "Lars Holm",
+                    "family_name": "Nielsen",
+                    "identifiers": [
+                        {
+                            "scheme": "orcid",
+                            "identifier": "0000-0001-8135-3489",
+                        }
+                    ],
+                },
+            }
+        ],
+        "title": "InvenioRDM",
+        "publication_date": "2020-06-01",
+    }
+
+
 #
 #
 #
@@ -439,7 +464,7 @@ def add_file_to_draft():
 
 
 @pytest.fixture
-def contributor_role_editor():
+def vocab_fixtures():
     """Contributor role fixture."""
     current_vocabularies_service.create_type(system_identity, "contributorsroles", "v-ct")
 
@@ -454,6 +479,33 @@ def contributor_role_editor():
             },
         },
     )
+
+    current_vocabularies_service.create_type(system_identity, "resourcetypes", "rsrct")
+
+    current_vocabularies_service.create(
+        system_identity,
+        {
+            "id": "image-photo",
+            "props": {
+                "csl": "graphic",
+                "datacite_general": "Image",
+                "datacite_type": "Photo",
+                "openaire_resourceType": "25",
+                "openaire_type": "dataset",
+                "eurepo": "info:eu-repo/semantics/other",
+                "schema.org": "https://schema.org/Photograph",
+                "subtype": "image-photo",
+                "type": "image",
+                "marc21_type": "image",
+                "marc21_subtype": "photo",
+            },
+            "icon": "chart bar outline",
+            "title": {"en": "Photo"},
+            "tags": ["depositable", "linkable"],
+            "type": "resourcetypes",
+        },
+    )
+
     current_vocabularies_service.indexer.refresh()
 
 

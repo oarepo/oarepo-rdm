@@ -432,6 +432,8 @@ def test_listidentifiers(
     app,
     rdm_records_service,
     identity_simple,
+    required_rdm_metadata,
+    vocab_fixtures,
     search_clear,
     percolators,
 ):
@@ -439,7 +441,7 @@ def test_listidentifiers(
 
     data_a = {"metadata": {"title": "lalala", "adescription": "bbbb"}}
     data_b = {"metadata": {"title": "lalala", "bdescription": "bbbb"}}
-    data_c = {"metadata": {"title": "tralala", "cdescription": "cccc"}}
+    data_c = {"metadata": required_rdm_metadata}
 
     with app.app_context():
         # create new OAI Set
@@ -463,6 +465,15 @@ def test_listidentifiers(
             db.session.add(oaiset2)
         db.session.commit()
 
+    recordc = rdm_records_service.create(
+        identity_simple,
+        data={
+            "$schema": "local://modelc-v1.0.0.json",
+            "files": {"enabled": False},
+            **data_c,
+        },
+    )
+
     recorda = rdm_records_service.create(
         identity_simple,
         data={
@@ -479,14 +490,7 @@ def test_listidentifiers(
             **data_b,
         },
     )
-    recordc = rdm_records_service.create(
-        identity_simple,
-        data={
-            "$schema": "local://modelc-v1.0.0.json",
-            "files": {"enabled": False},
-            **data_c,
-        },
-    )
+
     recorda = rdm_records_service.publish(identity_simple, recorda["id"])
     recordb = rdm_records_service.publish(identity_simple, recordb["id"])
     recordc = rdm_records_service.publish(identity_simple, recordc["id"])

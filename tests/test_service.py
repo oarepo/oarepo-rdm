@@ -97,11 +97,11 @@ def test_delete(rdm_records_service, identity_simple, search_clear):
         rdm_records_service.read_draft(identity_simple, sample_draft["id"])
 
 
-def test_publish(rdm_records_service, identity_simple, search_clear):
+def test_publish(rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     sample_draft = modelc_service.create(
         identity_simple,
         {
-            "metadata": {"title": "blah", "cdescription": "kch"},
+            "metadata": {**required_rdm_metadata, "title": "blah", "cdescription": "kch"},
             "files": {"enabled": False},
         },
     )
