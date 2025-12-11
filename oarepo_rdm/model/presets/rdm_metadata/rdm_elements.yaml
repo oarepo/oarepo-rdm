@@ -355,3 +355,230 @@ RDMFormats:
   type: array
   items:
     type: keyword
+
+RDMDate:
+  label:
+    en: Date
+    cs: Datum
+  properties:
+    date:
+      type: edtf
+      label:
+        en: Date
+        cs: Datum
+      hint:
+        en: Date, datetime or date interval in EDTF level 0 format
+        cs: Datum, datum a čas nebo časový interval ve formátu EDTF úrovně 0
+    type:
+      type: vocabulary
+      vocabulary-type: datetypes
+      label:
+        en: Date type
+        cs: Typ data
+    description:
+      type: fulltext
+      label:
+        en: Description
+        cs: Popis
+      hint:
+        en: Description of the date, datetime or date interval e.g. 'Accepted' or 'Available'
+        cs: Popis data, data a času nebo časového intervalu, např. 'Přijato' nebo 'Dostupné'
+
+RDMDates:
+  type: array
+  label:
+    en: Dates
+    cs: Data
+  items:
+    type: RDMDate
+  hint:
+    en: Important dates related to this resource
+    cs: Důležitá data související s tímto zdrojem
+
+RDMRelatedIdentifier:
+  label:
+    en: Related identifier
+    cs: Související identifikátor
+  properties:
+    identifier:
+      type: keyword
+      required: true
+      label:
+        en: Identifier
+        cs: Identifikátor
+    scheme:
+      type: keyword
+      required: true
+      label:
+        en: Scheme
+        cs: Schéma
+    relation_type:
+      type: vocabulary
+      vocabulary-type: relationtypes
+      label:
+        en: Relation type
+        cs: Typ vztahu
+    resource_type:
+      type: vocabulary
+      vocabulary-type: resourcetypes
+      label:
+        en: Resource type
+        cs: Typ zdroje
+
+RDMRelatedIdentifiers:
+  type: array
+  label:
+    en: Related identifiers
+    cs: Související identifikátory
+  items:
+    type: RDMRelatedIdentifier
+  hint:
+    en: Identifiers of related resources
+    cs: Identifikátory souvisejících zdrojů
+
+RDMRight:
+  label:
+    en: License or rights statement
+    cs: Licence nebo prohlášení o právech
+  properties:
+    id:
+      type: keyword
+      label:
+        en: License identifier
+        cs: Identifikátor licence
+    title:
+      type: i18ndict
+      label:
+        en: License title
+        cs: Název licence
+      hint:
+        en: The license name or license itself
+        cs: Název licence nebo licence samotná
+    description:
+      type: i18ndict
+      label:
+        en: License description
+        cs: Popis licence
+    link:
+      type: keyword
+      label:
+        en: License link
+        cs: Odkaz na licenci
+
+RDMRights:
+  type: array
+  label:
+    en: Rights
+    cs: Práva
+  items:
+    type: RDMRight
+  hint:
+    en: Any license or copyright information for this resource
+    cs: Jakékoliv informace o licenci nebo autorských právech k tomuto zdroji
+
+RDMCopyright:
+  type: fulltext
+  label:
+    en: Copyright
+    cs: Autorská práva
+  hint:
+    en: Copyright information for record (may contain HTML)
+    cs: Informace o autorských právech k záznamu (může obsahovat HTML)
+
+RDMDescription:
+  type: fulltext
+  label:
+    en: Description
+    cs: Popis
+  hint:
+    en: Description for record (may contain HTML)
+    cs: Popis záznamu (může obsahovat HTML)
+
+RDMLocationFeature:
+  label:
+    en: Location feature
+    cs: Geografická vlastnost
+  properties:
+    geometry:
+      type: dynamic-object
+      label:
+        en: Geometry
+        cs: Geometrie
+      hint:
+        en: GeoJSON geometry object
+        cs: GeoJSON objekt geometrie
+    identifiers:
+      type: array
+      label:
+        en: Identifiers
+        cs: Identifikátory
+      items:
+        type: RDMIdentifier
+    place:
+      type: fulltext
+      label:
+        en: Place
+        cs: Místo
+      hint:
+        en: Place name of the location
+        cs: Název místa
+    description:
+      type: fulltext
+      label:
+        en: Description
+        cs: Popis
+      hint:
+        en: Description of the location
+        cs: Popis lokace
+
+RDMLocations:
+  type: object
+  label:
+    en: Locations
+    cs: Lokace
+  hint:
+    en: Geographical locations relevant to this record
+    cs: Geografické lokace relevantní k tomuto záznamu
+  properties:
+    features:
+      type: array
+      label:
+        en: Features
+        cs: Vlastnosti
+      items:
+        type: RDMLocationFeature
+
+RDMReference:
+  label:
+    en: Reference
+    cs: Reference
+  properties:
+    reference:
+      type: fulltext
+      label:
+        en: Reference string
+        cs: Textová reference
+      hint:
+        en: A reference string
+        cs: Textová reference
+    identifier:
+      type: keyword
+      label:
+        en: Identifier
+        cs: Identifikátor
+    scheme:
+      type: keyword
+      label:
+        en: Scheme
+        cs: Schéma
+
+RDMReferences:
+  type: array
+  label:
+    en: References
+    cs: Reference
+  items:
+    type: RDMReference
+  hint:
+    en: Related publications or references
+    cs: Související publikace nebo reference

@@ -62,7 +62,11 @@ RDMCompleteMetadata:
         cs: Přispěvatelé
       type: RDMContributors
 
-    # TODO: dates
+    dates:
+      type: RDMDates
+      label:
+        en: Dates
+        cs: Data
 
     languages:
       type: RDMLanguages
@@ -82,7 +86,12 @@ RDMCompleteMetadata:
         cs: Uveďte jakékoliv identifikátory, které odkazují na tento záznam, jako jsou DOI, Handle nebo jiné identifikátory založené na schématu.
       type: RDMRecordIdentifiers
 
-    # TODO: related_identifiers
+    related_identifiers:
+      type: RDMRelatedIdentifiers
+      label:
+        en: Related identifiers
+        cs: Související identifikátory
+
     sizes:
       type: RDMSizes
       label:
@@ -101,9 +110,23 @@ RDMCompleteMetadata:
         en: Record Version
         cs: Verze záznamu
 
-    # TODO: rights
-    # TODO: copyritght
-    # TODO: description
+    rights:
+      type: RDMRights
+      label:
+        en: Rights
+        cs: Práva
+
+    copyright:
+      type: RDMCopyright
+      label:
+        en: Copyright
+        cs: Autorská práva
+
+    description:
+      type: RDMDescription
+      label:
+        en: Description
+        cs: Popis
 
     additional_descriptions:
       type: RDMAdditionalDescriptions
@@ -111,7 +134,11 @@ RDMCompleteMetadata:
         en: Additional descriptions
         cs: Další popisy záznamu
 
-    # TODO: locations
+    locations:
+      type: RDMLocations
+      label:
+        en: Locations
+        cs: Lokace
 
     funding:
       type: RDMFundings
@@ -125,7 +152,11 @@ RDMCompleteMetadata:
         en: Include details of funding bodies, grant numbers, and related information.
         cs: Uveďte podrobnosti o financujících institucích, číslech grantů a související informace.
 
-    # TODO: references
+    references:
+      type: RDMReferences
+      label:
+        en: References
+        cs: Reference
 
 
 
