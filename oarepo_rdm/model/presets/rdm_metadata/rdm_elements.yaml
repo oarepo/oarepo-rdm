@@ -440,30 +440,19 @@ RDMRight:
   label:
     en: License or rights statement
     cs: Licence nebo prohlášení o právech
-  properties:
-    id:
-      type: keyword
-      label:
-        en: License identifier
-        cs: Identifikátor licence
-    title:
-      type: i18ndict
-      label:
-        en: License title
-        cs: Název licence
-      hint:
-        en: The license name or license itself
-        cs: Název licence nebo licence samotná
-    description:
-      type: i18ndict
-      label:
-        en: License description
-        cs: Popis licence
-    link:
-      type: keyword
-      label:
-        en: License link
-        cs: Odkaz na licenci
+  type: vocabulary
+  vocabulary-type: licenses
+  keys:
+    - title:
+        type: i18ndict
+    - description:
+        type: i18ndict
+    - icon:
+        type: keyword
+    - props.url:
+        type: keyword
+    - props.scheme:
+        type: keyword
 
 RDMRights:
   type: array
