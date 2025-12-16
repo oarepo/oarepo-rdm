@@ -13,7 +13,6 @@
 RDMCompleteMetadata:
   type: object
   properties:
-
     resource_type:
       type: RDMResourceType
       label:
@@ -27,6 +26,7 @@ RDMCompleteMetadata:
       type: RDMCreators
 
     title:
+      required: true
       type: RDMTitle
       label:
         en: Title
@@ -45,6 +45,7 @@ RDMCompleteMetadata:
         cs: Vydavatel
 
     publication_date:
+      required: true
       type: RDMPublicationDate
       label:
         en: Publication date
@@ -158,12 +159,9 @@ RDMCompleteMetadata:
         en: References
         cs: Reference
 
-
-
 RDMBasicMetadata:
   type: object
   properties:
-
     resource_type:
       type: RDMResourceType
       label:
@@ -194,7 +192,6 @@ RDMBasicMetadata:
         en: Record Version
         cs: Verze záznamu
 
-
 RDMMinimalMetadata:
   type: object
   properties:
@@ -203,4 +200,3 @@ RDMMinimalMetadata:
       label:
         en: Record Version
         cs: Verze záznamu
-
