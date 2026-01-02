@@ -16,7 +16,7 @@ section of the record but they require access to the full serialized record.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from invenio_rdm_records.resources.serializers.ui.schema import record_version
 from marshmallow import fields as ma_fields
@@ -59,7 +59,9 @@ class RDMRecordUISchemaPreset(Preset):
                     )
                 token = ui_serialized_record.set(obj)
                 try:
-                    return super().dump(obj, many=many)
+                    ret = cast("dict", super().dump(obj, many=many))
+                    ret.pop("subjects", None)
+                    return ret
                 finally:
                     ui_serialized_record.reset(token)
 
