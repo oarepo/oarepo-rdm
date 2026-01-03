@@ -13,7 +13,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .rdm import rdm_static_preset
-from .rdm.services.records.rdm_complete_record_schema import RDMRecordMetadataSchemaPreset
+from .rdm.resources.records.exports import RDMCompleteExportsPreset
+from .rdm.services.records.rdm_complete_record_schema import (
+    RDMRecordMetadataSchemaPreset,
+)
 from .rdm_metadata import RDMMetadataPreset
 
 if TYPE_CHECKING:
@@ -43,6 +46,7 @@ rdm_complete_preset: list[type[Preset | FunctionalPreset]] = [
     *rdm_static_preset,
     RDMRecordMetadataSchemaPreset,
     RDMCompleteMetadataPreset,
+    RDMCompleteExportsPreset,
 ]
 rdm_basic_preset: list[type[Preset | FunctionalPreset]] = [
     *rdm_static_preset,
