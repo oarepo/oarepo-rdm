@@ -45,7 +45,7 @@ def init_percolators() -> None:
 
     percolated_mappings = _get_percolated_mappings(oaiserver_record_index, prefixed_oaiserver_record_index)
     if not percolated_mappings:
-        return
+        return  # pragma: no cover
 
     _generate_percolator_index(percolated_mappings)
 
@@ -93,19 +93,27 @@ def _create_default_percolator_mapping(mappings: dict[str, dict]) -> dict:
     """Merge all mappings into a single one."""
     # for each models, get the mapping
     percolator_mapping: dict = {}
+    percolator_analysis: dict = {}
 
     for settings in mappings.values():
         if not percolator_mapping:
             percolator_mapping = settings["mappings"]
         else:
             percolator_mapping = always_merger.merge(percolator_mapping, settings["mappings"])
+        settings_el = settings.get("settings", {})
+        if "index" in settings_el:
+            settings_el = settings_el["index"]
+
+        if "analysis" in settings_el:
+            percolator_analysis = always_merger.merge(percolator_analysis, settings_el["analysis"])
 
     # dynamic_templates
     if "dynamic_templates" in percolator_mapping:
         percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(percolator_mapping["dynamic_templates"])
-
-    # TODO: analyzers and so on
-    return {"mappings": percolator_mapping}
+    return {
+        "mappings": percolator_mapping,
+        "settings": {"analysis": percolator_analysis},
+    }
 
 
 def _merge_dynamic_templates(dynamic_templates: list[dict]) -> list[dict[str, Any]]:

@@ -15,6 +15,7 @@ from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
 from oarepo_model.customizations import (
     AddMetadataExport,
+    PatchIndexSettings,
     SetDefaultSearchFields,
     SetPermissionPolicy,
 )
@@ -77,6 +78,19 @@ modela = model(
         ),
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
         SetDefaultSearchFields("metadata.title", "metadata.adescription"),
+        PatchIndexSettings(
+            {
+                "analysis": {
+                    "tokenizer": {"people_tokenizer": {"type": "lowercase"}},
+                    "analyzer": {
+                        "people_analyzer": {
+                            "type": "custom",
+                            "tokenizer": "people_tokenizer",
+                        }
+                    },
+                }
+            }
+        ),
     ],
 )
 modela.register()
