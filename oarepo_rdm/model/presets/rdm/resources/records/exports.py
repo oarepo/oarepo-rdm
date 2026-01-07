@@ -58,13 +58,13 @@ class RDMCompleteExportsPreset(Preset):
         yield AddMetadataExport(
             code="csv-full",
             name=_("CSV (full)"),
-            mimetype="application/vnd.inveniordm.v1.full+csv",
+            mimetype="text/vnd.inveniordm.v1.full+csv",
             serializer=CSVRecordSerializer(),
         )
         yield AddMetadataExport(
             code="csv-simple",
             name=_("CSV (simple)"),
-            mimetype="application/vnd.inveniordm.v1.simple+csv",
+            mimetype="text/vnd.inveniordm.v1.simple+csv",
             serializer=CSVRecordSerializer(
                 csv_included_fields=[
                     "id",
