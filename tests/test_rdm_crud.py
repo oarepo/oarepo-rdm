@@ -76,7 +76,7 @@ def test_publish(
     search,
     search_clear,
     location,
-    add_file_to_draft,
+    upload_file,
 ):
     # Create an item
     item = test_rdm_service.create(identity_simple, input_data)
@@ -84,7 +84,12 @@ def test_publish(
     test_rdm_service.draft_indexer.refresh()
 
     # Add a file
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
+    upload_file(
+        files_service=test_rdm_draft_files_service,
+        record_id=id_,
+        file_name="test.txt",
+        identity=identity_simple,
+    )
 
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)
@@ -124,7 +129,7 @@ def test_rdm_publish(
     identity_simple,
     input_data,
     rdm_model,
-    add_file_to_draft,
+    upload_file,
     search,
     search_clear,
     location,
@@ -135,7 +140,12 @@ def test_rdm_publish(
     test_rdm_service.draft_indexer.refresh()
 
     # Add a file
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
+    upload_file(
+        files_service=test_rdm_draft_files_service,
+        record_id=id_,
+        file_name="test.txt",
+        identity=identity_simple,
+    )
 
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)

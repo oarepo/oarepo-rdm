@@ -8,39 +8,32 @@
 #
 from __future__ import annotations
 
-import base64
 import os
 from datetime import UTC, datetime
-from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING
 from unittest import mock
 from unittest.mock import MagicMock
 
 import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
-from flask_security import login_user
-from flask_webpackext.manifest import (
-    JinjaManifest,
-    JinjaManifestEntry,
-    JinjaManifestLoader,
-)
 from invenio_access.permissions import system_identity
-from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_vocabularies.proxies import current_service as current_vocabularies_service
 from oarepo_model.customizations import AddToList
-from sqlalchemy.exc import IntegrityError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from invenio_accounts.models import User
     from invenio_rdm_records.records.api import RDMRecord
 
-# TODO: add pytest-oarepo and remove some of the fixtures below
+
+pytest_plugins = [
+    "pytest_oarepo.fixtures",
+    "pytest_oarepo.users",
+    "pytest_oarepo.files",
+    "pytest_oarepo.ui.fixtures",
+]
 
 
 @pytest.fixture(scope="module")
@@ -175,14 +168,6 @@ def app_config(app_config):
     if os.uname().sysname == "Darwin" and Path("/opt/homebrew/lib").exists():
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib"
 
-    # TODO: move this to pytest-oarepo
-    # Misc / frontend
-    app_config.update(
-        IIIF_FORMATS=["jpg", "png"],
-        APP_RDM_RECORD_THUMBNAIL_SIZES=[500],
-        WEBPACKEXT_MANIFEST_LOADER=MockManifestLoader,
-    )
-
     return app_config
 
 
@@ -272,145 +257,6 @@ def required_rdm_metadata():
     }
 
 
-#
-#
-#
-#
-#
-# TODO: use pytest-oarepo instead of this
-@pytest.fixture
-def password():
-    """Password fixture."""
-    return base64.b64encode(os.urandom(16)).decode("utf-8")
-
-
-def _create_user(user_fixture, app, db) -> None:
-    """Create users, reusing it if it already exists."""
-    try:
-        user_fixture.create(app, db)
-    except IntegrityError:
-        datastore = app.extensions["security"].datastore
-        user_fixture._user = datastore.get_user_by_email(  # noqa: SLF001
-            user_fixture.email
-        )
-        user_fixture._app = app  # noqa: SLF001
-        app.logger.info("skipping creation of %s, already existing", user_fixture.email)
-
-
-@pytest.fixture
-def users(app, db, UserFixture, password):  # noqa: N803 # as it is a fixture name
-    """Predefined user fixtures."""
-    user1 = UserFixture(
-        email="user1@example.org",
-        password=password,
-        active=True,
-        confirmed=True,
-        user_profile={
-            "affiliations": "CERN",
-        },
-    )
-    _create_user(user1, app, db)
-
-    user2 = UserFixture(
-        email="user2@example.org",
-        password=password,
-        username="beetlesmasher",
-        active=True,
-        confirmed=True,
-        user_profile={
-            "affiliations": "CERN",
-        },
-    )
-    _create_user(user2, app, db)
-
-    user3 = UserFixture(
-        email="user3@example.org",
-        password=password,
-        username="beetlesmasherXXL",
-        user_profile={
-            "full_name": "Maxipes Fik",
-            "affiliations": "CERN",
-        },
-        active=True,
-        confirmed=True,
-    )
-    _create_user(user3, app, db)
-
-    user4 = UserFixture(
-        email="user4@example.org",
-        password=password,
-        username="african",
-        preferences={
-            "timezone": "Africa/Dakar",  # something without daylight saving time; +0.0
-        },
-        user_profile={
-            "affiliations": "CERN",
-        },
-        active=True,
-        confirmed=True,
-    )
-    _create_user(user4, app, db)
-
-    user5 = UserFixture(
-        email="user5@example.org",
-        password=password,
-        username="mexican",
-        preferences={
-            "timezone": "America/Mexico_City",  # something without daylight saving time
-        },
-        user_profile={
-            "affiliations": "CERN",
-        },
-        active=True,
-        confirmed=True,
-    )
-    _create_user(user5, app, db)
-
-    return [user1, user2, user3, user4, user5]
-
-
-class LoggedClient:
-    """Logged client for testing."""
-
-    def __init__(self, client, user_fixture):
-        """Initialize the logged client."""
-        self.client = client
-        self.user_fixture = user_fixture
-
-    def _login(self) -> None:
-        """Perform login."""
-        login_user(self.user_fixture.user, remember=True)
-        login_user_via_session(self.client, email=self.user_fixture.email)
-
-    def post(self, *args: Any, **kwargs: Any) -> Any:
-        """Send a POST request with authentication."""
-        self._login()
-        return self.client.post(*args, **kwargs)
-
-    def get(self, *args: Any, **kwargs: Any) -> Any:
-        """Send a GET request with authentication."""
-        self._login()
-        return self.client.get(*args, **kwargs)
-
-    def put(self, *args: Any, **kwargs: Any) -> Any:
-        """Send a PUT request with authentication."""
-        self._login()
-        return self.client.put(*args, **kwargs)
-
-    def delete(self, *args: Any, **kwargs: Any) -> Any:
-        """Send a DELETE request with authentication."""
-        self._login()
-        return self.client.delete(*args, **kwargs)
-
-
-@pytest.fixture
-def logged_client(client) -> Callable[[User], LoggedClient]:
-    def _logged_client(user) -> LoggedClient:
-        return LoggedClient(client, user)
-
-    return _logged_client
-
-
 @pytest.fixture
 def oai_prefix(app):
     return f"oai:{app.config['OAISERVER_ID_PREFIX']}:"
@@ -437,30 +283,6 @@ def input_data():
             "enabled": True,
         },
     }
-
-
-@pytest.fixture
-def add_file_to_draft():
-    """Add a file to the record."""
-
-    def _add_file_to_draft(draft_file_service, draft_id, file_id, identity) -> dict[str, Any]:
-        result = draft_file_service.init_files(identity, draft_id, data=[{"key": file_id}])
-        file_md = next(iter(result.entries))
-        assert file_md["key"] == "test.txt"
-        assert file_md["status"] == "pending"
-
-        draft_file_service.set_file_content(
-            identity,
-            draft_id,
-            file_id,
-            BytesIO(b"test file content"),
-        )
-        result = draft_file_service.commit_file(identity, draft_id, file_id)
-        file_md = result.data
-        assert file_md["status"] == "completed"
-        return result
-
-    return _add_file_to_draft
 
 
 @pytest.fixture
@@ -507,27 +329,3 @@ def vocab_fixtures():
     )
 
     current_vocabularies_service.indexer.refresh()
-
-
-#
-# Mock the webpack manifest to avoid having to compile the full assets.
-#
-class MockJinjaManifest(JinjaManifest):
-    """Mock manifest."""
-
-    def __getitem__(self, key):
-        """Get a manifest entry."""
-        return JinjaManifestEntry(key, [key])
-
-    def __getattr__(self, name):
-        """Get a manifest entry."""
-        return JinjaManifestEntry(name, [name])
-
-
-class MockManifestLoader(JinjaManifestLoader):
-    """Manifest loader creating a mocked manifest."""
-
-    @override
-    def load(self, filepath):
-        """Load the manifest."""
-        return MockJinjaManifest()

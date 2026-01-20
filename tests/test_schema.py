@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import marshmallow as ma
 from invenio_rdm_records.services.schemas.metadata import CreatorSchema
-from invenio_rdm_records.services.schemas.metadata import MetadataSchema as RDMMetadataSchema
+from invenio_rdm_records.services.schemas.metadata import (
+    MetadataSchema as RDMMetadataSchema,
+)
 
 from tests.models import modelc
 
