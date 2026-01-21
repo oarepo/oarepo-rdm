@@ -18,7 +18,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast, override
 
-from invenio_rdm_records.resources.serializers.ui.schema import record_version
+from invenio_rdm_records.resources.serializers.ui.schema import (
+    UIRecordSchema,
+    record_version,
+)
 from marshmallow import fields as ma_fields
 from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
@@ -67,3 +70,18 @@ class RDMRecordUISchemaPreset(Preset):
                     ui_serialized_record.reset(token)
 
         yield PrependMixin("RecordUISchema", RDMUISchemaMixin)
+
+
+class RDMCompleteRecordUISchemaPreset(Preset):
+    """Preset which modifies the RecordUISchema for complete RDM metadata schema."""
+
+    modifies = ("RecordUISchema",)
+
+    @override
+    def apply(
+        self,
+        builder: InvenioModelBuilder,
+        model: InvenioModel,
+        dependencies: dict[str, Any],
+    ) -> Generator[Customization]:
+        yield PrependMixin("RecordUISchema", UIRecordSchema)
