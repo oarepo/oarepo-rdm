@@ -155,3 +155,15 @@ RDM_REQUESTS_ROUTES = {
     "community-dashboard-invitation-details": "/communities/<pid_value>/invitations/<uuid:request_pid_value>",
 }
 """Routes for requests in RDM."""
+
+APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
+    "invenio_app_rdm/records/details/side_bar/external_resources.html",
+    "invenio_app_rdm/records/details/side_bar/keywords_subjects.html",
+    "invenio_app_rdm/records/details/side_bar/details.html",
+    "invenio_app_rdm/records/details/side_bar/licenses.html",
+    "oarepo_ui/record_detail/side_bar/export.html",
+    "invenio_app_rdm/records/details/side_bar/citations.html",
+    "invenio_app_rdm/records/details/side_bar/manage_menu.html",
+    "invenio_app_rdm/records/details/side_bar/technical_metadata.html",
+]
+"""Template names for detail view sidebar components"""
