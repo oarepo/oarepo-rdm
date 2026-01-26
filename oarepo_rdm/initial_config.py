@@ -147,3 +147,11 @@ COMMUNITIES_RECORDS_SEARCH = {
     "sort": ["bestmatch", "newest", "oldest", "version"],
 }
 """Communities records search configuration."""
+
+
+RDM_REQUESTS_ROUTES = {
+    "user-dashboard-request-details": "/requests/<uuid:request_pid_value>",
+    "community-dashboard-request-details": "/communities/<pid_value>/requests/<uuid:request_pid_value>",
+    "community-dashboard-invitation-details": "/communities/<pid_value>/invitations/<uuid:request_pid_value>",
+}
+"""Routes for requests in RDM."""
