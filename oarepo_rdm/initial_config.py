@@ -166,4 +166,4 @@ APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
     "invenio_app_rdm/records/details/side_bar/manage_menu.html",
     "invenio_app_rdm/records/details/side_bar/technical_metadata.html",
 ]
-"""Template names for detail view sidebar components"""
+"""Template names for detail view sidebar components."""
