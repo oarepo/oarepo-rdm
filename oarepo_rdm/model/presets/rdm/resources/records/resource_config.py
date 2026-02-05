@@ -20,13 +20,14 @@ from invenio_drafts_resources.resources import (
 from invenio_rdm_records.resources.config import (
     RDMRecordResourceConfig as RDMBaseRecordResourceConfig,
 )
-
-# TODO: from oarepo_runtime.resources.config import BaseRecordResourceConfig as RDMBaseRecordResourceConfig
 from oarepo_model.customizations import (
     Customization,
     ReplaceBaseClass,
 )
+from oarepo_model.customizations.prepend_mixin import PrependMixin
 from oarepo_model.presets import Preset
+
+from oarepo_rdm.resources.records.config import OARepoRDMRecordResourceConfigMixin
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -52,3 +53,4 @@ class RDMRecordResourceConfigPreset(Preset):
             DraftRecordResourceConfig,
             RDMBaseRecordResourceConfig,
         )
+        yield PrependMixin("RecordResourceConfig", OARepoRDMRecordResourceConfigMixin)

@@ -20,9 +20,13 @@ from .response_handlers import get_response_handlers
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from invenio_rdm_records.resources.config import RDMRecordResourceConfig as RDMRecordResourceConfig_Typing
+else:
+    RDMRecordResourceConfig_Typing = object
 
-class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
-    """OARepo extension to RDM record resource configuration."""
+
+class OARepoRDMRecordResourceConfigMixin(RDMRecordResourceConfig_Typing):
+    """Mixin for RDM record resource configuration."""
 
     @property
     def routes(self) -> Mapping[str, str]:  # type: ignore[reportIncompatibleVariableOverride]
@@ -35,5 +39,9 @@ class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
         routes = {k: v.replace("<pid_value>", "<path:pid_value>") for k, v in super().routes.items()}
         routes["all-prefix"] = "/all"  # /api/all/records
         return routes
+
+
+class OARepoRDMRecordResourceConfig(OARepoRDMRecordResourceConfigMixin, RDMRecordResourceConfig):  # type: ignore[reportIncompatibleVariableOverride]
+    """OARepo extension to RDM record resource configuration."""
 
     response_handlers = LazyProxy(get_response_handlers)  # type: ignore[reportAssignmentType]
