@@ -24,9 +24,16 @@ if TYPE_CHECKING:
 class OARepoRDMRecordResourceConfig(RDMRecordResourceConfig):
     """OARepo extension to RDM record resource configuration."""
 
-    routes: Mapping[str, str] = {
-        **RDMRecordResourceConfig.routes,
-        "all-prefix": "/all",  # /api/all/records
-    }
+    @property
+    def routes(self) -> Mapping[str, str]:  # type: ignore[reportIncompatibleVariableOverride]
+        """Override routes to use path instead of default converter for pid_value.
+
+        This was causing a problem when PID contained slashes (doi:1234/zenodo.12345 for example).
+        It would parse only first part before the slash.
+        Also adds /all prefix to routes.
+        """
+        routes = {k: v.replace("<pid_value>", "<path:pid_value>") for k, v in super().routes.items()}
+        routes["all-prefix"] = "/all"  # /api/all/records
+        return routes
 
     response_handlers = LazyProxy(get_response_handlers)  # type: ignore[reportAssignmentType]
