@@ -62,7 +62,7 @@ RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRec
 def _site_name(site_url: str) -> str:
     """Get the site name from the URL."""
     # get just the host from the url
-    return site_url.split("//")[-1].split("/")[0]
+    return site_url.rsplit("//", maxsplit=1)[-1].split("/")[0]
 
 
 OAISERVER_ID_PREFIX = LocalProxy(lambda: _site_name(current_app.config["SITE_UI_URL"]))
