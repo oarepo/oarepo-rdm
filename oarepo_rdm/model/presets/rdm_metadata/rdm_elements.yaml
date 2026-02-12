@@ -246,7 +246,7 @@ RDMAdditionalTitles:
         type: fulltext
         label:
           en: Additional title
-          cs: Další název záznamu
+          cs: Další název
       type:
         type: vocabulary
         label:
@@ -275,7 +275,7 @@ RDMAdditionalDescriptions:
         type: fulltext
         label:
           en: Additional description
-          cs: Další popis záznamu
+          cs: Další popis
       type:
         type: vocabulary
         vocabulary-type: descriptiontypes
