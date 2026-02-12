@@ -244,12 +244,22 @@ RDMAdditionalTitles:
     properties:
       title:
         type: fulltext
+        label:
+          en: Additional title
+          cs: Další název záznamu
       type:
         type: vocabulary
+        label:
+          en: Title type
+          cs: Typ názvu
         vocabulary-type: titletypes
+
       lang:
         type: vocabulary
         vocabulary-type: languages
+        label:
+          en: Additional title language
+          cs: Jazyk dalšího názvu
 
 RDMAdditionalDescriptions:
   type: array
@@ -263,12 +273,21 @@ RDMAdditionalDescriptions:
     properties:
       description:
         type: fulltext
+        label:
+          en: Additional description
+          cs: Další popis záznamu
       type:
         type: vocabulary
         vocabulary-type: descriptiontypes
+        label:
+          en: Description type
+          cs: Typ popisu
       lang:
         type: vocabulary
         vocabulary-type: languages
+        label:
+          en: Additional description language
+          cs: Jazyk dalšího popisu
 
 RDMRecordIdentifiers:
   label:
@@ -383,6 +402,7 @@ RDMDate:
       hint:
         en: Description of the date, datetime or date interval e.g. 'Accepted' or 'Available'
         cs: Popis data, data a času nebo časového intervalu, např. 'Přijato' nebo 'Dostupné'
+  marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.DateSchema
 
 RDMDates:
   type: array
