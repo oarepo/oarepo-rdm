@@ -64,9 +64,12 @@ def test_permission_levels(rdm_records_service, restricted_record, identity_simp
     anon.provides.add(any_user)
 
     # Deny anonymous to read restricted record and draft
-    pytest.raises(RecordPermissionDeniedError, service.read, anon, id_)
-    pytest.raises(PermissionDeniedError, service.files.list_files, anon, id_)
-    pytest.raises(PermissionDeniedError, service.read_draft, anon, id_)
+    with pytest.raises(RecordPermissionDeniedError):
+        service.read(anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.files.list_files(anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.read_draft(anon, id_)
     with pytest.raises(PermissionDeniedError):
         service.draft_files.list_files(anon, id_)
 
@@ -78,7 +81,8 @@ def test_permission_levels(rdm_records_service, restricted_record, identity_simp
     service.files.list_files(anon, id_)
 
     # Deny anonymous with view link to read draft
-    pytest.raises(PermissionDeniedError, service.read_draft, anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.read_draft(anon, id_)
     with pytest.raises(PermissionDeniedError):
         service.draft_files.list_files(anon, id_)
 
@@ -95,11 +99,16 @@ def test_permission_levels(rdm_records_service, restricted_record, identity_simp
     service.draft_files.read_file_metadata(anon, id_, "test.pdf")
 
     # Deny anonymous with preview link to update/delete/edit/publish draft
-    pytest.raises(PermissionDeniedError, service.update_draft, anon, id_, {})
-    pytest.raises(PermissionDeniedError, service.edit, anon, id_)
-    pytest.raises(PermissionDeniedError, service.delete_draft, anon, id_)
-    pytest.raises(PermissionDeniedError, service.new_version, anon, id_)
-    pytest.raises(PermissionDeniedError, service.publish, anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.update_draft(anon, id_, {})
+    with pytest.raises(PermissionDeniedError):
+        service.edit(anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.delete_draft(anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.new_version(anon, id_)
+    with pytest.raises(PermissionDeniedError):
+        service.publish(anon, id_)
     with pytest.raises(PermissionDeniedError):
         service.draft_files.init_files(anon, id_, {})
     with pytest.raises(PermissionDeniedError):
