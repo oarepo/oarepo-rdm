@@ -53,13 +53,13 @@ def test_permission_policy_delegates_to_model(
     record_a = rec_a._record  # noqa: SLF001
     record_b = rec_b._record  # noqa: SLF001
 
-    assert rdm_records_service.access.check_permission(
+    assert rdm_records_service.review.check_permission(
         identity_simple,
         "model_a_specific_action",
         record=record_a,
     )
 
-    assert not rdm_records_service.access.check_permission(
+    assert not rdm_records_service.review.check_permission(
         identity_simple,
         "model_a_specific_action",
         record=record_b,
