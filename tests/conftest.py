@@ -110,7 +110,7 @@ def finalization_called():
     return MagicMock()
 
 
-class ReviewInRDMServiceComponent(ServiceComponent):
+class MockReviewInRDMServiceComponent(ServiceComponent):
     """Add review service component."""
 
     def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
@@ -180,7 +180,7 @@ def app_config(app_config):
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
-    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, ReviewInRDMServiceComponent)
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2

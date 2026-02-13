@@ -46,7 +46,7 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
     can_model_a_specific_action = (SystemProcess(), AnyUser())
 
 
-class ReviewServiceComponent(ServiceComponent):
+class MockReviewServiceComponent(ServiceComponent):
     """Add review service component."""
 
     def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
@@ -103,7 +103,7 @@ modela = model(
                 }
             }
         ),
-        AddServiceComponent(ReviewServiceComponent),
+        AddServiceComponent(MockReviewServiceComponent),
     ],
 )
 modela.register()
