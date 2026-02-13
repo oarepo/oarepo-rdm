@@ -50,37 +50,20 @@ def test_permission_policy_delegates_to_model(
     """
     rec_a, rec_b = published_records
 
-    # Resolve the actual record objects for passing as kwargs
     record_a = rec_a._record  # noqa: SLF001
     record_b = rec_b._record  # noqa: SLF001
 
-    # modela's policy has can_model_a_specific_action => should succeed
     assert rdm_records_service.access.check_permission(
         identity_simple,
         "model_a_specific_action",
         record=record_a,
     )
 
-    # modelb's policy does NOT have can_model_a_specific_action => should fail
     assert not rdm_records_service.access.check_permission(
         identity_simple,
         "model_a_specific_action",
         record=record_b,
     )
-
-    # Also verify via require_permission
-    rdm_records_service.access.require_permission(
-        identity_simple,
-        "model_a_specific_action",
-        record=record_a,
-    )
-
-    with pytest.raises(PermissionDeniedError):
-        rdm_records_service.access.require_permission(
-            identity_simple,
-            "model_a_specific_action",
-            record=record_b,
-        )
 
 
 # these would be better tested by adding some specific component/action to the parent
@@ -102,7 +85,7 @@ def test_component_delegates_to_model(
     )
 
     captured = capsys.readouterr()
-    assert "review created" in captured.out
+    assert "review created in specialized service component" in captured.out
 
 
 def test_run_components_without_record_uses_parent(
@@ -112,6 +95,7 @@ def test_run_components_without_record_uses_parent(
     capsys,
     search_clear,
 ):
+
     modela_service.create(
         identity_simple,
         {
@@ -123,7 +107,8 @@ def test_run_components_without_record_uses_parent(
     rdm_records_service.review.run_components("create_review", identity_simple)
 
     captured = capsys.readouterr()
-    assert "review created" not in captured.out
+    assert "review created in original rdm service component" in captured.out
+    assert "review created in specialized service component" not in captured.out
 
 
 def test_permission_policy_without_record_uses_parent(

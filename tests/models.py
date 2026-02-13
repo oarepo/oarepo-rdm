@@ -51,7 +51,7 @@ class ReviewServiceComponent(ServiceComponent):
 
     def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
         """Mock create review."""
-        print("review created")  # noqa T201
+        print("review created in specialized service component")  # noqa T201
 
 
 modela = model(
