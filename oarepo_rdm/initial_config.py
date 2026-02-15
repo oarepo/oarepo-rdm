@@ -60,8 +60,11 @@ RDM_RECORDS_PIDS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingPIDsS
 # (Using GitHub because documentation site out-of-sync at time of writing)
 
 
+<<<<<<< HEAD
 """The prefix that will be applied to the generated OAI-PMH ids."""
 
+=======
+>>>>>>> f8e9456 (moved components from datarepo)
 OAISERVER_SEARCH_CLS = "invenio_rdm_records.oai:OAIRecordSearch"
 """Class for record search."""
 
