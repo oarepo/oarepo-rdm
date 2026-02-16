@@ -8,7 +8,7 @@
 #
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from flask import Blueprint
 from invenio_i18n import lazy_gettext as _
@@ -212,3 +212,66 @@ def create_modela_ui_blueprint(app):
         return "deposit_edit ok"
 
     return bp
+
+class ExtraTopLevelFieldPreset(FunctionalPreset):
+    """Record type functional preset."""
+
+    @override
+    def before_invenio_model(self, params: dict[str, Any]) -> None:
+        """Perform extra action before the Invenio model is created."""
+        params["record_type"] = "Record"
+        params["types"].append(
+            {
+                "Record": {
+                    "properties": {
+                        "original_record": {"type": "keyword"},
+                    },
+                }
+            }
+        )
+
+
+model_functional_preset = model(
+    "model_functional_preset",
+    version="1.0.0",
+    presets=[rdm_minimal_preset, ExtraTopLevelFieldPreset],
+    configuration={"ui_blueprint_name": "modela_ui"},
+    types=[
+        {
+            "Metadata": {
+                "properties": {
+                    "title": {"type": "fulltext+keyword"},
+                    "adescription": {"type": "keyword"},
+                },
+            },
+        }
+    ],
+    metadata_type="Metadata",
+    record_type="Record",
+    customizations=[],
+)
+model_functional_preset.register()
+
+
+model_with_top_level_field = model(
+    "model_with_top_level_field",
+    version="1.0.0",
+    presets=[
+        rdm_minimal_preset,
+    ],
+    configuration={"ui_blueprint_name": "modela_ui"},
+    types=[
+        {
+            "Metadata": {
+                "properties": {
+                    "title": {"type": "fulltext+keyword"},
+                    "adescription": {"type": "keyword"},
+                },
+            }
+        }
+    ],
+    metadata_type="Metadata",
+    record_type="Record",
+    customizations=[],
+)
+model_with_top_level_field.register()
