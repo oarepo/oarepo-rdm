@@ -15,7 +15,7 @@ from invenio_i18n import lazy_gettext as _
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.components.base import ServiceComponent
 from invenio_records_resources.services.records.facets import TermsFacet
-from oarepo_model.api import model
+from oarepo_model.api import FunctionalPreset, model
 from oarepo_model.customizations import (
     AddMetadataExport,
     PatchIndexSettings,
@@ -212,6 +212,7 @@ def create_modela_ui_blueprint(app):
         return "deposit_edit ok"
 
     return bp
+
 
 class ExtraTopLevelFieldPreset(FunctionalPreset):
     """Record type functional preset."""
