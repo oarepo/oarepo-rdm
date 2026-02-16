@@ -49,9 +49,7 @@ def test_list_with_model_a(db, rdm_records_service, users, logged_client, search
     assert "test-a-ok" in result.json["hits"]["hits"][0]
 
 
-def test_list_with_model_a_and_b(
-    db, rdm_records_service, users, logged_client, search_clear
-):
+def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, search_clear):
     user = users[0]
     client = logged_client(user)
 
@@ -174,9 +172,7 @@ def test_read(
                             "name": "Böhm, Johannes",
                             "given_name": "Johannes",
                             "family_name": "Böhm",
-                            "identifiers": [
-                                {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                            ],
+                            "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                         },
                         "affiliations": [{"name": "Technische Universität Wien"}],
                         "title": "Blah",
@@ -189,9 +185,7 @@ def test_read(
                             "name": "Böhm, Johannes",
                             "given_name": "Johannes",
                             "family_name": "Böhm",
-                            "identifiers": [
-                                {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                            ],
+                            "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                         },
                         "affiliations": [{"name": "Technische Universität Wien"}],
                         "title": "Blah",
@@ -222,9 +216,7 @@ def test_read(
                     "name": "Böhm, Johannes",
                     "given_name": "Johannes",
                     "family_name": "Böhm",
-                    "identifiers": [
-                        {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                    ],
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                 },
                 "affiliations": [[1, "Technische Universität Wien"]],
             }
@@ -239,9 +231,7 @@ def test_read(
                     "name": "Böhm, Johannes",
                     "given_name": "Johannes",
                     "family_name": "Böhm",
-                    "identifiers": [
-                        {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                    ],
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                 },
                 "affiliations": [[1, "Technische Universität Wien"]],
                 "role": {"id": "editor", "title": "Editor"},
@@ -266,9 +256,7 @@ def test_read(
                     "name": "Böhm, Johannes",
                     "given_name": "Johannes",
                     "family_name": "Böhm",
-                    "identifiers": [
-                        {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                    ],
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                 },
                 "affiliations": [[1, "Technische Universität Wien"]],
             }
@@ -283,9 +271,7 @@ def test_read(
                     "name": "Böhm, Johannes",
                     "given_name": "Johannes",
                     "family_name": "Böhm",
-                    "identifiers": [
-                        {"identifier": "0000-0002-1208-5473", "scheme": "orcid"}
-                    ],
+                    "identifiers": [{"identifier": "0000-0002-1208-5473", "scheme": "orcid"}],
                 },
                 "affiliations": [[1, "Technische Universität Wien"]],
                 "role": {"id": "editor", "title": "Editor"},

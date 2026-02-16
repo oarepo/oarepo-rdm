@@ -31,9 +31,7 @@ def test_runtime_model(
     assert isinstance(runtime_model.file_service, rdm_model.FileService)
     assert isinstance(runtime_model.draft_file_service, rdm_model.DraftFileService)
     assert isinstance(runtime_model.media_file_service, rdm_model.MediaFileService)
-    assert isinstance(
-        runtime_model.media_draft_file_service, rdm_model.DraftMediaFileService
-    )
+    assert isinstance(runtime_model.media_draft_file_service, rdm_model.DraftMediaFileService)
     assert runtime_model.record_pid_type == "rdmtst"
     assert runtime_model.record_json_schema == "local://rdm_test-v1.0.0.json"
 

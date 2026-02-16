@@ -35,9 +35,7 @@ class DelegatedQueryParam(ParamInterpreter):
     """Evaluate the 'json' parameter."""
 
     @override
-    def apply(
-        self, identity: Identity, search: RecordsSearchV2, params: dict[str, Any]
-    ) -> RecordsSearchV2:
+    def apply(self, identity: Identity, search: RecordsSearchV2, params: dict[str, Any]) -> RecordsSearchV2:
         """Evaluate the query str on the search."""
         if "delegated_query" in params:
             queries_list, _ = params.pop("delegated_query")
@@ -66,9 +64,7 @@ class DelegatedQueryParam(ParamInterpreter):
 
         for pid_type, query_data in queries_list.items():
             schema_query = query_data.get("query", {})
-            shoulds.append(
-                {"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}}
-            )
+            shoulds.append({"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}})
 
             if "aggs" in query_data:
                 aggs.update(query_data["aggs"])
@@ -96,9 +92,7 @@ def update_param_interpreters(
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
 
-    params_interpreters_cls = update_param_interpreters(
-        SearchOptions.params_interpreters_cls
-    )
+    params_interpreters_cls = update_param_interpreters(SearchOptions.params_interpreters_cls)
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
@@ -138,8 +132,6 @@ class MultiplexedSearchOptions(SearchOptions):
             if hasattr(model.service.config, config_field):
                 ret = always_merger.merge(
                     ret,
-                    self._search_opts_from_search_obj(
-                        getattr(model.service.config, config_field)
-                    ),
+                    self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
                 )
         return ret

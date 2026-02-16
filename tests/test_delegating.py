@@ -31,12 +31,8 @@ def published_records(identity_simple, vocab_fixtures, required_rdm_metadata):
         draft = service.create(identity_simple, data)
         return service.publish(identity_simple, draft["id"])
 
-    rec_a = _publish(
-        modela_service, {"title": "Model A record", "adescription": "desc_a"}
-    )
-    rec_b = _publish(
-        modelb_service, {"title": "Model B record", "bdescription": "desc_b"}
-    )
+    rec_a = _publish(modela_service, {"title": "Model A record", "adescription": "desc_a"})
+    rec_b = _publish(modelb_service, {"title": "Model B record", "bdescription": "desc_b"})
     return rec_a, rec_b
 
 

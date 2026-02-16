@@ -41,6 +41,4 @@ class RDMRecordResourcePreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield ReplaceBaseClass(
-            "RecordResource", DraftRecordResource, RDMBaseRecordResource
-        )
+        yield ReplaceBaseClass("RecordResource", DraftRecordResource, RDMBaseRecordResource)

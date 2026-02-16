@@ -17,9 +17,7 @@ def test_mapping_rdm_complete(app, model_c):
     """Check that RDM mapping contains all expected fields."""
     mapping_key = "mappings/os-v2/modelc/metadata-v1.0.0.json"
     mapping_content = json.loads(model_c.__files__[mapping_key])
-    assert set(
-        mapping_content["mappings"]["properties"]["metadata"]["properties"].keys()
-    ) == {
+    assert set(mapping_content["mappings"]["properties"]["metadata"]["properties"].keys()) == {
         "cdescription",
         "resource_type",
         "creators",

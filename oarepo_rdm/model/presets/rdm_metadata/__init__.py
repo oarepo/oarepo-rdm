@@ -82,9 +82,7 @@ class RDMMetadataPreset(FunctionalPreset):
         merge_metadata(types, metadata_type, self.metadata_types[self.kind])
 
 
-def merge_metadata(
-    types: list[dict[str, Any]], metadata_type: str, rdm_type: str
-) -> None:
+def merge_metadata(types: list[dict[str, Any]], metadata_type: str, rdm_type: str) -> None:
     """Merge metadata from one type to another.
 
     :param types: The list of types to modify.

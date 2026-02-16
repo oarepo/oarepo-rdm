@@ -133,12 +133,8 @@ def create_records_blueprint(app: Flask) -> Blueprint:
     blueprint.register_error_handler(FileKeyNotFoundError, not_found_error)
     blueprint.register_error_handler(NoResultFound, not_found_error)
     blueprint.register_error_handler(DraftNotCreatedError, draft_not_found_error)
-    blueprint.register_error_handler(
-        PermissionDeniedError, record_permission_denied_error
-    )
-    blueprint.register_error_handler(
-        RecordPermissionDeniedError, record_permission_denied_error
-    )
+    blueprint.register_error_handler(PermissionDeniedError, record_permission_denied_error)
+    blueprint.register_error_handler(RecordPermissionDeniedError, record_permission_denied_error)
     blueprint.register_error_handler(RecordDeletedException, record_tombstone_error)
 
     # Register template filters

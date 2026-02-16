@@ -40,9 +40,7 @@ def test_simple_flow(
     test_rdm_service.draft_indexer.refresh()
 
     # Search it
-    res = test_rdm_service.search_drafts(
-        identity_simple, q=f"id:{id_}", size=25, page=1
-    )
+    res = test_rdm_service.search_drafts(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 1
     first_hit = next(iter(res.hits))
     assert first_hit["metadata"] == read_item.data["metadata"]

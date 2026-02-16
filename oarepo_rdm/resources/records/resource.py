@@ -27,9 +27,7 @@ class OARepoRDMRecordResource(RDMRecordResource):
 
     @override
     def create_url_rules(self) -> Any:
-        all_records_route = (
-            f"{self.config.routes['all-prefix']}{self.config.url_prefix}"
-        )
+        all_records_route = f"{self.config.routes['all-prefix']}{self.config.url_prefix}"
 
         rules = super().create_url_rules()
         rules += [

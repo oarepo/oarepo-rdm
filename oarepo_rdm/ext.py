@@ -48,13 +48,9 @@ class OARepoRDM:
             config.RDM_PERSISTENT_IDENTIFIER_PROVIDERS
         )
 
-        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(
-            config.RDM_PERSISTENT_IDENTIFIERS
-        )
+        app.config.setdefault("RDM_PERSISTENT_IDENTIFIERS", {}).update(config.RDM_PERSISTENT_IDENTIFIERS)
 
-        app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).extend(
-            config.INFO_ENDPOINT_COMPONENTS
-        )
+        app.config.setdefault("INFO_ENDPOINT_COMPONENTS", []).extend(config.INFO_ENDPOINT_COMPONENTS)
 
     @cached_property
     def search_options(self) -> SearchOptions:

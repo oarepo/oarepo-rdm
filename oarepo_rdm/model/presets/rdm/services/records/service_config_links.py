@@ -61,28 +61,18 @@ class RDMServiceConfigLinks(Preset):
             "record_links_item",
             {
                 # TODO: add parent_doi, doi, self_doi to be compatible with rdm
-                "self_iiif_manifest": EndpointLink(
-                    "iiif.manifest", params=["uuid"], vars=vars_self_iiif
-                ),
-                "self_iiif_sequence": EndpointLink(
-                    "iiif.sequence", params=["uuid"], vars=vars_self_iiif
-                ),
+                "self_iiif_manifest": EndpointLink("iiif.manifest", params=["uuid"], vars=vars_self_iiif),
+                "self_iiif_sequence": EndpointLink("iiif.sequence", params=["uuid"], vars=vars_self_iiif),
                 # Files
                 "files": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),
-                    else_=RecordEndpointLink(
-                        f"{model.blueprint_base}_draft_files.search"
-                    ),
+                    else_=RecordEndpointLink(f"{model.blueprint_base}_draft_files.search"),
                 ),
                 "media_files": ConditionalLink(
                     cond=is_published_record(),
-                    if_=RecordEndpointLink(
-                        f"{model.blueprint_base}_media_files.search"
-                    ),
-                    else_=RecordEndpointLink(
-                        f"{model.blueprint_base}_draft_media_files.search"
-                    ),
+                    if_=RecordEndpointLink(f"{model.blueprint_base}_media_files.search"),
+                    else_=RecordEndpointLink(f"{model.blueprint_base}_draft_media_files.search"),
                 ),
                 "thumbnails": ThumbnailLinks(
                     sizes=LocalProxy(record_thumbnail_sizes),  # type: ignore[assignment]
@@ -128,7 +118,5 @@ class RDMServiceConfigLinks(Preset):
         # Versions
         yield AddToDictionary(
             "record_version_search_links",
-            rdm_pagination_record_endpoint_links(
-                f"{model.blueprint_base}.search_versions"
-            ),
+            rdm_pagination_record_endpoint_links(f"{model.blueprint_base}.search_versions"),
         )

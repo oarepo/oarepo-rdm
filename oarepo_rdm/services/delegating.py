@@ -37,29 +37,21 @@ class DelegationToSpecializedServiceMixin(InvenioService):
         """Get a specialized service based on the pid_value of the record."""
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
         base_service = current_runtime.model_by_pid_type[pid_type].service
-        return (
-            getattr(base_service, self.attribute_on_base_service)
-            if self.attribute_on_base_service
-            else base_service
-        )
+        return getattr(base_service, self.attribute_on_base_service) if self.attribute_on_base_service else base_service
 
     @override
     def run_components(self, action: str, *args: Any, **kwargs: Any) -> None:
         if "record" in kwargs:
-            self._get_specialized_service(
-                kwargs["record"].pid.pid_value
-            ).run_components(action, *args, **kwargs)
+            self._get_specialized_service(kwargs["record"].pid.pid_value).run_components(action, *args, **kwargs)
         else:
             super().run_components(action, *args, **kwargs)
 
     @override
-    def permission_policy(
-        self, action_name: str, **kwargs: Any
-    ) -> BasePermissionPolicy:
+    def permission_policy(self, action_name: str, **kwargs: Any) -> BasePermissionPolicy:
         if "record" in kwargs:
-            return self._get_specialized_service(
-                kwargs["record"].pid.pid_value
-            ).permission_policy(action_name, **kwargs)
+            return self._get_specialized_service(kwargs["record"].pid.pid_value).permission_policy(
+                action_name, **kwargs
+            )
         return super().permission_policy(action_name, **kwargs)
 
 
@@ -69,9 +61,7 @@ class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService
     attribute_on_base_service = "review"
 
 
-class DelegatingRecordAccessService(
-    DelegationToSpecializedServiceMixin, RecordAccessService
-):
+class DelegatingRecordAccessService(DelegationToSpecializedServiceMixin, RecordAccessService):
     """Delegating access service."""
 
     attribute_on_base_service = "access"
