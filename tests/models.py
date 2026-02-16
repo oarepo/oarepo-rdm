@@ -54,6 +54,29 @@ class MockReviewServiceComponent(ServiceComponent):
         print("review created in specialized service component")  # noqa T201
 
 
+modeld = model(
+    "model_with_top_level_field",
+    version="1.0.0",
+    presets=[
+        rdm_minimal_preset,
+    ],
+    configuration={"ui_blueprint_name": "model_with_top_level_field_ui"},
+    types=[
+        {
+            "Metadata": {
+                "properties": {
+                    "title": {"type": "fulltext+keyword"},
+                    "adescription": {"type": "keyword"},
+                },
+            }
+        }
+    ],
+    metadata_type="Metadata",
+    record_type="Record",
+    customizations=[],
+)
+modeld.register()
+
 modela = model(
     "modela",
     version="1.0.0",
@@ -254,25 +277,4 @@ def create_modela_ui_blueprint(app):
 # model_functional_preset.register()
 
 
-modeld = model(
-    "model_with_top_level_field",
-    version="1.0.0",
-    presets=[
-        rdm_minimal_preset,
-    ],
-    configuration={"ui_blueprint_name": "model_with_top_level_field_ui"},
-    types=[
-        {
-            "Metadata": {
-                "properties": {
-                    "title": {"type": "fulltext+keyword"},
-                    "adescription": {"type": "keyword"},
-                },
-            }
-        }
-    ],
-    metadata_type="Metadata",
-    record_type="Record",
-    customizations=[],
-)
-modeld.register()
+
