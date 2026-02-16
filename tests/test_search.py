@@ -202,8 +202,13 @@ def test_links(rdm_records_service, identity_simple, search_clear):
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "http://localhost/records?page=1&q=blah&size=20&sort=bestmatch"
-    assert results["hits"]["hits"][0]["links"]["self"].startswith("http://localhost/modelb/")
+    assert (
+        results["links"]["self"]
+        == "http://localhost/records?page=1&q=blah&size=20&sort=bestmatch"
+    )
+    assert results["hits"]["hits"][0]["links"]["self"].startswith(
+        "http://localhost/modelb/"
+    )
 
 
 def test_second_page(rdm_records_service, identity_simple, search_clear):
@@ -225,8 +230,14 @@ def test_second_page(rdm_records_service, identity_simple, search_clear):
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "http://localhost/records?page=1&q=blah&size=5&sort=bestmatch"
-    assert results["links"]["next"] == "http://localhost/records?page=2&q=blah&size=5&sort=bestmatch"
+    assert (
+        results["links"]["self"]
+        == "http://localhost/records?page=1&q=blah&size=5&sort=bestmatch"
+    )
+    assert (
+        results["links"]["next"]
+        == "http://localhost/records?page=2&q=blah&size=5&sort=bestmatch"
+    )
 
     result = rdm_records_service.search(
         identity_simple,
@@ -234,8 +245,14 @@ def test_second_page(rdm_records_service, identity_simple, search_clear):
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "http://localhost/records?page=2&q=blah&size=5&sort=bestmatch"
-    assert results["links"]["prev"] == "http://localhost/records?page=1&q=blah&size=5&sort=bestmatch"
+    assert (
+        results["links"]["self"]
+        == "http://localhost/records?page=2&q=blah&size=5&sort=bestmatch"
+    )
+    assert (
+        results["links"]["prev"]
+        == "http://localhost/records?page=1&q=blah&size=5&sort=bestmatch"
+    )
 
 
 def test_zero_hits(rdm_records_service, identity_simple, search_clear):
@@ -365,7 +382,9 @@ def test_facets(rdm_records_service, identity_simple, search_clear):
     assert modela_record2["id"] in hit_ids
 
 
-def test_search_eligible_services_permissions(rdm_records_service, identity_simple, search_clear):
+def test_search_eligible_services_permissions(
+    rdm_records_service, identity_simple, search_clear
+):
     eligible_services = rdm_records_service._search_eligible_services(  # noqa: SLF001  # because in tests
         identity_simple, permission_action="model_a_specific_action"
     )

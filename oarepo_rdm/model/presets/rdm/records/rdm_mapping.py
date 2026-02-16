@@ -91,7 +91,9 @@ class RDMMappingPreset(Preset):
                             "match_mapping_type": "object",
                             "mapping": {
                                 "type": "text",
-                                "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                },
                             },
                         }
                     },
@@ -154,7 +156,9 @@ class RDMMappingPreset(Preset):
                         "properties": {
                             "access": {
                                 "properties": {
-                                    "owned_by": {"properties": {"user": {"type": "keyword"}}},
+                                    "owned_by": {
+                                        "properties": {"user": {"type": "keyword"}}
+                                    },
                                     "grants": {
                                         "properties": {
                                             "subject": {
@@ -168,13 +172,17 @@ class RDMMappingPreset(Preset):
                                         }
                                     },
                                     "grant_tokens": {"type": "keyword"},
-                                    "links": {"properties": {"id": {"type": "keyword"}}},
+                                    "links": {
+                                        "properties": {"id": {"type": "keyword"}}
+                                    },
                                     "settings": {
                                         "properties": {
                                             "allow_user_requests": {"type": "boolean"},
                                             "allow_guest_requests": {"type": "boolean"},
                                             "accept_conditions_text": {"type": "text"},
-                                            "secret_link_expiration": {"type": "integer"},
+                                            "secret_link_expiration": {
+                                                "type": "integer"
+                                            },
                                         }
                                     },
                                 }
@@ -194,7 +202,11 @@ class RDMMappingPreset(Preset):
                                             "is_verified": {"type": "boolean"},
                                             "@v": {"type": "keyword"},
                                             "slug": {"type": "keyword"},
-                                            "children": {"properties": {"allow": {"type": "boolean"}}},
+                                            "children": {
+                                                "properties": {
+                                                    "allow": {"type": "boolean"}
+                                                }
+                                            },
                                             "metadata": {
                                                 "properties": {
                                                     "title": {"type": "text"},
@@ -206,7 +218,11 @@ class RDMMappingPreset(Preset):
                                                             "title": {
                                                                 "type": "object",
                                                                 "dynamic": "true",
-                                                                "properties": {"en": {"type": "text"}},
+                                                                "properties": {
+                                                                    "en": {
+                                                                        "type": "text"
+                                                                    }
+                                                                },
                                                             },
                                                         },
                                                     },
@@ -223,25 +239,43 @@ class RDMMappingPreset(Preset):
                                                             "award": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
+                                                                    "@v": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "keyword"
+                                                                    },
                                                                     "title": {
                                                                         "type": "object",
                                                                         "dynamic": "true",
                                                                     },
                                                                     "number": {
                                                                         "type": "text",
-                                                                        "fields": {"keyword": {"type": "keyword"}},
+                                                                        "fields": {
+                                                                            "keyword": {
+                                                                                "type": "keyword"
+                                                                            }
+                                                                        },
                                                                     },
-                                                                    "program": {"type": "keyword"},
+                                                                    "program": {
+                                                                        "type": "keyword"
+                                                                    },
                                                                     "acronym": {
                                                                         "type": "keyword",
-                                                                        "fields": {"text": {"type": "text"}},
+                                                                        "fields": {
+                                                                            "text": {
+                                                                                "type": "text"
+                                                                            }
+                                                                        },
                                                                     },
                                                                     "identifiers": {
                                                                         "properties": {
-                                                                            "identifier": {"type": "keyword"},
-                                                                            "scheme": {"type": "keyword"},
+                                                                            "identifier": {
+                                                                                "type": "keyword"
+                                                                            },
+                                                                            "scheme": {
+                                                                                "type": "keyword"
+                                                                            },
                                                                         }
                                                                     },
                                                                 },
@@ -249,9 +283,15 @@ class RDMMappingPreset(Preset):
                                                             "funder": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "name": {"type": "text"},
+                                                                    "@v": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "text"
+                                                                    },
                                                                 },
                                                             },
                                                         }
@@ -281,7 +321,11 @@ class RDMMappingPreset(Preset):
                                                     "is_verified": {"type": "boolean"},
                                                     "@v": {"type": "keyword"},
                                                     "slug": {"type": "keyword"},
-                                                    "children": {"properties": {"allow": {"type": "boolean"}}},
+                                                    "children": {
+                                                        "properties": {
+                                                            "allow": {"type": "boolean"}
+                                                        }
+                                                    },
                                                     "metadata": {
                                                         "type": "object",
                                                         "properties": {
@@ -289,22 +333,38 @@ class RDMMappingPreset(Preset):
                                                             "type": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
+                                                                    "@v": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "keyword"
+                                                                    },
                                                                     "title": {
                                                                         "type": "object",
                                                                         "dynamic": "true",
-                                                                        "properties": {"en": {"type": "text"}},
+                                                                        "properties": {
+                                                                            "en": {
+                                                                                "type": "text"
+                                                                            }
+                                                                        },
                                                                     },
                                                                 },
                                                             },
-                                                            "website": {"type": "keyword"},
+                                                            "website": {
+                                                                "type": "keyword"
+                                                            },
                                                             "organizations": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "name": {"type": "text"},
+                                                                    "@v": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "keyword"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "text"
+                                                                    },
                                                                 },
                                                             },
                                                             "funding": {
@@ -312,8 +372,12 @@ class RDMMappingPreset(Preset):
                                                                     "award": {
                                                                         "type": "object",
                                                                         "properties": {
-                                                                            "@v": {"type": "keyword"},
-                                                                            "id": {"type": "keyword"},
+                                                                            "@v": {
+                                                                                "type": "keyword"
+                                                                            },
+                                                                            "id": {
+                                                                                "type": "keyword"
+                                                                            },
                                                                             "title": {
                                                                                 "type": "object",
                                                                                 "dynamic": "true",
@@ -321,18 +385,30 @@ class RDMMappingPreset(Preset):
                                                                             "number": {
                                                                                 "type": "text",
                                                                                 "fields": {
-                                                                                    "keyword": {"type": "keyword"}
+                                                                                    "keyword": {
+                                                                                        "type": "keyword"
+                                                                                    }
                                                                                 },
                                                                             },
-                                                                            "program": {"type": "keyword"},
+                                                                            "program": {
+                                                                                "type": "keyword"
+                                                                            },
                                                                             "acronym": {
                                                                                 "type": "keyword",
-                                                                                "fields": {"text": {"type": "text"}},
+                                                                                "fields": {
+                                                                                    "text": {
+                                                                                        "type": "text"
+                                                                                    }
+                                                                                },
                                                                             },
                                                                             "identifiers": {
                                                                                 "properties": {
-                                                                                    "identifier": {"type": "keyword"},
-                                                                                    "scheme": {"type": "keyword"},
+                                                                                    "identifier": {
+                                                                                        "type": "keyword"
+                                                                                    },
+                                                                                    "scheme": {
+                                                                                        "type": "keyword"
+                                                                                    },
                                                                                 }
                                                                             },
                                                                         },
@@ -340,9 +416,15 @@ class RDMMappingPreset(Preset):
                                                                     "funder": {
                                                                         "type": "object",
                                                                         "properties": {
-                                                                            "@v": {"type": "keyword"},
-                                                                            "id": {"type": "keyword"},
-                                                                            "name": {"type": "text"},
+                                                                            "@v": {
+                                                                                "type": "keyword"
+                                                                            },
+                                                                            "id": {
+                                                                                "type": "keyword"
+                                                                            },
+                                                                            "name": {
+                                                                                "type": "text"
+                                                                            },
                                                                         },
                                                                     },
                                                                 }
@@ -352,8 +434,12 @@ class RDMMappingPreset(Preset):
                                                     "theme": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "enabled": {"type": "boolean"},
-                                                            "brand": {"type": "keyword"},
+                                                            "enabled": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "brand": {
+                                                                "type": "keyword"
+                                                            },
                                                             "style": {
                                                                 "type": "object",
                                                                 "enabled": False,

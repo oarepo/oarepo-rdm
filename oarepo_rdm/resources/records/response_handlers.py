@@ -32,7 +32,9 @@ def get_response_handlers() -> Mapping[str, ResponseHandler]:
         for export in model.exports:
             mimetypes[export.mimetype].append(export.serializer)
     return {
-        mimetype: ResponseHandler(DelegatedSerializer(mimetype, serializers), headers=etag_headers)
+        mimetype: ResponseHandler(
+            DelegatedSerializer(mimetype, serializers), headers=etag_headers
+        )
         for mimetype, serializers in mimetypes.items()
     }
 
@@ -88,25 +90,36 @@ class DelegatedSerializer(BaseSerializer):
 
         # 1. get exporters for all objects
         possible_exporters = [(obj, self._get_exporter(obj)) for obj in obj_list_data]
-        exporters = [(obj, exporter) for obj, exporter in possible_exporters if exporter is not None]
+        exporters = [
+            (obj, exporter)
+            for obj, exporter in possible_exporters
+            if exporter is not None
+        ]
 
         # 2. if no exporters found, return empty list serialization
         if not exporters:
-            return self.serializers[0].serialize_object_list(self._update_hits(obj_list, []))
+            return self.serializers[0].serialize_object_list(
+                self._update_hits(obj_list, [])
+            )
 
         # 3. if all exporters are the same, use it
         if all(type(exporter[1]) is type(exporters[0][1]) for exporter in exporters):
-            return exporters[0][1].serialize_object_list(self._update_hits(obj_list, [x[0] for x in exporters]))
+            return exporters[0][1].serialize_object_list(
+                self._update_hits(obj_list, [x[0] for x in exporters])
+            )
 
         # 4. if not, check if all exporters are instance of MarshmallowSerializer
-        if not all(isinstance(exporter[1], MarshmallowSerializer) for exporter in exporters):
+        if not all(
+            isinstance(exporter[1], MarshmallowSerializer) for exporter in exporters
+        ):
             raise NotAcceptable(  # pragma: no cover
                 "Cannot serialize list with multiple different non-marshmallow serializers."
             )
 
         # TODO: will need to be changed when Christoph's changes are merged
         serialized_objects = [
-            cast("MarshmallowSerializer", exporter[1]).dump_obj(exporter[0]) for exporter in exporters
+            cast("MarshmallowSerializer", exporter[1]).dump_obj(exporter[0])
+            for exporter in exporters
         ]
 
         serializer = cast("MarshmallowSerializer", copy.copy(exporters[0][1]))
@@ -122,13 +135,17 @@ class DelegatedSerializer(BaseSerializer):
             raise NotImplementedError(  # pragma: no cover
                 "Cannot serialize list without list schema in mixed marshmallow serializers."
             )
-        return serializer.serialize_object_list(self._update_hits(obj_list, serialized_objects))
+        return serializer.serialize_object_list(
+            self._update_hits(obj_list, serialized_objects)
+        )
 
     def _get_exporter(self, obj: Any) -> BaseSerializer | None:
         """Get the exporter for the given object."""
         schema = obj.get("$schema", None)
         if not schema:
-            raise ValueError("Object does not have $schema defined.")  # pragma: no cover
+            raise ValueError(
+                "Object does not have $schema defined."
+            )  # pragma: no cover
         rdm_model = current_runtime.rdm_models_by_schema[schema]
         for export in rdm_model.exports:
             if export.mimetype == self.mimetype:

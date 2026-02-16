@@ -121,7 +121,9 @@ class RDMCompleteExportsPreset(Preset):
             code="citation",
             name=_("Citation"),
             mimetype="text/x-bibliography",
-            serializer=StringCitationSerializer(url_args_retriever=csl_url_args_retriever),
+            serializer=StringCitationSerializer(
+                url_args_retriever=csl_url_args_retriever
+            ),
         )
         yield AddMetadataExport(
             code="bibtex",

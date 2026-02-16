@@ -41,9 +41,13 @@ def init_percolators() -> None:
     to the `oaisource` aliases.
     """
     oaiserver_record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
-    prefixed_oaiserver_record_index = build_index_name(oaiserver_record_index, suffix="", app=current_app)
+    prefixed_oaiserver_record_index = build_index_name(
+        oaiserver_record_index, suffix="", app=current_app
+    )
 
-    percolated_mappings = _get_percolated_mappings(oaiserver_record_index, prefixed_oaiserver_record_index)
+    percolated_mappings = _get_percolated_mappings(
+        oaiserver_record_index, prefixed_oaiserver_record_index
+    )
     if not percolated_mappings:
         return  # pragma: no cover
 
@@ -59,18 +63,22 @@ def init_percolators() -> None:
     # a change to invenio to start supporting this.
     for index_name, mapping in percolated_mappings.items():
         if prefixed_oaiserver_record_index not in mapping["aliases"]:
-            current_search_client.indices.put_alias(index_name, prefixed_oaiserver_record_index)
+            current_search_client.indices.put_alias(
+                index_name, prefixed_oaiserver_record_index
+            )
 
 
 def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
-    mapping = current_app.config.get("OAREPO_PERCOLATOR_MAPPING", _create_default_percolator_mapping)(
-        percolated_mappings
-    )
+    mapping = current_app.config.get(
+        "OAREPO_PERCOLATOR_MAPPING", _create_default_percolator_mapping
+    )(percolated_mappings)
 
     mapping["mappings"]["properties"]["query"] = {"type": "percolator"}
 
     record_index = str(current_app.config["OAISERVER_RECORD_INDEX"])
-    percolator_index = build_index_name(record_index + "-percolators", suffix="", app=current_app)
+    percolator_index = build_index_name(
+        record_index + "-percolators", suffix="", app=current_app
+    )
 
     # remove the previous percolator index and build it again
     if current_search_client.indices.exists(percolator_index):
@@ -79,13 +87,18 @@ def _generate_percolator_index(percolated_mappings: dict[str, dict]) -> None:
     current_search_client.indices.create(index=percolator_index, body=mapping)
 
 
-def _get_percolated_mappings(oaiserver_record_index: str, prefixed_oaiserver_record_index: str) -> dict[str, dict]:
+def _get_percolated_mappings(
+    oaiserver_record_index: str, prefixed_oaiserver_record_index: str
+) -> dict[str, dict]:
     indices = current_search_client.indices.get("*")
 
     return {
         index_name: index
         for index_name, index in indices.items()
-        if (oaiserver_record_index in index["aliases"] or prefixed_oaiserver_record_index in index["aliases"])
+        if (
+            oaiserver_record_index in index["aliases"]
+            or prefixed_oaiserver_record_index in index["aliases"]
+        )
     }
 
 
@@ -99,17 +112,23 @@ def _create_default_percolator_mapping(mappings: dict[str, dict]) -> dict:
         if not percolator_mapping:
             percolator_mapping = settings["mappings"]
         else:
-            percolator_mapping = always_merger.merge(percolator_mapping, settings["mappings"])
+            percolator_mapping = always_merger.merge(
+                percolator_mapping, settings["mappings"]
+            )
         settings_el = settings.get("settings", {})
         if "index" in settings_el:
             settings_el = settings_el["index"]
 
         if "analysis" in settings_el:
-            percolator_analysis = always_merger.merge(percolator_analysis, settings_el["analysis"])
+            percolator_analysis = always_merger.merge(
+                percolator_analysis, settings_el["analysis"]
+            )
 
     # dynamic_templates
     if "dynamic_templates" in percolator_mapping:
-        percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(percolator_mapping["dynamic_templates"])
+        percolator_mapping["dynamic_templates"] = _merge_dynamic_templates(
+            percolator_mapping["dynamic_templates"]
+        )
     return {
         "mappings": percolator_mapping,
         "settings": {"analysis": percolator_analysis},

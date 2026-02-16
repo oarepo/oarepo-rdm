@@ -64,7 +64,9 @@ class RDMRecordUISchemaPreset(Preset):
                 try:
                     ret = cast("dict", super().dump(obj, many=many))
                     ui = ret.get("ui", {})
-                    ui.pop("subjects", None)  # remove subjects as they are not present in original rdm
+                    ui.pop(
+                        "subjects", None
+                    )  # remove subjects as they are not present in original rdm
                     return ret
                 finally:
                     ui_serialized_record.reset(token)

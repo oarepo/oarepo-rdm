@@ -30,7 +30,9 @@ if TYPE_CHECKING:
 ui_serialized_record = ContextVar[Any]("ui_serialized_record")
 
 
-def make_affiliation_index(attr: str, _obj: Mapping[str, Any], *args: Any) -> Mapping[str, Any] | _Missing:
+def make_affiliation_index(
+    attr: str, _obj: Mapping[str, Any], *args: Any
+) -> Mapping[str, Any] | _Missing:
     """Convert creators/contributors to affiliation index.
 
     Invenio RDM uses hand-crafted UI serialization to convert record to UI representation.
@@ -53,7 +55,9 @@ class RDMCreatorListUIField(fields.Function):
     def __init__(self, *args: Any, **kwargs: Any):
         """Create the field."""
         # the first argument to the field is the "nested" part, pop it out
-        super().__init__(partial(make_affiliation_index, "creators"), *args[1:], **kwargs)
+        super().__init__(
+            partial(make_affiliation_index, "creators"), *args[1:], **kwargs
+        )
 
 
 class RDMContributorListUIField(fields.Function):
@@ -75,5 +79,7 @@ class RDMRecordIdentifiers(IdentifierValueSet):
 
     def __init__(self, **kwargs: Any):
         """Create the field."""
-        kwargs["cls_or_instance"] = fields.Nested(partial(IdentifierSchema, allowed_schemes=record_identifiers_schemes))
+        kwargs["cls_or_instance"] = fields.Nested(
+            partial(IdentifierSchema, allowed_schemes=record_identifiers_schemes)
+        )
         super().__init__(**kwargs)

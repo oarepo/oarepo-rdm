@@ -144,8 +144,12 @@ def rdm_model(model_types, finalization_called):
 def app_config(app_config):
     """Mimic an instance's configuration."""
     app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
-    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
+    app_config["RECORDS_REFRESOLVER_CLS"] = (
+        "invenio_records.resolver.InvenioRefResolver"
+    )
+    app_config["RECORDS_REFRESOLVER_STORE"] = (
+        "invenio_jsonschemas.proxies.current_refresolver_store"
+    )
     app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
     app_config["SEARCH_HOSTS"] = [
         {
@@ -180,7 +184,10 @@ def app_config(app_config):
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
-    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
+        *DefaultRecordsComponents,
+        MockReviewInRDMServiceComponent,
+    )
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -455,8 +462,12 @@ def input_data():
 def add_file_to_draft():
     """Add a file to the record."""
 
-    def _add_file_to_draft(draft_file_service, draft_id, file_id, identity) -> dict[str, Any]:
-        result = draft_file_service.init_files(identity, draft_id, data=[{"key": file_id}])
+    def _add_file_to_draft(
+        draft_file_service, draft_id, file_id, identity
+    ) -> dict[str, Any]:
+        result = draft_file_service.init_files(
+            identity, draft_id, data=[{"key": file_id}]
+        )
         file_md = next(iter(result.entries))
         assert file_md["key"] == "test.txt"
         assert file_md["status"] == "pending"
@@ -478,7 +489,9 @@ def add_file_to_draft():
 @pytest.fixture
 def vocab_fixtures():
     """Contributor role fixture."""
-    current_vocabularies_service.create_type(system_identity, "contributorsroles", "v-ct")
+    current_vocabularies_service.create_type(
+        system_identity, "contributorsroles", "v-ct"
+    )
 
     current_vocabularies_service.create(
         system_identity,

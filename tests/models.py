@@ -22,7 +22,9 @@ from oarepo_model.customizations import (
     SetDefaultSearchFields,
     SetPermissionPolicy,
 )
-from oarepo_model.customizations.high_level.add_service_component import AddServiceComponent
+from oarepo_model.customizations.high_level.add_service_component import (
+    AddServiceComponent,
+)
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.model.presets import (
@@ -212,6 +214,8 @@ def create_modela_ui_blueprint(app):
         return "deposit_edit ok"
 
     return bp
+
+
 class ExtraTopLevelFieldPreset(FunctionalPreset):
     """Record type functional preset."""
 

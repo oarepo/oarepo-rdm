@@ -29,8 +29,12 @@ ModelbDraft = modelb.Draft
 def test_create(rdm_records_service, identity_simple, search_clear):
     with pytest.raises(UndefinedModelError):
         rdm_records_service.create(identity_simple, data={})
-    recorda = rdm_records_service.create(identity_simple, data={"$schema": "local://modela-v1.0.0.json"})
-    recordb = rdm_records_service.create(identity_simple, data={"$schema": "local://modelb-v1.0.0.json"})
+    recorda = rdm_records_service.create(
+        identity_simple, data={"$schema": "local://modela-v1.0.0.json"}
+    )
+    recordb = rdm_records_service.create(
+        identity_simple, data={"$schema": "local://modelb-v1.0.0.json"}
+    )
     with pytest.raises(UndefinedModelError):
         rdm_records_service.create(
             identity_simple,
@@ -64,15 +68,23 @@ def test_update(rdm_records_service, identity_simple, search_clear):
             {"metadata": {"title": "blah", "cdescription": "lalala"}},
         )
 
-    old_record_data = rdm_records_service.read_draft(identity_simple, sample_draft["id"]).data
+    old_record_data = rdm_records_service.read_draft(
+        identity_simple, sample_draft["id"]
+    ).data
     updated_record = rdm_records_service.update_draft(
         identity_simple,
         sample_draft["id"],
         {"metadata": {"title": "blah", "cdescription": "lalala"}},
     )
-    updated_record_read = rdm_records_service.read_draft(identity_simple, sample_draft["id"])
+    updated_record_read = rdm_records_service.read_draft(
+        identity_simple, sample_draft["id"]
+    )
     assert old_record_data["metadata"] == sample_draft["metadata"]
-    assert updated_record.data["metadata"] == {"title": "blah", "cdescription": "lalala"} != old_record_data["metadata"]
+    assert (
+        updated_record.data["metadata"]
+        == {"title": "blah", "cdescription": "lalala"}
+        != old_record_data["metadata"]
+    )
     assert updated_record_read.data["metadata"] == updated_record.data["metadata"]
     assert (
         updated_record.data["revision_id"]
@@ -90,18 +102,30 @@ def test_delete(rdm_records_service, identity_simple, search_clear):
     with pytest.raises(PIDDoesNotExistError):
         rdm_records_service.delete_draft(identity_simple, "nonsense")
 
-    to_delete_record = rdm_records_service.read_draft(identity_simple, sample_draft["id"])
+    to_delete_record = rdm_records_service.read_draft(
+        identity_simple, sample_draft["id"]
+    )
     assert to_delete_record
     rdm_records_service.delete_draft(identity_simple, sample_draft["id"])
     with pytest.raises(PIDDoesNotExistError):
         rdm_records_service.read_draft(identity_simple, sample_draft["id"])
 
 
-def test_publish(rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
+def test_publish(
+    rdm_records_service,
+    identity_simple,
+    vocab_fixtures,
+    required_rdm_metadata,
+    search_clear,
+):
     sample_draft = modelc_service.create(
         identity_simple,
         {
-            "metadata": {**required_rdm_metadata, "title": "blah", "cdescription": "kch"},
+            "metadata": {
+                **required_rdm_metadata,
+                "title": "blah",
+                "cdescription": "kch",
+            },
             "files": {"enabled": False},
         },
     )
