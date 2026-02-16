@@ -8,9 +8,12 @@
 #
 from __future__ import annotations
 
+from typing import Any
+
 from flask import Blueprint
 from invenio_i18n import lazy_gettext as _
 from invenio_records_permissions.generators import AnyUser, SystemProcess
+from invenio_records_resources.services.records.components.base import ServiceComponent
 from invenio_records_resources.services.records.facets import TermsFacet
 from oarepo_model.api import model
 from oarepo_model.customizations import (
@@ -19,6 +22,7 @@ from oarepo_model.customizations import (
     SetDefaultSearchFields,
     SetPermissionPolicy,
 )
+from oarepo_model.customizations.high_level.add_service_component import AddServiceComponent
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.model.presets import (
@@ -40,6 +44,14 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
     """Permission policy that adds model_a_specific_action for testing."""
 
     can_model_a_specific_action = (SystemProcess(), AnyUser())
+
+
+class MockReviewServiceComponent(ServiceComponent):
+    """Add review service component."""
+
+    def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
+        """Mock create review."""
+        print("review created in specialized service component")  # noqa T201
 
 
 modela = model(
@@ -91,6 +103,7 @@ modela = model(
                 }
             }
         ),
+        AddServiceComponent(MockReviewServiceComponent),
     ],
 )
 modela.register()

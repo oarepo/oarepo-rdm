@@ -30,6 +30,8 @@ from invenio_access.permissions import system_identity
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.services.components import DefaultRecordsComponents
+from invenio_records_resources.services.records.components.base import ServiceComponent
 from invenio_vocabularies.proxies import current_service as current_vocabularies_service
 from oarepo_model.customizations import AddToList
 from sqlalchemy.exc import IntegrityError
@@ -108,6 +110,14 @@ def finalization_called():
     return MagicMock()
 
 
+class MockReviewInRDMServiceComponent(ServiceComponent):
+    """Add review service component."""
+
+    def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
+        """Mock create review."""
+        print("review created in original rdm service component")  # noqa T201
+
+
 @pytest.fixture(scope="session")
 def rdm_model(model_types, finalization_called):
     from oarepo_model.api import model
@@ -169,6 +179,8 @@ def app_config(app_config):
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
+
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
