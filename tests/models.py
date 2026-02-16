@@ -53,6 +53,7 @@ class MockReviewServiceComponent(ServiceComponent):
         """Mock create review."""
         print("review created in specialized service component")  # noqa T201
 
+
 class ExtraTopLevelFieldPreset(FunctionalPreset):
     """Record type functional preset."""
 
@@ -91,33 +92,33 @@ model_funct_preset = model(
     customizations=[],
 )
 model_funct_preset.register()
-# top_level_field = model(
-#     "top_level_field",
-#     version="1.0.0",
-#     presets=[
-#         rdm_minimal_preset,
-#     ],
-#     configuration={"ui_blueprint_name": "top_level_field_ui"},
-#     types=[
-#         {
-#             "Metadata": {
-#                 "properties": {
-#                     "title": {"type": "fulltext+keyword"},
-#                     "adescription": {"type": "keyword"},
-#                 },
-#             },
-#             "Record": {
-#                     "properties": {
-#                         "original_record": {"type": "keyword"},
-#                     },
-#                 }
-#         }
-#     ],
-#     metadata_type="Metadata",
-#     record_type="Record",
-#     customizations=[],
-# )
-# top_level_field.register()
+top_level_field = model(
+    "top_level_field",
+    version="1.0.0",
+    presets=[
+        rdm_minimal_preset,
+    ],
+    configuration={"ui_blueprint_name": "top_level_field_ui"},
+    types=[
+        {
+            "Metadata": {
+                "properties": {
+                    "title": {"type": "fulltext+keyword"},
+                    "adescription": {"type": "keyword"},
+                },
+            },
+            "Record": {
+                "properties": {
+                    "original_record": {"type": "keyword"},
+                },
+            },
+        }
+    ],
+    metadata_type="Metadata",
+    record_type="Record",
+    customizations=[],
+)
+top_level_field.register()
 
 modela = model(
     "modela",
@@ -277,9 +278,3 @@ def create_modela_ui_blueprint(app):
         return "deposit_edit ok"
 
     return bp
-
-
-
-
-
-
