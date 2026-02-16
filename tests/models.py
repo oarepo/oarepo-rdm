@@ -87,7 +87,7 @@ model_funct_preset = model(
         }
     ],
     metadata_type="Metadata",
-    record_type="Record",
+    record_type="",
     customizations=[],
 )
 model_funct_preset.register()
