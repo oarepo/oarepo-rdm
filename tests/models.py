@@ -214,24 +214,24 @@ def create_modela_ui_blueprint(app):
     return bp
 
 
-class ExtraTopLevelFieldPreset(FunctionalPreset):
-    """Record type functional preset."""
-
-    @override
-    def before_invenio_model(self, params: dict[str, Any]) -> None:
-        """Perform extra action before the Invenio model is created."""
-        params["record_type"] = "Record"
-        params["types"].append(
-            {
-                "Record": {
-                    "properties": {
-                        "original_record": {"type": "keyword"},
-                    },
-                }
-            }
-        )
-
-
+# class ExtraTopLevelFieldPreset(FunctionalPreset):
+#     """Record type functional preset."""
+#
+#     @override
+#     def before_invenio_model(self, params: dict[str, Any]) -> None:
+#         """Perform extra action before the Invenio model is created."""
+#         params["record_type"] = "Record"
+#         params["types"].append(
+#             {
+#                 "Record": {
+#                     "properties": {
+#                         "original_record": {"type": "keyword"},
+#                     },
+#                 }
+#             }
+#         )
+#
+#
 # model_functional_preset = model(
 #     "model_functional_preset",
 #     version="1.0.0",
@@ -254,7 +254,7 @@ class ExtraTopLevelFieldPreset(FunctionalPreset):
 # model_functional_preset.register()
 
 
-model_with_top_level_field = model(
+modeld = model(
     "model_with_top_level_field",
     version="1.0.0",
     presets=[
@@ -272,7 +272,7 @@ model_with_top_level_field = model(
         }
     ],
     metadata_type="Metadata",
-    # record_type="Record",
+    record_type="Record",
     customizations=[],
 )
-model_with_top_level_field.register()
+modeld.register()
