@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
+from invenio_rdm_records.services.access.service import RecordAccessService
 from invenio_rdm_records.services.pids import PIDManager, PIDsService
 from invenio_rdm_records.services.review.service import ReviewService
 from oarepo_model.customizations import (
@@ -53,6 +54,7 @@ class RDMExtPreset(Preset):
                     **params,
                     "pids_service": PIDsService(params["config"], PIDManager),
                     "review_service": ReviewService(params["config"]),
+                    "access_service": RecordAccessService(params["config"]),
                 }
 
         yield PrependMixin("Ext", ExtRDMMixin)
