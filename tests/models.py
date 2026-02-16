@@ -72,7 +72,7 @@ class ExtraTopLevelFieldPreset(FunctionalPreset):
 
 
 model_funct_preset = model(
-    "model_functional_preset",
+    "model_funct_preset",
     version="1.0.0",
     presets=[rdm_minimal_preset, ExtraTopLevelFieldPreset],
     configuration={"ui_blueprint_name": "model_functional_preset_ui"},
@@ -91,33 +91,33 @@ model_funct_preset = model(
     customizations=[],
 )
 model_funct_preset.register()
-top_level_field = model(
-    "top_level_field",
-    version="1.0.0",
-    presets=[
-        rdm_minimal_preset,
-    ],
-    configuration={"ui_blueprint_name": "top_level_field_ui"},
-    types=[
-        {
-            "Metadata": {
-                "properties": {
-                    "title": {"type": "fulltext+keyword"},
-                    "adescription": {"type": "keyword"},
-                },
-            },
-            "Record": {
-                    "properties": {
-                        "original_record": {"type": "keyword"},
-                    },
-                }
-        }
-    ],
-    metadata_type="Metadata",
-    record_type="Record",
-    customizations=[],
-)
-top_level_field.register()
+# top_level_field = model(
+#     "top_level_field",
+#     version="1.0.0",
+#     presets=[
+#         rdm_minimal_preset,
+#     ],
+#     configuration={"ui_blueprint_name": "top_level_field_ui"},
+#     types=[
+#         {
+#             "Metadata": {
+#                 "properties": {
+#                     "title": {"type": "fulltext+keyword"},
+#                     "adescription": {"type": "keyword"},
+#                 },
+#             },
+#             "Record": {
+#                     "properties": {
+#                         "original_record": {"type": "keyword"},
+#                     },
+#                 }
+#         }
+#     ],
+#     metadata_type="Metadata",
+#     record_type="Record",
+#     customizations=[],
+# )
+# top_level_field.register()
 
 modela = model(
     "modela",
