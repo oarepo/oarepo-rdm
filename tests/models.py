@@ -54,7 +54,7 @@ class MockReviewServiceComponent(ServiceComponent):
         print("review created in specialized service component")  # noqa T201
 
 
-class ExtraTopLevelFieldPreset(FunctionalPreset):
+class OriginalRecordFieldPreset(FunctionalPreset):
     """Record type functional preset."""
 
     @override
@@ -75,7 +75,7 @@ class ExtraTopLevelFieldPreset(FunctionalPreset):
 model_funct_preset = model(
     "model_funct_preset",
     version="1.0.0",
-    presets=[rdm_minimal_preset, ExtraTopLevelFieldPreset],
+    presets=[rdm_minimal_preset, OriginalRecordFieldPreset],
     configuration={"ui_blueprint_name": "model_functional_preset_ui"},
     types=[
         {
