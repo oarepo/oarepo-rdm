@@ -81,7 +81,6 @@ model_funct_preset = model(
         {
             "Metadata": {
                 "properties": {
-                    "title": {"type": "fulltext+keyword"},
                     "adescription": {"type": "keyword"},
                 },
             },
@@ -103,7 +102,6 @@ top_level_field = model(
         {
             "Metadata": {
                 "properties": {
-                    "title": {"type": "fulltext+keyword"},
                     "adescription": {"type": "keyword"},
                 },
             },
