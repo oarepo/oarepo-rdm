@@ -13,7 +13,6 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, Any, Literal, cast, override
 
-import marshmallow as ma
 from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.services import RDMRecordService
 from oarepo_runtime.proxies import current_runtime
@@ -21,7 +20,7 @@ from werkzeug.exceptions import Forbidden
 
 from oarepo_rdm.errors import UndefinedModelError
 
-from .config import MultiplexingLinks, MultiplexingSchema
+from .config import MultiplexingLinks
 
 if TYPE_CHECKING:
     import datetime
@@ -32,7 +31,6 @@ if TYPE_CHECKING:
     from invenio_records_resources.services.records.results import (
         RecordItem,
     )
-    from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
     from invenio_search import RecordsSearchV2
     from oarepo_runtime.api import Model
 
@@ -181,11 +179,6 @@ class OARepoRDMService(RDMRecordService):
     def links_item_tpl(self) -> MultiplexingLinks:
         """Item links template."""
         return MultiplexingLinks()
-
-    @property
-    def schema(self) -> ServiceSchemaWrapper:
-        """Schema for the service."""
-        return MultiplexingSchema(self, ma.Schema)
 
     @unit_of_work()
     @override
