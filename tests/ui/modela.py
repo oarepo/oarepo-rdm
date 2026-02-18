@@ -18,6 +18,10 @@ from oarepo_ui.resources import (
     RecordsUIResourceConfig,
 )
 
+from oarepo_rdm.ui.components import (
+    CommunitiesMembershipsComponent,
+    RDMVocabularyOptionsComponent,
+)
 from tests.ui.common import ModelUISerializer
 
 if TYPE_CHECKING:
@@ -45,4 +49,6 @@ class ModelaUIResourceConfig(RecordsUIResourceConfig):
         PermissionsComponent,
         AllowedHtmlTagsComponent,
         CustomFieldsComponent,
+        CommunitiesMembershipsComponent,
+        RDMVocabularyOptionsComponent,
     )
