@@ -64,6 +64,11 @@ class RDMServiceConfigLinks(Preset):
                 "self_iiif_manifest": EndpointLink("iiif.manifest", params=["uuid"], vars=vars_self_iiif),
                 "self_iiif_sequence": EndpointLink("iiif.sequence", params=["uuid"], vars=vars_self_iiif),
                 # Files
+                "reserve_doi": RecordEndpointLink(
+                    "records.pids_reserve",
+                    params=["pid_value", "scheme"],
+                    vars=lambda record, parameters: parameters.update({"scheme": "doi"}),  # noqa: ARG005
+                ),
                 "files": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),

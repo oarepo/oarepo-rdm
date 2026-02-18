@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any, cast, override
 
 import marshmallow as ma
@@ -100,7 +99,7 @@ class MultiplexingSchema(ma.Schema):
         schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.dump(obj, schema_args={}, context=self.context)  # type: ignore[arg-type]
+        return delegated_service.schema.dump(obj, schema_args={}, context={**self.context, "record": obj})  # type: ignore[arg-type]
 
 
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
