@@ -10,8 +10,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any, cast, override
 
+import marshmallow as ma
 from invenio_drafts_resources.services.records.config import (
     SearchOptions,
     is_record,
@@ -24,7 +26,7 @@ from invenio_records_resources.services.base.links import (
 from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
 )
-from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from marshmallow import types
 from oarepo_runtime import current_runtime
 
 from oarepo_rdm.proxies import current_oarepo_rdm
@@ -32,10 +34,9 @@ from oarepo_rdm.proxies import current_oarepo_rdm
 from .results import MultiplexingResultList
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterable, Mapping
 
     from flask_principal import Identity
-    from invenio_records_resources.records.api import Record
     from invenio_records_resources.services.records.config import (
         SearchOptions,
     )
@@ -64,7 +65,7 @@ class MultiplexingLinks(LinksTemplate):
         )
 
 
-class MultiplexingSchema(ServiceSchemaWrapper):
+class MultiplexingSchema(ma.Schema):
     """Multiplexing schema for the RDM service.
 
     Based on the record being (de)serialized, the schema loading and dumping
@@ -74,36 +75,39 @@ class MultiplexingSchema(ServiceSchemaWrapper):
     @override
     def load(
         self,
-        data: dict[str, Any],
-        schema_args: Any | None = None,
-        context: dict[str, Any] | None = None,
-        raise_errors: bool = True,
+        data: Mapping[str, Any] | Iterable[Mapping[str, Any]],
+        *,
+        many: bool | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,  # type: ignore[assignment]
+        unknown: str | None = None,
     ) -> Any:
-        schema = data["$schema"]
+        if many:
+            return [self.load(item, many=False, partial=partial, unknown=unknown) for item in data]  # type: ignore[union-attr, arg-type]
+        schema = cast("Mapping[str, Any]", data)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.load(data, schema_args=schema_args, context=context, raise_errors=raise_errors)
+        return delegated_service.schema.load(
+            data,  # type: ignore[arg-type]
+            schema_args={},  # type: ignore[arg-type]
+            context=self.context,
+            raise_errors=True,
+        )
 
     @override
-    def dump(
-        self,
-        data: Record,
-        schema_args: Any | None = None,
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        schema = data["$schema"]
+    def dump(self, obj: Any, *, many: bool | None = None) -> Any:
+        if many:
+            return [self.dump(item, many=False) for item in obj]  # type: ignore[union-attr]
+        schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return cast(
-            "dict[str, Any]",
-            delegated_service.schema.dump(data, schema_args=schema_args, context=context),
-        )
+        return delegated_service.schema.dump(obj, schema_args={}, context=self.context)  # type: ignore[arg-type]
 
 
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     """OARepo extension to RDM record service configuration."""
 
     result_list_cls = MultiplexingResultList
+    schema = MultiplexingSchema  # type: ignore[assignment]
 
     # TODO: add proper links here, not just this subset
     links_item: Mapping[str, Any] = {
