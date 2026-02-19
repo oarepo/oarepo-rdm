@@ -31,10 +31,11 @@ if TYPE_CHECKING:
 class ModelaUIResourceConfig(RecordsUIResourceConfig):
     """UI resource config for the ModelA."""
 
-    api_service = "simple_model"  # must be something included in oarepo, as oarepo is used in tests
+    api_service = "modela"
+    model_name = "modela"
 
-    blueprint_name = "simple_model"
-    url_prefix = "/simple-model"
+    blueprint_name = "modela_ui"
+    url_prefix = "/modela"
     ui_serializer_class = ModelUISerializer
     templates: Mapping = {
         **RecordsUIResourceConfig.templates,
