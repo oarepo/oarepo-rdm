@@ -477,23 +477,20 @@ def add_file_to_draft():
 
 @pytest.fixture
 def vocab_fixtures():
-    """Contributor role fixture."""
+    """Create vocabulary types required for VocabulariesOptions.dump()."""
+    # contributorsroles
     current_vocabularies_service.create_type(system_identity, "contributorsroles", "v-ct")
-
     current_vocabularies_service.create(
         system_identity,
         {
             "type": "contributorsroles",
             "id": "editor",
-            "title": {
-                "en": "Editor",
-                "cs": "Redaktor",
-            },
+            "title": {"en": "Editor", "cs": "Redaktor"},
         },
     )
 
+    # resourcetypes
     current_vocabularies_service.create_type(system_identity, "resourcetypes", "rsrct")
-
     current_vocabularies_service.create(
         system_identity,
         {
@@ -516,6 +513,48 @@ def vocab_fixtures():
             "tags": ["depositable", "linkable"],
             "type": "resourcetypes",
         },
+    )
+
+    # titletypes
+    current_vocabularies_service.create_type(system_identity, "titletypes", "tttyp")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "titletypes", "id": "alternative-title", "title": {"en": "Alternative title"}},
+    )
+
+    # creatorsroles
+    current_vocabularies_service.create_type(system_identity, "creatorsroles", "crrol")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "creatorsroles", "id": "author", "title": {"en": "Author"}},
+    )
+
+    # descriptiontypes
+    current_vocabularies_service.create_type(system_identity, "descriptiontypes", "dstyp")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "descriptiontypes", "id": "abstract", "title": {"en": "Abstract"}},
+    )
+
+    # datetypes
+    current_vocabularies_service.create_type(system_identity, "datetypes", "dttyp")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "datetypes", "id": "accepted", "title": {"en": "Accepted"}},
+    )
+
+    # relationtypes
+    current_vocabularies_service.create_type(system_identity, "relationtypes", "relty")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "relationtypes", "id": "cites", "title": {"en": "Cites"}},
+    )
+
+    # removalreasons
+    current_vocabularies_service.create_type(system_identity, "removalreasons", "rmrsn")
+    current_vocabularies_service.create(
+        system_identity,
+        {"type": "removalreasons", "id": "spam", "title": {"en": "Spam"}, "tags": ["deletion-request"]},
     )
 
     current_vocabularies_service.indexer.refresh()
@@ -543,3 +582,19 @@ class MockManifestLoader(JinjaManifestLoader):
     def load(self, filepath):
         """Load the manifest."""
         return MockJinjaManifest()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource_config():
+    """UI resource config for modela."""
+    from tests.ui.modela import ModelaUIResourceConfig
+
+    return ModelaUIResourceConfig()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource(app, modela_ui_resource_config):
+    """UI resource for modela."""
+    from oarepo_ui.resources import RecordsUIResource
+
+    return RecordsUIResource(modela_ui_resource_config)
