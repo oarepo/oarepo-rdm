@@ -92,6 +92,11 @@ def create_records_blueprint(app: Flask) -> Blueprint:
     )
 
     blueprint.add_url_rule(
+        "/uploads/<pid_value>",
+        view_func=deposit_edit,
+    )
+
+    blueprint.add_url_rule(
         **create_url_rule(
             routes["record_export"],
             default_view_func=record_export,
@@ -166,5 +171,14 @@ def record_detail(pid_value: str, include_deleted: bool = False) -> Response:
     service = cast("RDMRecordService", current_service_registry.get("records"))
     rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
     data = rec.to_dict()
+    self_html = data["links"]["self_html"]
+    return redirect(self_html)
+
+
+def deposit_edit(pid_value: str) -> Response:
+    """Redirect to the deposit edit page."""
+    service = cast("RDMRecordService", current_service_registry.get("records"))
+    draft = service.read_draft(system_identity, pid_value)
+    data = draft.to_dict()
     self_html = data["links"]["self_html"]
     return redirect(self_html)

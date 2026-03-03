@@ -14,7 +14,7 @@ import logging
 from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
-from invenio_rdm_records.services.search_params import SharedOrMyDraftsParam
+from invenio_rdm_records.services.search_params import MetricsParam, SharedOrMyDraftsParam
 from invenio_records_resources.services.records.config import SearchOptions
 from invenio_records_resources.services.records.params import (
     FacetsParam,
@@ -86,6 +86,7 @@ def update_param_interpreters(
     existing_list.append(GroupedFacetsParam)
     existing_list.append(DelegatedQueryParam)
     existing_list.append(SharedOrMyDraftsParam)
+    existing_list.append(MetricsParam)
     return tuple(existing_list)
 
 

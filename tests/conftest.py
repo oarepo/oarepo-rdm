@@ -154,6 +154,7 @@ def app_config(app_config):
         }
     ]
     app_config["SITE_API_URL"] = "http://localhost"
+    app_config["SITE_UI_URL"] = "http://localhost"
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
         "L": "Local",
         "F": "Fetch",

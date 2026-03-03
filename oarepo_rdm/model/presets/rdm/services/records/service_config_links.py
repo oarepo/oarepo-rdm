@@ -12,11 +12,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
+from invenio_drafts_resources.services.records.config import (
+    is_draft,
+)
 from invenio_rdm_records.services.config import (
     ThumbnailLinks,
     _groups_enabled,
     archive_download_enabled,
     has_image_files,
+    is_draft_and_has_review,
     record_thumbnail_sizes,
     vars_self_iiif,
 )
@@ -74,6 +78,10 @@ class RDMServiceConfigLinks(Preset):
                     if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),
                     else_=RecordEndpointLink(f"{model.blueprint_base}_draft_files.search"),
                 ),
+                "submit-review": RecordEndpointLink(
+                    "records.review_submit",
+                    when=is_draft_and_has_review,
+                ),
                 "media_files": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(f"{model.blueprint_base}_media_files.search"),
@@ -95,6 +103,7 @@ class RDMServiceConfigLinks(Preset):
                         when=archive_download_enabled,
                     ),
                 ),
+                "review": RecordEndpointLink("records.review_read", when=is_draft),
                 "archive_media": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(
