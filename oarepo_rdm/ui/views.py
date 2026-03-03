@@ -91,10 +91,7 @@ def create_records_blueprint(app: Flask) -> Blueprint:
         )
     )
 
-    blueprint.add_url_rule(
-        "/uploads/<pid_value>",
-        view_func=deposit_edit,
-    )
+    blueprint.add_url_rule(**create_url_rule(routes["deposit_edit"], default_view_func=deposit_edit))
 
     blueprint.add_url_rule(
         **create_url_rule(

@@ -15,7 +15,7 @@ from .models import modela
 modela_service = modela.proxies.current_service
 
 
-def test_record_detail_redirect(rdm_records_service, users, client):
+def test_record_detail_redirect(app, search_clear, rdm_records_service, users, client):
     """Test that /records/<pid_value> redirects to the model-specific record detail page."""
     user = users[0]
 
@@ -50,7 +50,7 @@ def test_record_detail_not_found(client):
     assert response.status_code == 404
 
 
-def test_deposit_edit_redirect(rdm_records_service, users, client):
+def test_deposit_edit_redirect(app, search_clear, rdm_records_service, users, client):
     """Test that /uploads/<pid_value> redirects to the model-specific deposit edit page."""
     user = users[0]
 
@@ -63,9 +63,6 @@ def test_deposit_edit_redirect(rdm_records_service, users, client):
         },
     )
     pid_value = sample_draft["id"]
-
-    modela_service.draft_indexer.refresh()
-
     # First verify we get a redirect
     response = client.get(f"/uploads/{pid_value}")
     assert response.status_code == 302
