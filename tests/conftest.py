@@ -181,6 +181,9 @@ def app_config(app_config):
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
+    # Disable invenio_records_ui routes - we use our own record_detail view
+    app_config["RECORDS_UI_ENDPOINTS"] = {}
+
     app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems

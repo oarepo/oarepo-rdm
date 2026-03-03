@@ -34,7 +34,7 @@ APP_RDM_ROUTES = {
     "record_latest": "/records/<pid_value>/latest",
     # "dashboard_home": "/me", #noqa
     # "deposit_create": "/uploads/new", #noqa
-    # "deposit_edit": "/uploads/<pid_value>", #noqa
+    "deposit_edit": "/uploads/<pid_value>",
 }
 
 
