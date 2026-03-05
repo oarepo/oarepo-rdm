@@ -11,12 +11,11 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from flask_principal import Identity, Need, UserNeed
 from invenio_access.permissions import system_identity
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
@@ -167,13 +166,12 @@ def app_config(app_config):
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
-    # Disable invenio_records_ui routes - we use our own record_detail view
-    app_config["RECORDS_UI_ENDPOINTS"] = {}
-
     app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
         *DefaultRecordsComponents,
         MockReviewInRDMServiceComponent,
     )
+    # Disable invenio_records_ui routes - we use our own record_detail view
+    app_config["RECORDS_UI_ENDPOINTS"] = {}
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -389,3 +387,19 @@ def vocab_fixtures():
     )
 
     current_vocabularies_service.indexer.refresh()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource_config():
+    """UI resource config for modela."""
+    from tests.ui.modela import ModelaUIResourceConfig
+
+    return ModelaUIResourceConfig()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource(app, modela_ui_resource_config):
+    """UI resource for modela."""
+    from oarepo_ui.resources import RecordsUIResource
+
+    return RecordsUIResource(modela_ui_resource_config)
