@@ -49,16 +49,6 @@ def location(location):
     return location
 
 
-@pytest.fixture(scope="module")
-def identity_simple():
-    """Return simple identity fixture."""
-    i = Identity(1)
-    i.provides.add(UserNeed(1))
-    i.provides.add(Need(method="system_role", value="any_user"))
-    i.provides.add(Need(method="system_role", value="authenticated_user"))
-    return i
-
-
 @pytest.fixture
 def rdm_records_service():
     return current_rdm_records_service
