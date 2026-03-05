@@ -11,13 +11,12 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest import mock
 from unittest.mock import MagicMock
 
 import arrow
 import pytest
-from flask_principal import Identity, Need, UserNeed
 from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -163,7 +162,10 @@ def app_config(app_config):
 
     app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
-    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
+        *DefaultRecordsComponents,
+        MockReviewInRDMServiceComponent,
+    )
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -331,7 +333,11 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "titletypes", "tttyp")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "titletypes", "id": "alternative-title", "title": {"en": "Alternative title"}},
+        {
+            "type": "titletypes",
+            "id": "alternative-title",
+            "title": {"en": "Alternative title"},
+        },
     )
 
     # creatorsroles
@@ -366,7 +372,28 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "removalreasons", "rmrsn")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "removalreasons", "id": "spam", "title": {"en": "Spam"}, "tags": ["deletion-request"]},
+        {
+            "type": "removalreasons",
+            "id": "spam",
+            "title": {"en": "Spam"},
+            "tags": ["deletion-request"],
+        },
     )
 
     current_vocabularies_service.indexer.refresh()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource_config():
+    """UI resource config for modela."""
+    from tests.ui.modela import ModelaUIResourceConfig
+
+    return ModelaUIResourceConfig()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource(app, modela_ui_resource_config):
+    """UI resource for modela."""
+    from oarepo_ui.resources import RecordsUIResource
+
+    return RecordsUIResource(modela_ui_resource_config)
