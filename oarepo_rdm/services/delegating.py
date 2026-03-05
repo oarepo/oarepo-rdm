@@ -21,7 +21,9 @@ if TYPE_CHECKING:
     from typing import Any
 
     from invenio_records_permissions.policies.base import BasePermissionPolicy
-    from invenio_records_resources.services.base.service import Service as InvenioService
+    from invenio_records_resources.services.base.service import (
+        Service as InvenioService,
+    )
 else:
     InvenioService = object
 
