@@ -10,61 +10,112 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Any, cast, override
 
+from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.access.service import RecordAccessService
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_rdm_records.services.review.service import ReviewService
-from oarepo_runtime import current_runtime
+
+from oarepo_rdm.services.service import (
+    DelegationToSpecializedServiceMixin,
+    check_fully_overridden,
+    delegate_to_specialized_service,
+    pass_through,
+    pass_to_specialized_service,
+)
 
 if TYPE_CHECKING:
-    from typing import Any
+    from flask_principal import Identity
+    from invenio_rdm_records.records.api import RDMDraft, RDMRecord
+    from invenio_records_resources.services.records.results import RecordItem
 
-    from invenio_records_permissions.policies.base import BasePermissionPolicy
-    from invenio_records_resources.services.base.service import Service as InvenioService
 else:
     InvenioService = object
 
+pass_through_service_access = {
+    "get_parent_and_record_or_draft",
+    "link_result_item",
+    "link_result_list",
+    "grant_result_item",
+    "grants_result_list",
+    "request_access",
+    "create_guest_access_request",
+}
 
-class DelegationToSpecializedServiceMixin(InvenioService):
-    """Mixin for delegating running components and permission checks to specialized model services."""
+delegate_to_specialized_service_access = {
+    "create_secret_link",
+    "read_all_secret_links",
+    "read_secret_link",
+    "update_secret_link",
+    "delete_secret_link",
+    "bulk_create_grants",
+    "read_grant",
+    "update_grant",
+    "delete_grant",
+    "create_user_access_request",
+    "create_guest_access_request_token",
+    "update_grant_by_subject",
+    "update_access_settings",
+    "read_grant_by_subject",
+    "read_all_grants_by_subject",
+    "delete_grant_by_subject",
+    "read_all_grants",
+}
 
-    attribute_on_base_service: str = ""
+delegate_to_specialized_service_review = {
+    "submit",
+}
 
-    def _get_specialized_service(self, pid_value: str) -> InvenioService:
-        """Get a specialized service based on the pid_value of the record."""
-        pid_type = current_runtime.find_pid_type_from_pid(pid_value)
-        base_service = current_runtime.model_by_pid_type[pid_type].service
-        return getattr(base_service, self.attribute_on_base_service) if self.attribute_on_base_service else base_service
+pass_through_service_pids = {
+    "invalidate",
+}
 
-    @override
-    def run_components(self, action: str, *args: Any, **kwargs: Any) -> None:
-        if "record" in kwargs:
-            self._get_specialized_service(kwargs["record"].pid.pid_value).run_components(action, *args, **kwargs)
-        else:
-            super().run_components(action, *args, **kwargs)
-
-    @override
-    def permission_policy(self, action_name: str, **kwargs: Any) -> BasePermissionPolicy:
-        if "record" in kwargs:
-            return self._get_specialized_service(kwargs["record"].pid.pid_value).permission_policy(
-                action_name, **kwargs
-            )
-        return super().permission_policy(action_name, **kwargs)
+delegate_to_specialized_service_pids = {
+    "create",
+    "discard",
+    "register_or_update",
+    "reserve",
+    "resolve",
+}
 
 
+@pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_review)
+@check_fully_overridden(
+    pass_through, delegate_to_specialized_service | delegate_to_specialized_service_review, ReviewService
+)
 class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService):
     """Delegating review service."""
 
     attribute_on_base_service = "review"
 
+    @unit_of_work()
+    @override
+    def create(
+        self, identity: Identity, data: dict[str, Any], record: RDMRecord | RDMDraft, uow: UnitOfWork
+    ) -> RecordItem:
+        specialized_service = cast("ReviewService", self._get_specialized_service(str(record.pid.pid_value)))
+        return specialized_service.create(identity, data, record, uow)
 
+
+@pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_access)
+@check_fully_overridden(
+    pass_through | pass_through_service_access,
+    delegate_to_specialized_service | delegate_to_specialized_service_access,
+    RecordAccessService,
+)
 class DelegatingRecordAccessService(DelegationToSpecializedServiceMixin, RecordAccessService):
     """Delegating access service."""
 
     attribute_on_base_service = "access"
 
 
+@pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_pids)
+@check_fully_overridden(
+    pass_through | pass_through_service_pids,
+    delegate_to_specialized_service | delegate_to_specialized_service_pids,
+    PIDsService,
+)
 class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
     """Delegating PIDs service."""
 
