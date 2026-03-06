@@ -11,16 +11,19 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any, Literal, cast, override
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast, override
 
 from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.services import RDMRecordService
+from invenio_records_resources.services import Service as InvenioService
 from oarepo_runtime.proxies import current_runtime
 from werkzeug.exceptions import Forbidden
 
 from oarepo_rdm.errors import UndefinedModelError
 
 from .config import MultiplexingLinks
+
+_T = TypeVar("_T", bound=type)
 
 if TYPE_CHECKING:
     import datetime
@@ -34,34 +37,83 @@ if TYPE_CHECKING:
     from invenio_search import RecordsSearchV2
     from oarepo_runtime.api import Model
 
-
 pass_through = {
-    "create_search",
-    "search_request",
-    "check_revision_id",
-    "read_many",
-    "read_all",
-    "delete",
-    "permission_policy",
+    # These methods are from the base Invenio Service class
     "check_permission",
+    "permission_policy",
     "require_permission",
     "run_components",
     "result_item",
     "result_list",
-    "record_to_index",
-    "scan_expired_embargos",
-    "exists",
-    "cleanup_record",
-    "search_revisions",
-    "read_revision",
-    "create_or_update_many",
     "result_bulk_item",
     "result_bulk_list",
-    # out of place
-    "set_user_quota",
+    # RecordIndexerMixin
+    "record_to_index",
+    # These methods are from the base Invenio records Service class
+    "check_revision_id",
+    "create_search",
+    "search_request",
     "search",
-    "search_drafts",
     "scan",
+    "create_or_update_many",
+    "read_all",
+    "read_many",
+    # DraftsRecordService (invenio_drafts_resources) -> overridden in RDMRecordService
+    "search_drafts",
+}
+
+pass_through_rdm = {  # RDMRecordService (invenio_rdm_records) — first defined or overridden there
+    "cleanup_record",
+    "read_revision",
+    "scan_expired_embargos",
+    "search_revisions",
+    "set_user_quota",
+}
+
+delegate_to_specialized_service = {
+    # These methods are from the base Invenio drafts Service class
+    "delete_draft",
+    "edit",
+    "exists",  # permissions
+    "import_files",
+    "new_version",
+    "read_latest",
+    "validate_draft",
+    # DraftsRecordService -> overridden in RDMRecordService
+    "publish",
+    "read_draft",
+    "search_versions",
+    "update_draft",
+    # BaseRecordService (invenio_records_resources) -> overridden in RDMRecordService
+    "read",
+    "update",
+    "delete",
+}
+
+delegate_to_specialized_service_rdm = {
+    "delete_record",
+    "lift_embargo",
+    "mark_record_for_purge",
+    "purge_record",
+    "restore_record",
+    "scan_versions",
+    "set_quota",
+    "unmark_record_for_purge",
+    "update_tombstone",
+    "request_deletion",
+    "file_modification",
+    "read_revision",  # permissions
+    "search_revisions",
+}
+
+overwritten_in_oarepo_rdm = {
+    "create",
+    "oai_result_item",
+    "rebuild_index",
+    "cleanup_drafts",
+    "reindex_latest_first",
+    "reindex",
+    "on_relation_update",
 }
 
 permissions_search_mapping = {
@@ -73,18 +125,18 @@ permissions_search_mapping = {
 
 
 def check_fully_overridden(
-    pass_through: Iterable[str], base_class: type
-) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
+    pass_through: Iterable[str], delegate_to_specialized: Iterable[str], base_class: type
+) -> Callable[[_T], _T]:
     """Check that all methods are fully overridden in the subclass."""
 
-    def wrapper(cls: type) -> type:
+    def wrapper(cls: _T) -> _T:
         # go through base classes and check if methods defined on them
         # are either in the list of exceptions, or are overriden in the class
-        for name, value in base_class.__dict__.items():
-            if not callable(value) or name.startswith("_") or name in pass_through:
+        for name, value in vars(base_class).items():
+            if not callable(value) or name.startswith("_") or name in pass_through or name in delegate_to_specialized:
                 continue
 
-            this_class_value = cls.__dict__.get(name, None)
+            this_class_value = getattr(cls, name, None)
             if this_class_value is value:
                 raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
         return cls
@@ -94,7 +146,7 @@ def check_fully_overridden(
 
 def pass_to_specialized_service(
     method_names: Iterable[str],
-) -> Callable[[type[OARepoRDMService]], type[OARepoRDMService]]:
+) -> Callable[[_T], _T]:
     """Pass the call to the specialized service.
 
     The service is selected by converting the id to pid type and resolving
@@ -102,7 +154,7 @@ def pass_to_specialized_service(
     """
 
     def make_delegate(method_name: str) -> Callable[..., Any]:
-        def delegate(self: OARepoRDMService, *args: Any, **kwargs: Any) -> Any:
+        def delegate(self: DelegationToSpecializedServiceMixin, *args: Any, **kwargs: Any) -> Any:
             # might be called with positional arguments (almost always)
             # or with keyword arguments (lift embargoes are called this way)
             if "id_" in kwargs:
@@ -120,44 +172,36 @@ def pass_to_specialized_service(
 
         return delegate
 
-    def wrapper(cls: type[OARepoRDMService]) -> type[OARepoRDMService]:
+    def wrapper(cls: _T) -> _T:
         overriden_methods = {}
         for name in method_names:
             if not hasattr(cls, name):
                 raise TypeError(f"Method {name} is not implemented in {cls.__name__}")
             overriden_methods[name] = make_delegate(name)
-        return type(cls.__name__, (cls,), overriden_methods)
+        return type(cls.__name__, (cls,), overriden_methods)  # type: ignore[return-value]
 
     return wrapper
 
 
-@check_fully_overridden(pass_through, RDMRecordService)
-@pass_to_specialized_service(
-    [
-        "read",
-        "read_draft",
-        "read_latest",
-        "scan_versions",
-        "search_versions",
-        "update",
-        "update_draft",
-        "validate_draft",
-        "edit",
-        "new_version",
-        "import_files",
-        "delete_record",
-        "delete_draft",
-        "update_tombstone",
-        "publish",
-        "set_quota",
-        "mark_record_for_purge",
-        "purge_record",
-        "restore_record",
-        "unmark_record_for_purge",
-        "lift_embargo",
-    ]
+class DelegationToSpecializedServiceMixin(InvenioService):
+    """Mixin for delegating running components and permission checks to specialized model services."""
+
+    attribute_on_base_service: str = ""
+
+    def _get_specialized_service(self, pid_value: str) -> InvenioService:
+        """Get a specialized service based on the pid_value of the record."""
+        pid_type = current_runtime.find_pid_type_from_pid(pid_value)
+        base_service = current_runtime.model_by_pid_type[pid_type].service
+        return getattr(base_service, self.attribute_on_base_service) if self.attribute_on_base_service else base_service
+
+
+@pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_rdm)
+@check_fully_overridden(
+    pass_through | pass_through_rdm,
+    delegate_to_specialized_service | delegate_to_specialized_service_rdm,
+    RDMRecordService,
 )
-class OARepoRDMService(RDMRecordService):
+class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
     """RDM service replacement that delegates calls to a specialized services.
 
     For methods that accept record id, it does so by looking up the persistent identifier
@@ -169,11 +213,6 @@ class OARepoRDMService(RDMRecordService):
     Searches have specific handling - a query is run against all the indices and
     then the results are converted to appropripate result classes.
     """
-
-    def _get_specialized_service(self, pid_value: str) -> RDMRecordService:
-        """Get a specialized service based on the pid_value of the record."""
-        pid_type = current_runtime.find_pid_type_from_pid(pid_value)
-        return cast("RDMRecordService", current_runtime.model_by_pid_type[pid_type].service)
 
     @property
     def links_item_tpl(self) -> MultiplexingLinks:
