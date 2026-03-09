@@ -9,3 +9,9 @@
 """UI overrides for invenio-app-rdm."""
 
 from __future__ import annotations
+
+from .config import RDMRecordsUIResourceConfig
+
+__all__ = [
+    "RDMRecordsUIResourceConfig",
+]
