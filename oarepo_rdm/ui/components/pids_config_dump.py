@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from invenio_records_resources.services.records.results import RecordItem
 
 
-class RDMPidConfigComponent(UIResourceComponent):
+class RDMPIDsConfigComponent(UIResourceComponent):
     """Pass RDM PID configuration to form config."""
 
     def form_config(  # noqa: PLR0913  too many arguments

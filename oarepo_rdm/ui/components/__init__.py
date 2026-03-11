@@ -11,11 +11,11 @@
 from __future__ import annotations
 
 from .communities_memberships_dump import CommunitiesMembershipsComponent
-from .pids_config_dump import RDMPidConfigComponent
+from .pids_config_dump import RDMPIDsConfigComponent
 from .rdm_vocabularies_dump import RDMVocabularyOptionsComponent
 
 __all__ = [
     "CommunitiesMembershipsComponent",
-    "RDMPidConfigComponent",
+    "RDMPIDsConfigComponent",
     "RDMVocabularyOptionsComponent",
 ]
