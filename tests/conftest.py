@@ -43,6 +43,11 @@ if TYPE_CHECKING:
 
 # TODO: add pytest-oarepo and remove some of the fixtures below
 
+pytest_plugins = [
+    "pytest_oarepo.files",
+    "pytest_oarepo.fixtures",
+]
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):

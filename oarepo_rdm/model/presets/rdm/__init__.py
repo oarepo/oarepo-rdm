@@ -26,6 +26,18 @@ from oarepo_rdm.model.presets.rdm.records.record import RDMRecordPreset
 from oarepo_rdm.model.presets.rdm.records.record_metadata import (
     RDMRecordMetadataWithFilesPreset,
 )
+from oarepo_rdm.model.presets.rdm.resources.files.draft_file_resource_config import (
+    RDMDraftFileResourceConfigPreset,
+)
+from oarepo_rdm.model.presets.rdm.resources.files.draft_media_file_resource_config import (
+    RDMDraftMediaFileResourceConfigPreset,
+)
+from oarepo_rdm.model.presets.rdm.resources.files.file_resource_config import (
+    RDMFileResourceConfigPreset,
+)
+from oarepo_rdm.model.presets.rdm.resources.files.media_file_resource_config import (
+    RDMMediaFileResourceConfigPreset,
+)
 from oarepo_rdm.model.presets.rdm.resources.records.resource import (
     RDMRecordResourcePreset,
 )
@@ -66,6 +78,10 @@ rdm_static_preset = [
     RDMRecordServiceConfigPreset,
     RDMDraftRecordMetadataWithFilesPreset,
     RDMRecordMetadataWithFilesPreset,
+    RDMDraftFileResourceConfigPreset,
+    RDMDraftMediaFileResourceConfigPreset,
+    RDMFileResourceConfigPreset,
+    RDMMediaFileResourceConfigPreset,
     RDMExtPreset,
     RDMRecordSchemaPreset,
     RDMParentRecordSchemaPreset,
