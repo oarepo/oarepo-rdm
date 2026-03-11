@@ -44,6 +44,11 @@ if TYPE_CHECKING:
 
 # TODO: add pytest-oarepo and remove some of the fixtures below
 
+pytest_plugins = [
+    "pytest_oarepo.files",
+    "pytest_oarepo.fixtures",
+]
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
@@ -184,7 +189,10 @@ def app_config(app_config):
     # Disable invenio_records_ui routes - we use our own record_detail view
     app_config["RECORDS_UI_ENDPOINTS"] = {}
 
-    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
+        *DefaultRecordsComponents,
+        MockReviewInRDMServiceComponent,
+    )
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -523,7 +531,11 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "titletypes", "tttyp")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "titletypes", "id": "alternative-title", "title": {"en": "Alternative title"}},
+        {
+            "type": "titletypes",
+            "id": "alternative-title",
+            "title": {"en": "Alternative title"},
+        },
     )
 
     # creatorsroles
@@ -558,7 +570,12 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "removalreasons", "rmrsn")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "removalreasons", "id": "spam", "title": {"en": "Spam"}, "tags": ["deletion-request"]},
+        {
+            "type": "removalreasons",
+            "id": "spam",
+            "title": {"en": "Spam"},
+            "tags": ["deletion-request"],
+        },
     )
 
     current_vocabularies_service.indexer.refresh()
