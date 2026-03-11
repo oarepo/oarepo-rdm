@@ -16,6 +16,7 @@ from .doi_required import DoiRequiredComponent
 from .empty_record_pids import EmptyRecordPidsComponent
 from .files_enabled import FilesEnabledComponent
 from .inject_parent_doi import InjectParentDoiComponent
+from .pids_config_dump import RDMPidConfigComponent
 from .rdm_vocabularies_dump import RDMVocabularyOptionsComponent
 
 __all__ = [
@@ -25,5 +26,6 @@ __all__ = [
     "EmptyRecordPidsComponent",
     "FilesEnabledComponent",
     "InjectParentDoiComponent",
+    "RDMPidConfigComponent",
     "RDMVocabularyOptionsComponent",
 ]
