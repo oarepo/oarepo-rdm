@@ -1,21 +1,23 @@
 #
-# Copyright (c) 2025 CESNET z.s.p.o.
+# Copyright (c) 2026 CESNET z.s.p.o.
 #
 # This file is a part of oarepo-rdm (see http://github.com/oarepo/oarepo-rdm).
 #
 # oarepo-model is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""Module to generate RDM record schema mixin with files metadata."""
+"""Preset for configuring RDM draft media file resource."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_rdm_records.services.schemas.metadata import (
-    MetadataSchema as RDMMetadataSchema,
+from invenio_rdm_records.resources.config import RDMDraftMediaFilesResourceConfig
+from invenio_records_resources.resources import FileResourceConfig
+from oarepo_model.customizations import (
+    Customization,
+    ReplaceBaseClass,
 )
-from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -25,10 +27,10 @@ if TYPE_CHECKING:
     from oarepo_model.model import InvenioModel
 
 
-class RDMRecordMetadataSchemaPreset(Preset):
-    """Preset for RDM record with files schema class."""
+class RDMDraftMediaFileResourceConfigPreset(Preset):
+    """Preset for file resource config class."""
 
-    modifies = ("MetadataSchema",)
+    modifies = ("DraftMediaFileResourceConfig",)
 
     @override
     def apply(
@@ -37,4 +39,8 @@ class RDMRecordMetadataSchemaPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield PrependMixin("MetadataSchema", RDMMetadataSchema)
+        yield ReplaceBaseClass(
+            "DraftMediaFileResourceConfig",
+            FileResourceConfig,
+            RDMDraftMediaFilesResourceConfig,
+        )

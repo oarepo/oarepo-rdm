@@ -27,6 +27,7 @@ dev = [
 ]
 tests = [
     "pytest-invenio",
+    "pytest-oarepo",
 ]
 oarepo14 = [
     "oarepo[rdm,tests]>=14.0.0,<15.0.0",

@@ -22,7 +22,9 @@ from oarepo_model.customizations import (
     SetDefaultSearchFields,
     SetPermissionPolicy,
 )
-from oarepo_model.customizations.high_level.add_service_component import AddServiceComponent
+from oarepo_model.customizations.high_level.add_service_component import (
+    AddServiceComponent,
+)
 from oarepo_runtime.services.config import EveryonePermissionPolicy
 
 from oarepo_rdm.model.presets import (
