@@ -10,11 +10,14 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from invenio_app_rdm import config as rdm_config  # noqa
 
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # TODO: Why not to add other RDM routes here?
 APP_RDM_ROUTES = {
@@ -159,3 +162,14 @@ APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
     "invenio_app_rdm/records/details/side_bar/technical_metadata.html",
 ]
 """Template names for detail view sidebar components."""
+
+
+class ExternalLinkConfig(TypedDict):
+    """Configuration for an external link on the record landing page."""
+
+    id: str
+    render: Callable[..., Any]
+
+
+APP_RDM_RECORD_LANDING_PAGE_EXTERNAL_LINKS: list[ExternalLinkConfig] = []
+"""External links to be shown on record landing page."""
