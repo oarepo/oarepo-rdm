@@ -20,14 +20,12 @@ from unittest.mock import MagicMock
 import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
-from flask_security import login_user
 from flask_webpackext.manifest import (
     JinjaManifest,
     JinjaManifestEntry,
     JinjaManifestLoader,
 )
 from invenio_access.permissions import system_identity
-from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_app as _create_app
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.components import DefaultRecordsComponents
@@ -403,8 +401,13 @@ class LoggedClient:
 
     def _login(self) -> None:
         """Perform login."""
-        login_user(self.user_fixture.user, remember=True)
-        login_user_via_session(self.client, email=self.user_fixture.email)
+        self.client.post(
+            "/api/login",
+            json={
+                "email": self.user_fixture.email,
+                "password": self.user_fixture.password,
+            },
+        )
 
     def post(self, *args: Any, **kwargs: Any) -> Any:
         """Send a POST request with authentication."""

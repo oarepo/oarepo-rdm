@@ -8,6 +8,8 @@
 #
 from __future__ import annotations
 
+from io import BytesIO
+
 from .models import modela, modelb, modelc
 
 modela_service = modela.proxies.current_service
@@ -285,96 +287,80 @@ def _link2testclient(link: str) -> str:  # 'http://localhost/modela/hvje7-s1w04/
     return link.replace("http://localhost/", "/api/")
 
 
+def _upload_file_via_resource(client, sample, link="files") -> None:
+    init = client.post(
+        _link2testclient(sample["links"][link]),
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
+        json=[
+            {"key": "test.pdf", "metadata": {"title": "Test file"}},
+        ],
+    )
+    client.put(
+        _link2testclient(init.json["entries"][0]["links"]["content"]),
+        headers={
+            "content-type": "application/octet-stream",
+            "Accept": "application/vnd.inveniordm.v1+json",
+        },
+        data=BytesIO(b"testfile"),
+    )
+    client.post(
+        _link2testclient(init.json["entries"][0]["links"]["commit"]),
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
+    )
+
+
 def test_draft_file_ui_serialization(rdm_records_service, upload_file, users, logged_client, location, search_clear):
     user = users[0]
     client = logged_client(user)
 
-    sample_draft = rdm_records_service.create(
-        user.identity,
-        data={
+    resp = client.post(
+        "/api/records",
+        json={
             "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": True},
+            "metadata": {"title": "Test record"},
         },
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
-    upload_file(user.identity, sample_draft["id"], rdm_records_service.draft_files)
+    assert resp.status_code == 201
+    sample_draft = resp.json
+    _upload_file_via_resource(client, sample_draft)
     file_resp = client.get(
-        _link2testclient(sample_draft.links["files"]),
+        _link2testclient(sample_draft["links"]["files"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200
+    assert "entries" in file_resp.json
+    assert len(file_resp.json["entries"]) == 1
 
 
-def test_file_links_ui_serialization(rdm_records_service, upload_file, users, logged_client, location, search_clear):
-    user = users[0]
-    client = logged_client(user)
-
-    sample_draft = rdm_records_service.create(
-        user.identity,
-        data={
-            "$schema": "local://modela-v1.0.0.json",
-            "files": {"enabled": True},
-        },
-    )
-    upload_file(user.identity, sample_draft["id"], rdm_records_service.draft_files)
-    publish = rdm_records_service.publish(user.identity, sample_draft["id"])
-    file_resp = client.get(
-        _link2testclient(publish.links["files"]),
-        headers={"Accept": "application/vnd.inveniordm.v1+json"},
-    )
-    assert file_resp.status_code == 200
-
-
-def test_draft_media_file_links_ui_serialization(
-    rdm_records_service, upload_file, users, logged_client, location, search_clear
+def test_file_links_ui_serialization(
+    db, rdm_records_service, upload_file, users, logged_client, location, search_clear
 ):
     user = users[0]
     client = logged_client(user)
 
-    sample_draft = rdm_records_service.create(
-        user.identity,
-        data={
+    resp = client.post(
+        "/api/records",
+        json={
             "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": True},
+            "metadata": {"title": "Test record"},
         },
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
-    from invenio_rdm_records.proxies import current_rdm_records_media_files_service
-
-    upload_file(
-        user.identity,
-        sample_draft["id"],
-        current_rdm_records_media_files_service.draft_files,
+    sample_draft = resp.json
+    _upload_file_via_resource(client, sample_draft)
+    publish_resp = client.post(
+        _link2testclient(sample_draft["links"]["publish"]),
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
+    assert publish_resp.status_code == 202
+    published = publish_resp.json
     file_resp = client.get(
-        _link2testclient(sample_draft.links["media_files"]),
+        _link2testclient(published["links"]["files"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200
-    rdm_records_service.publish(user.identity, sample_draft["id"])
-
-
-def test_media_file_links_ui_serialization(
-    rdm_records_service, upload_file, users, logged_client, location, search_clear
-):
-    user = users[0]
-    client = logged_client(user)
-
-    sample_draft = rdm_records_service.create(
-        user.identity,
-        data={
-            "$schema": "local://modela-v1.0.0.json",
-            "files": {"enabled": True},
-        },
-    )
-    from invenio_rdm_records.proxies import current_rdm_records_media_files_service
-
-    upload_file(
-        user.identity,
-        sample_draft["id"],
-        current_rdm_records_media_files_service.draft_files,
-    )
-    publish = rdm_records_service.publish(user.identity, sample_draft["id"])
-    file_resp = client.get(
-        _link2testclient(publish.links["media_files"]),
-        headers={"Accept": "application/vnd.inveniordm.v1+json"},
-    )
-    assert file_resp.status_code == 200
+    assert "entries" in file_resp.json
+    assert len(file_resp.json["entries"]) == 1
