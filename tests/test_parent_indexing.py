@@ -134,11 +134,10 @@ def test_access_settings_via_global_delegating_service(
     user = users[0]
     service = rdm_records_service
     v1_pid, v2_pid = _create_versioned_record(service, user)
-    modela_service.indexer.process_bulk_queue()
+    modela_service.indexer.process_bulk_queue()  # This shouldn't work with rdm_records_service bc of invenio_indexer.api.RecordIndexer._index_action
     search_hits = _get_settings_from_search(service, user)
     for record_id, settings in search_hits:
         assert settings.get("allow_user_requests") is False
-
 
     # Use the GLOBAL delegating access service (what the global /records endpoint uses)
     service.access.update_access_settings(user.identity, v1_pid, SETTINGS_ENABLED)

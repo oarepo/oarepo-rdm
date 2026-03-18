@@ -34,16 +34,15 @@ else:
     InvenioService = object
 
 pass_through_service_access = {
-    "get_parent_and_record_or_draft",
     "link_result_item",
     "link_result_list",
     "grant_result_item",
     "grants_result_list",
-    "request_access",
-    "create_guest_access_request",
+    "create_guest_access_request",  # nonstandard way of passing record id
 }
 
 delegate_to_specialized_service_access = {
+    "get_parent_and_record_or_draft",
     "create_secret_link",
     "read_all_secret_links",
     "read_secret_link",
@@ -61,6 +60,7 @@ delegate_to_specialized_service_access = {
     "read_all_grants_by_subject",
     "delete_grant_by_subject",
     "read_all_grants",
+    "request_access",
 }
 
 delegate_to_specialized_service_review = {
@@ -68,7 +68,7 @@ delegate_to_specialized_service_review = {
 }
 
 pass_through_service_pids = {
-    "invalidate",
+    "invalidate",  # not implemented
 }
 
 delegate_to_specialized_service_pids = {

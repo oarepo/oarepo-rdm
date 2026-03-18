@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
     from invenio_access.permissions import Identity
     from invenio_rdm_records.services.config import RDMRecordServiceConfig
+    from invenio_records_permissions.policies.base import BasePermissionPolicy
     from invenio_records_resources.services.records.results import (
         RecordItem,
     )
@@ -41,21 +42,19 @@ pass_through = {
     # These methods are from the base Invenio Service class
     "check_permission",
     "permission_policy",
-    "require_permission",
-    "run_components",
     "result_item",
     "result_list",
     "result_bulk_item",
     "result_bulk_list",
     # RecordIndexerMixin
-    "record_to_index",
+    "record_to_index",  # return record.index._name if service inherits from RecordIndexerMixin
     # These methods are from the base Invenio records Service class
-    "check_revision_id",
+    "check_revision_id",  # functionally static method
     "create_search",
     "search_request",
     "search",
     "scan",
-    "create_or_update_many",
+    "create_or_update_many",  # to do
     "read_all",
     "read_many",
     # DraftsRecordService (invenio_drafts_resources) -> overridden in RDMRecordService
@@ -63,10 +62,8 @@ pass_through = {
 }
 
 pass_through_rdm = {  # RDMRecordService (invenio_rdm_records) — first defined or overridden there
-    "cleanup_record",
-    "read_revision",
+    "cleanup_record",  # not implemented
     "scan_expired_embargos",
-    "search_revisions",
     "set_user_quota",
 }
 
@@ -74,7 +71,7 @@ delegate_to_specialized_service = {
     # These methods are from the base Invenio drafts Service class
     "delete_draft",
     "edit",
-    "exists",  # permissions
+    "exists",
     "import_files",
     "new_version",
     "read_latest",
@@ -102,7 +99,7 @@ delegate_to_specialized_service_rdm = {
     "update_tombstone",
     "request_deletion",
     "file_modification",
-    "read_revision",  # permissions
+    "read_revision",
     "search_revisions",
 }
 
@@ -193,6 +190,21 @@ class DelegationToSpecializedServiceMixin(InvenioService):
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
         base_service = current_runtime.model_by_pid_type[pid_type].service
         return getattr(base_service, self.attribute_on_base_service) if self.attribute_on_base_service else base_service
+
+    @override
+    def run_components(self, action: str, *args: Any, **kwargs: Any) -> None:
+        if "record" in kwargs:
+            self._get_specialized_service(kwargs["record"].pid.pid_value).run_components(action, *args, **kwargs)
+        else:
+            super().run_components(action, *args, **kwargs)
+
+    @override
+    def permission_policy(self, action_name: str, **kwargs: Any) -> BasePermissionPolicy:
+        if "record" in kwargs:
+            return self._get_specialized_service(kwargs["record"].pid.pid_value).permission_policy(
+                action_name, **kwargs
+            )
+        return super().permission_policy(action_name, **kwargs)
 
 
 @pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_rdm)
