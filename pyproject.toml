@@ -63,6 +63,7 @@ templates_app_rdm_requests = "oarepo_rdm.ui.templates:requests_blueprint"
 templates_app_rdm_communities = "oarepo_rdm.ui.templates:communities_blueprint"
 templates_app_rdm_users = "oarepo_rdm.ui.templates:users_blueprint"
 templates_app_rdm_administration = "oarepo_rdm.ui.templates:administration_blueprint"
+oarepo_rdm_templates = "oarepo_rdm.ui.templates:oarepo_rdm_blueprint"
 # reuse app rdm blueprints
 
 [project.entry-points."invenio_search.mappings"]
