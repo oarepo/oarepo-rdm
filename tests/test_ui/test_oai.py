@@ -22,7 +22,7 @@ from invenio_oaiserver.response import NS_DC, NS_OAIDC, NS_OAIPMH
 from invenio_search.proxies import current_search_client
 from lxml import etree
 
-from .models import modela, modelb, modelc
+from tests.models import modela, modelb, modelc
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -100,6 +100,7 @@ def test_identify(app, search, users, logged_client, search_clear, percolators):
     client = logged_client(user)
 
     _identify = client.get("/oai2d?verb=Identify")
+    assert _identify.status_code == 200
 
 
 def test_get_record(
