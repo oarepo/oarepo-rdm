@@ -127,3 +127,12 @@ def administration_blueprint(app: Flask) -> Blueprint:  # noqa: ARG001
         template_folder="templates",
         static_folder="static",
     )
+
+
+def oarepo_rdm_blueprint(app: Flask) -> Blueprint:  # noqa: ARG001
+    """Template blueprint for oarepo-rdm own templates."""
+    return Blueprint(
+        "oarepo_rdm_templates",
+        "oarepo_rdm",
+        template_folder="templates",
+    )

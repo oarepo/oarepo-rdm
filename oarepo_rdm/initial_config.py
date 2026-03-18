@@ -186,3 +186,4 @@ RDM_RECORDS_ERROR_HANDLERS = {
         )
     ),
 }
+APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
