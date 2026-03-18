@@ -159,3 +159,6 @@ APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
     "invenio_app_rdm/records/details/side_bar/technical_metadata.html",
 ]
 """Template names for detail view sidebar components."""
+
+APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
+"""Template used for the record landing page, overriding the default to use the iframe-based detail view."""
