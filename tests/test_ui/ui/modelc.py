@@ -11,31 +11,30 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from oarepo_ui.resources import (
-    AllowedHtmlTagsComponent,
     BabelComponent,
-    CustomFieldsComponent,
     PermissionsComponent,
     RecordsUIResourceConfig,
 )
+from oarepo_ui.resources.components.bleach import AllowedHtmlTagsComponent
+from oarepo_ui.resources.components.custom_fields import CustomFieldsComponent
 
 from oarepo_rdm.ui.components import (
     CommunitiesMembershipsComponent,
     RDMVocabularyOptionsComponent,
 )
-from tests.ui.common import ModelUISerializer
+from tests.test_ui.ui.common import ModelUISerializer
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-class ModelaUIResourceConfig(RecordsUIResourceConfig):
-    """UI resource config for the ModelA."""
+class ModelcUIResourceConfig(RecordsUIResourceConfig):
+    """UI resource config for the ModelC."""
 
-    api_service = "modela"
-    model_name = "modela"
+    api_service = "simple_model"  # must be something included in oarepo, as oarepo is used in tests
 
-    blueprint_name = "modela_ui"
-    url_prefix = "/modela"
+    blueprint_name = "simple_model"
+    url_prefix = "/simple-model"
     ui_serializer_class = ModelUISerializer
     templates: Mapping = {
         **RecordsUIResourceConfig.templates,

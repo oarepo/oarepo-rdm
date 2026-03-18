@@ -22,7 +22,7 @@ def test_empty_list(db, rdm_records_service, users, logged_client, search_clear)
     client = logged_client(user)
 
     # test if empty list is serialized correctly
-    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    result = client.get("/records", headers={"Accept": "application/test+json"})
     assert result.status_code == 200
     assert len(result.json["hits"]["hits"]) == 0
     assert "test-ok" in result.json["hits"]
@@ -44,7 +44,7 @@ def test_list_with_model_a(db, rdm_records_service, users, logged_client, search
     modela_service.indexer.refresh()
     modela_service.draft_indexer.refresh()
 
-    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    result = client.get("/records", headers={"Accept": "application/test+json"})
     assert result.status_code == 200
     assert len(result.json["hits"]["hits"]) == 1
     assert "test-ok" in result.json["hits"]
@@ -79,7 +79,7 @@ def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, 
     modelb_service.indexer.refresh()
     modelb_service.draft_indexer.refresh()
 
-    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    result = client.get("/records", headers={"Accept": "application/test+json"})
     assert result.status_code == 200
     assert len(result.json["hits"]["hits"]) == 2
     assert "test-ok" in result.json["hits"]
@@ -139,7 +139,7 @@ def test_list_with_model_a_and_b_and_c(
     modelc_service.indexer.refresh()
     modelc_service.draft_indexer.refresh()
 
-    result = client.get("/api/records", headers={"Accept": "application/test+json"})
+    result = client.get("/records", headers={"Accept": "application/test+json"})
     assert result.status_code == 200
     assert len(result.json["hits"]["hits"]) == 2
     assert "test-ok" in result.json["hits"]
@@ -156,6 +156,7 @@ def test_read(
     client,
     vocab_fixtures,
     required_rdm_metadata,
+    link2testclient,
     search_clear,
 ):
     user = users[0]
@@ -199,13 +200,13 @@ def test_read(
     )
     _publish = rdm_records_service.publish(user.identity, sample["id"])
 
-    result = client.get(f"/api/records/{sample['id']}")
+    result = client.get(f"/records/{sample['id']}")
     assert result.status_code == 200
     assert result.json["links"] != {}
 
     # 1. get UI representation from the self url
     result = client.get(
-        result.json["links"]["self"].replace("http://localhost/", "/api/"),
+        link2testclient(result.json["links"]["self"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert result.status_code == 200
@@ -242,10 +243,10 @@ def test_read(
         "affiliations": [[1, "Technische Universität Wien", None]],
     }
 
-    # 2. get UI representation from the /api/records url
+    # 2. get UI representation from the /records url
 
     result = client.get(
-        f"/api/records/{sample['id']}",
+        f"/records/{sample['id']}",
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert result.status_code == 200
@@ -283,20 +284,16 @@ def test_read(
     }
 
 
-def _link2testclient(link: str) -> str:  # 'http://localhost/modela/hvje7-s1w04/draft/files'
-    return link.replace("http://localhost/", "/api/")
-
-
-def _upload_file_via_resource(client, sample, link="files") -> None:
+def _upload_file_via_resource(client, sample, link2testclient, link="files") -> None:
     init = client.post(
-        _link2testclient(sample["links"][link]),
+        link2testclient(sample["links"][link]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
         json=[
             {"key": "test.pdf", "metadata": {"title": "Test file"}},
         ],
     )
     client.put(
-        _link2testclient(init.json["entries"][0]["links"]["content"]),
+        link2testclient(init.json["entries"][0]["links"]["content"]),
         headers={
             "content-type": "application/octet-stream",
             "Accept": "application/vnd.inveniordm.v1+json",
@@ -304,17 +301,19 @@ def _upload_file_via_resource(client, sample, link="files") -> None:
         data=BytesIO(b"testfile"),
     )
     client.post(
-        _link2testclient(init.json["entries"][0]["links"]["commit"]),
+        link2testclient(init.json["entries"][0]["links"]["commit"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
 
 
-def test_draft_file_ui_serialization(rdm_records_service, upload_file, users, logged_client, location, search_clear):
+def test_draft_file_ui_serialization(
+    rdm_records_service, upload_file, users, logged_client, link2testclient, location, search_clear
+):
     user = users[0]
     client = logged_client(user)
 
     resp = client.post(
-        "/api/records",
+        "/records",
         json={
             "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": True},
@@ -324,9 +323,9 @@ def test_draft_file_ui_serialization(rdm_records_service, upload_file, users, lo
     )
     assert resp.status_code == 201
     sample_draft = resp.json
-    _upload_file_via_resource(client, sample_draft)
+    _upload_file_via_resource(client, sample_draft, link2testclient)
     file_resp = client.get(
-        _link2testclient(sample_draft["links"]["files"]),
+        link2testclient(sample_draft["links"]["files"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200
@@ -335,13 +334,13 @@ def test_draft_file_ui_serialization(rdm_records_service, upload_file, users, lo
 
 
 def test_file_links_ui_serialization(
-    db, rdm_records_service, upload_file, users, logged_client, location, search_clear
+    rdm_records_service, upload_file, users, logged_client, link2testclient, location, search_clear
 ):
     user = users[0]
     client = logged_client(user)
 
     resp = client.post(
-        "/api/records",
+        "/records",
         json={
             "$schema": "local://modela-v1.0.0.json",
             "files": {"enabled": True},
@@ -350,15 +349,15 @@ def test_file_links_ui_serialization(
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     sample_draft = resp.json
-    _upload_file_via_resource(client, sample_draft)
+    _upload_file_via_resource(client, sample_draft, link2testclient)
     publish_resp = client.post(
-        _link2testclient(sample_draft["links"]["publish"]),
+        link2testclient(sample_draft["links"]["publish"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert publish_resp.status_code == 202
     published = publish_resp.json
     file_resp = client.get(
-        _link2testclient(published["links"]["files"]),
+        link2testclient(published["links"]["files"]),
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200

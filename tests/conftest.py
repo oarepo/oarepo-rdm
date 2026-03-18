@@ -20,13 +20,15 @@ from unittest.mock import MagicMock
 import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
+from flask_security import login_user
 from flask_webpackext.manifest import (
     JinjaManifest,
     JinjaManifestEntry,
     JinjaManifestLoader,
 )
 from invenio_access.permissions import system_identity
-from invenio_app.factory import create_app as _create_app
+from invenio_accounts.testutils import login_user_via_session
+from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.components import DefaultRecordsComponents
 from invenio_records_resources.services.records.components.base import ServiceComponent
@@ -51,12 +53,18 @@ pytest_plugins = [
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
     """Application factory fixture."""
-    return _create_app
+    return create_api
 
 
 @pytest.fixture(scope="module", autouse=True)
 def location(location):
     return location
+
+
+@pytest.fixture
+def host() -> str:
+    """Return host url."""
+    return "http://localhost/"
 
 
 @pytest.fixture(scope="module")
@@ -156,7 +164,7 @@ def app_config(app_config):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
-    app_config["SITE_API_URL"] = "http://localhost"
+    app_config["SITE_API_URL"] = "http://localhost/api"
     app_config["SITE_UI_URL"] = "http://localhost"
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
         "L": "Local",
@@ -401,13 +409,8 @@ class LoggedClient:
 
     def _login(self) -> None:
         """Perform login."""
-        self.client.post(
-            "/api/login",
-            json={
-                "email": self.user_fixture.email,
-                "password": self.user_fixture.password,
-            },
-        )
+        login_user(self.user_fixture.user, remember=True)
+        login_user_via_session(self.client, email=self.user_fixture.email)
 
     def post(self, *args: Any, **kwargs: Any) -> Any:
         """Send a POST request with authentication."""
@@ -611,7 +614,7 @@ class MockManifestLoader(JinjaManifestLoader):
 @pytest.fixture(scope="module")
 def modela_ui_resource_config():
     """UI resource config for modela."""
-    from tests.ui.modela import ModelaUIResourceConfig
+    from tests.test_ui.ui.modela import ModelaUIResourceConfig
 
     return ModelaUIResourceConfig()
 
