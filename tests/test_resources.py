@@ -307,7 +307,7 @@ def _upload_file_via_resource(client, sample, link2testclient, link="files") -> 
 
 
 def test_draft_file_ui_serialization(
-    rdm_records_service, upload_file, users, logged_client, link2testclient, location, search_clear
+    rdm_records_service, users, logged_client, link2testclient, location, search_clear
 ):
     user = users[0]
     client = logged_client(user)
@@ -333,9 +333,7 @@ def test_draft_file_ui_serialization(
     assert len(file_resp.json["entries"]) == 1
 
 
-def test_file_links_ui_serialization(
-    rdm_records_service, upload_file, users, logged_client, link2testclient, location, search_clear
-):
+def test_file_ui_serialization(rdm_records_service, users, logged_client, link2testclient, location, search_clear):
     user = users[0]
     client = logged_client(user)
 

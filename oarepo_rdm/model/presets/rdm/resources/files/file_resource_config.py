@@ -12,9 +12,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_rdm_records.resources.config import RDMRecordFilesResourceConfig
+from invenio_rdm_records.resources.config import RDMDraftFilesResourceConfig, RDMRecordFilesResourceConfig
 from invenio_records_resources.resources import FileResourceConfig
 from oarepo_model.customizations import (
+    AddToDictionary,
     Customization,
     ReplaceBaseClass,
 )
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class RDMFileResourceConfigPreset(Preset):
-    """Preset for file resource config class."""
+    """Preset for RDM files resource config class."""
 
     modifies = ("FileResourceConfig",)
 
@@ -44,3 +45,7 @@ class RDMFileResourceConfigPreset(Preset):
             FileResourceConfig,
             RDMRecordFilesResourceConfig,
         )
+
+        # TODO: file_response_handlers are shared between published and drafts in oarepo_model
+        # RDMRecordFilesResourceConfig doesn't have vnd.inveniordm.v1+json so the drafts config is used instead
+        yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # type:ignore[reportArgumentType]

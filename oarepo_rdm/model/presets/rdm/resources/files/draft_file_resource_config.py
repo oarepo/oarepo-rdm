@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class RDMDraftFileResourceConfigPreset(Preset):
-    """Preset for file resource config class."""
+    """Preset for RDM draft files resource config class."""
 
     modifies = ("DraftFileResourceConfig",)
 
@@ -46,5 +46,5 @@ class RDMDraftFileResourceConfigPreset(Preset):
             RDMDraftFilesResourceConfig,
         )
 
-        # the published invenio endpoint doesn't have vnd.inveniordm.v1+json handler for some reason
+        # file_response_handlers are shared between drafts and published
         yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # type:ignore[reportArgumentType]
