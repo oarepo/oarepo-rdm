@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, override
 from invenio_rdm_records.resources.config import RDMDraftMediaFilesResourceConfig
 from invenio_records_resources.resources import FileResourceConfig
 from oarepo_model.customizations import (
+    AddToDictionary,
     Customization,
     ReplaceBaseClass,
 )
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class RDMDraftMediaFileResourceConfigPreset(Preset):
-    """Preset for file resource config class."""
+    """Preset for RDM draft media files resource config class."""
 
     modifies = ("DraftMediaFileResourceConfig",)
 
@@ -43,4 +44,9 @@ class RDMDraftMediaFileResourceConfigPreset(Preset):
             "DraftMediaFileResourceConfig",
             FileResourceConfig,
             RDMDraftMediaFilesResourceConfig,
+        )
+
+        yield AddToDictionary(
+            "media_file_response_handlers",
+            RDMDraftMediaFilesResourceConfig.response_handlers,  # type:ignore[reportArgumentType]
         )

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class RDMMediaFileResourceConfigPreset(Preset):
-    """Preset for file resource config class."""
+    """Preset for RDM media files resource config class."""
 
     modifies = ("MediaFileResourceConfig",)
 
