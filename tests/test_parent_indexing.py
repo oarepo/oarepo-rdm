@@ -1,22 +1,13 @@
-# flake8: noqa
-# mypy: ignore-errors
 #
-# Copyright (c) 2025 CESNET z.s.p.o.
+# Copyright (c) 2026 CESNET z.s.p.o.
 #
 # This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
 #
 # oarepo-rdm is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""Test access settings indexing: model-specific vs global (delegating) service.
 
-Hypothesis: When access settings are updated via the global DelegatingRecordAccessService,
-ParentRecordCommitOp uses RDMRecord.get_records_by_parent() to find sibling versions for
-reindexing. But RDMRecord.model_cls (RDMRecordMetadata, table "rdm_records_metadata") is a
-different table than the model-specific one (e.g. ModelaRecordMetadata, table "modela_metadata"),
-so it returns no records and reindexing is silently skipped. The model-specific service uses the
-correct record_cls and reindexes all versions.
-"""
+"""Test access settings indexing: model-specific vs global (delegating) service."""
 
 from __future__ import annotations
 
@@ -27,7 +18,7 @@ from tests.models import modela
 modela_service = modela.proxies.current_service
 
 
-def _create_versioned_record(service, user):
+def _create_versioned_record(service, user) -> tuple[str, str]:
     """Create a record with two published versions, return (v1_pid, v2_pid)."""
     draft_v1 = service.create(
         user.identity,
@@ -70,7 +61,7 @@ SETTINGS_ENABLED = {
 }
 
 
-def _get_settings_from_search(service, user):
+def _get_settings_from_search(service, user) -> list[tuple[str, dict]]:
     """Return list of (record_id, settings_dict) from search hits."""
     modela_service.indexer.refresh()
     hits = list(service.search(user.identity))
@@ -134,9 +125,11 @@ def test_access_settings_via_global_delegating_service(
     user = users[0]
     service = rdm_records_service
     v1_pid, v2_pid = _create_versioned_record(service, user)
-    modela_service.indexer.process_bulk_queue()  # This shouldn't work with rdm_records_service bc of invenio_indexer.api.RecordIndexer._index_action
+    # This shouldn't work with rdm_records_service bc of invenio_indexer.api.RecordIndexer._index_action
+    modela_service.indexer.process_bulk_queue()
+
     search_hits = _get_settings_from_search(service, user)
-    for record_id, settings in search_hits:
+    for _, settings in search_hits:
         assert settings.get("allow_user_requests") is False
 
     # Use the GLOBAL delegating access service (what the global /records endpoint uses)

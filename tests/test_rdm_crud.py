@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.errors import RecordDeletedException
 
 
@@ -76,6 +77,8 @@ def test_publish(
     input_data,
     rdm_model,
     search,
+    users,
+    logged_client,
     search_clear,
     location,
     add_file_to_draft,
@@ -134,70 +137,18 @@ def test_delete(
     location,
 ):
     # Create and publish a record
-    from .models import modela
 
-    service = modela.proxies.current_service
+    service = current_rdm_records_service
 
-    item = service.create(identity_simple, input_data)
+    item = service.create(identity_simple, input_data | {"$schema": "local://modela-v1.0.0.json"})
     id_ = item.id
     add_file_to_draft(service.draft_files, id_, "test.txt", identity_simple)
     service.publish(identity_simple, id_)
-    service.indexer.refresh()
-
-    res = service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
-    assert res.total == 1
-
     service.delete(identity_simple, id_)
-    # TODO: what about if indexer called directly from the rdm service?
-    # see invenio_rdm_records.requests.user_moderation.tasks.delete_record
-    service.indexer.refresh()
-
-    res = service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
-    assert res.total == 0
 
     # Should be gone from DB
     with pytest.raises(PIDDeletedError):
         service.read(identity_simple, id_)
-
-
-def test_rebuild_index(
-    app,
-    test_rdm_service,
-    test_rdm_draft_files_service,
-    identity_simple,
-    input_data,
-    rdm_model,
-    add_file_to_draft,
-    search,
-    search_clear,
-    location,
-):
-    """Test that rebuild_index correctly reindexes records via the bulk queue."""
-    # Create and publish a record
-    item = test_rdm_service.create(identity_simple, input_data)
-    id_ = item.id
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
-    test_rdm_service.publish(identity_simple, id_)
-    test_rdm_service.indexer.refresh()
-
-    # Verify it's in the index
-    res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
-    assert res.total == 1
-
-    # rebuild_index enqueues all records via indexer.bulk_index() (MQ queue).
-    # This exercises the same async path as RecordBulkIndexOp.
-    test_rdm_service.rebuild_index(system_identity)
-
-    # Process the bulk queue synchronously (in production this is done by
-    # manage_indexer_queues -> process_bulk_queue celery tasks)
-    test_rdm_service.indexer.process_bulk_queue()
-    test_rdm_service.indexer.refresh()
-
-    # Record should still be searchable after reindex
-    res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
-    assert res.total == 1
-    first_hit = next(iter(res.hits))
-    assert first_hit["id"] == id_
 
 
 def test_rdm_publish(

@@ -103,16 +103,6 @@ delegate_to_specialized_service_rdm = {
     "search_revisions",
 }
 
-overwritten_in_oarepo_rdm = {
-    "create",
-    "oai_result_item",
-    "rebuild_index",
-    "cleanup_drafts",
-    "reindex_latest_first",
-    "reindex",
-    "on_relation_update",
-}
-
 permissions_search_mapping = {
     "read": "search",
     "read_deleted": "search",
@@ -127,13 +117,12 @@ def check_fully_overridden(
     """Check that all methods are fully overridden in the subclass."""
 
     def wrapper(cls: _T) -> _T:
-        # go through base classes and check if methods defined on them
-        # are either in the list of exceptions, or are overriden in the class
+        # go through base classes and check if methods defined on them are overriden in the class
         for name, value in vars(base_class).items():
             if not callable(value) or name.startswith("_") or name in pass_through or name in delegate_to_specialized:
                 continue
 
-            this_class_value = getattr(cls, name, None)
+            this_class_value = cls.__dict__.get(name, None)
             if this_class_value is value:
                 raise TypeError(f"Method with name {value.__qualname__} is not overridden in OARepoRDMService.")
         return cls
@@ -205,6 +194,11 @@ class DelegationToSpecializedServiceMixin(InvenioService):
                 action_name, **kwargs
             )
         return super().permission_policy(action_name, **kwargs)
+
+
+# TODO: won't work for indexer and ParentRecordCommitOp called directly on the global service or with it passed
+# as an argument
+# see invenio_rdm_records.requests.user_moderation.tasks.delete_record or CommunitySubmission requests
 
 
 @pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_rdm)
