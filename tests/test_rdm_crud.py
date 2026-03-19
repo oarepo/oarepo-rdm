@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 from invenio_access.permissions import system_identity
-from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
 from invenio_rdm_records.services.errors import RecordDeletedException
 
 
@@ -134,26 +134,30 @@ def test_delete(
     location,
 ):
     # Create and publish a record
-    item = test_rdm_service.create(identity_simple, input_data)
-    id_ = item.id
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
-    test_rdm_service.publish(identity_simple, id_)
-    test_rdm_service.indexer.refresh()
+    from .models import modela
 
-    res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
+    service = modela.proxies.current_service
+
+    item = service.create(identity_simple, input_data)
+    id_ = item.id
+    add_file_to_draft(service.draft_files, id_, "test.txt", identity_simple)
+    service.publish(identity_simple, id_)
+    service.indexer.refresh()
+
+    res = service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 1
 
-    test_rdm_service.delete(identity_simple, id_)
+    service.delete(identity_simple, id_)
     # TODO: what about if indexer called directly from the rdm service?
     # see invenio_rdm_records.requests.user_moderation.tasks.delete_record
-    test_rdm_service.indexer.refresh()
+    service.indexer.refresh()
 
-    res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
+    res = service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
 
     # Should be gone from DB
-    with pytest.raises(PIDDoesNotExistError):
-        test_rdm_service.read(identity_simple, id_)
+    with pytest.raises(PIDDeletedError):
+        service.read(identity_simple, id_)
 
 
 def test_rebuild_index(
