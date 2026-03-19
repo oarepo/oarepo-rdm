@@ -22,7 +22,7 @@ from oarepo_rdm.ui.components import (
     CommunitiesMembershipsComponent,
     RDMVocabularyOptionsComponent,
 )
-from tests.ui.common import ModelUISerializer
+from tests.test_ui.ui.common import ModelUISerializer
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

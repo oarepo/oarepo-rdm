@@ -37,7 +37,7 @@ def test_runtime_model(
 
     assert runtime_model.draft_pid_type == "rdmtst"
 
-    assert runtime_model.api_url("search") == "http://localhost/rdm-test"
+    assert runtime_model.api_url("search") == "http://localhost/api/rdm-test"
 
     assert isinstance(runtime_model.resource_config, rdm_model.RecordResourceConfig)
     assert isinstance(runtime_model.resource, rdm_model.RecordResource)

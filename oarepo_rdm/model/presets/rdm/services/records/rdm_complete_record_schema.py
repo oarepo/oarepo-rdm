@@ -12,7 +12,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_rdm_records.services.schemas.metadata import MetadataSchema as RDMMetadataSchema
+from invenio_rdm_records.services.schemas.metadata import (
+    MetadataSchema as RDMMetadataSchema,
+)
 from oarepo_model.customizations import Customization, PrependMixin
 from oarepo_model.presets import Preset
 
