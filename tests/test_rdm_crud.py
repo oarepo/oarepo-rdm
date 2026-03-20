@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import pytest
 from invenio_access.permissions import system_identity
-from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.errors import RecordDeletedException
 
 
@@ -76,6 +77,8 @@ def test_publish(
     input_data,
     rdm_model,
     search,
+    users,
+    logged_client,
     search_clear,
     location,
     add_file_to_draft,
@@ -119,6 +122,33 @@ def test_publish(
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
+
+
+def test_delete(
+    app,
+    test_rdm_service,
+    test_rdm_draft_files_service,
+    identity_simple,
+    input_data,
+    rdm_model,
+    add_file_to_draft,
+    search,
+    search_clear,
+    location,
+):
+    # Create and publish a record
+
+    service = current_rdm_records_service
+
+    item = service.create(identity_simple, input_data | {"$schema": "local://modela-v1.0.0.json"})
+    id_ = item.id
+    add_file_to_draft(service.draft_files, id_, "test.txt", identity_simple)
+    service.publish(identity_simple, id_)
+    service.delete(identity_simple, id_)
+
+    # Should be gone from DB
+    with pytest.raises(PIDDeletedError):
+        service.read(identity_simple, id_)
 
 
 def test_rdm_publish(
