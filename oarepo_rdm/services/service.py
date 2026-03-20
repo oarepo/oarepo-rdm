@@ -437,5 +437,6 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
                     notif_time,
                     limit=limit,
                 )
-            raise NotImplementedError(f"Model {model} does not support relation updates.")
+            else:
+                raise NotImplementedError(f"Model {model} does not support relation updates.")  # or pass or to do?
         return True
