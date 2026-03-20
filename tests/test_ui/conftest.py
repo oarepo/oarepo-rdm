@@ -16,3 +16,10 @@ from invenio_app.factory import create_app as _create_app
 def create_app(instance_path, entry_points):
     """Application factory fixture."""
     return _create_app
+
+
+@pytest.fixture(scope="module")
+def app_config(app_config):
+    """Mimic an instance's configuration."""
+    app_config["SITE_UI_URL"] = "http://localhost"
+    return app_config
