@@ -61,12 +61,6 @@ def location(location):
     return location
 
 
-@pytest.fixture
-def host() -> str:
-    """Return host url."""
-    return "http://localhost/"
-
-
 @pytest.fixture(scope="module")
 def identity_simple():
     """Return simple identity fixture."""
@@ -164,8 +158,6 @@ def app_config(app_config):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
-    app_config["SITE_API_URL"] = "http://localhost/api"
-    app_config["SITE_UI_URL"] = "http://localhost"
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
         "L": "Local",
         "F": "Fetch",
