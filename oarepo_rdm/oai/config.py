@@ -97,10 +97,6 @@ class OAIServerMetadataFormats(Dict):
         # entry with a multiplexing serializer
         ret = {}
         for key, serialization_infos in infos.items():
-            if len(serialization_infos) == 1:
-                serialization_infos[0].pop("model_schema")
-                ret[key] = serialization_infos[0]
-                continue
             if len({x["namespace"] for x in serialization_infos}) != 1:
                 raise ValueError(
                     f"Multiple different namespaces for OAI metadata prefix {key}: "
