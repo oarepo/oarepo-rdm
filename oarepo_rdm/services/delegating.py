@@ -82,7 +82,9 @@ delegate_to_specialized_service_pids = {
 
 @pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_review)
 @check_fully_overridden(
-    pass_through, delegate_to_specialized_service | delegate_to_specialized_service_review, ReviewService
+    pass_through,
+    delegate_to_specialized_service | delegate_to_specialized_service_review,
+    ReviewService,
 )
 class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService):
     """Delegating review service."""
@@ -92,7 +94,11 @@ class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService
     @unit_of_work()
     @override
     def create(
-        self, identity: Identity, data: dict[str, Any], record: RDMRecord | RDMDraft, uow: UnitOfWork
+        self,
+        identity: Identity,
+        data: dict[str, Any],
+        record: RDMRecord | RDMDraft,
+        uow: UnitOfWork,
     ) -> RecordItem:
         specialized_service = cast("ReviewService", self._get_specialized_service(str(record.pid.pid_value)))
         return specialized_service.create(identity, data, record, uow)
