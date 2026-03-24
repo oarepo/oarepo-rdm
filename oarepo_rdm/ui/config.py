@@ -64,18 +64,18 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         RDMVocabularyOptionsComponent,
         CommunitiesMembershipsComponent,
     )
-    """Default components for RDM UI resources.
 
-    These components handle common functionality like:
-    - AllowedHtmlTagsComponent: Sanitizes HTML tags in record content
-    - BabelComponent: Provides internationalization support
-    - PermissionsComponent: Handles permission checks
-    - FilesComponent: Manages file handling
-    - CustomFieldsComponent: Processes custom fields
-    - RecordRestrictionComponent: Handles access restrictions
-    - EmptyRecordAccessComponent: Sets default access for new records
-    - FilesLockedComponent: Manages file locking state
-    - FilesQuotaAndTransferComponent: Handles file quota and transfer limits
-    - RDMVocabularyOptionsComponent: Provides RDM vocabulary options
-    - CommunitiesMembershipsComponent: Handles community memberships
-    """
+    # Default components for RDM UI resources.
+    #
+    # These components handle common functionality like:
+    # - AllowedHtmlTagsComponent: Sanitizes HTML tags in record content
+    # - BabelComponent: Provides internationalization support
+    # - PermissionsComponent: Handles permission checks
+    # - FilesComponent: Manages file handling
+    # - CustomFieldsComponent: Processes custom fields
+    # - RecordRestrictionComponent: Handles access restrictions
+    # - EmptyRecordAccessComponent: Sets default access for new records
+    # - FilesLockedComponent: Manages file locking state
+    # - FilesQuotaAndTransferComponent: Handles file quota and transfer limits
+    # - RDMVocabularyOptionsComponent: Provides RDM vocabulary options
+    # - CommunitiesMembershipsComponent: Handles community memberships
