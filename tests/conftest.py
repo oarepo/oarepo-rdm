@@ -616,3 +616,19 @@ def modela_ui_resource(app, modela_ui_resource_config):
     from oarepo_ui.resources import RecordsUIResource
 
     return RecordsUIResource(modela_ui_resource_config)
+
+
+@pytest.fixture(scope="module")
+def modelb_ui_resource_config():
+    """UI resource config for modelb."""
+    from tests.test_ui.ui.modelb import ModelbUIResourceConfig
+
+    return ModelbUIResourceConfig()
+
+
+@pytest.fixture(scope="module")
+def modelb_ui_resource(app, modelb_ui_resource_config):
+    """UI resource for modelb."""
+    from oarepo_rdm.ui.resource import RDMRecordsUIResource
+
+    return RDMRecordsUIResource(modelb_ui_resource_config)

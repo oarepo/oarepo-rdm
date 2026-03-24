@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from flask import g
 
+from oarepo_rdm.ui.config import RDMRecordsUIResourceConfig
+
 
 def test_form_config_contains_communities_memberships_and_vocabularies(
     app, db, users, vocab_fixtures, modela_ui_resource_config, modela_ui_resource
@@ -62,3 +64,15 @@ def test_form_config_contains_communities_memberships_and_vocabularies(
 
     assert "dates" in vocabularies
     assert "type" in vocabularies["dates"]
+
+
+def test_modelb_uses_rdm_records_ui_resource_config(modelb_ui_resource_config):
+    """Test that ModelbUIResourceConfig inherits from RDMRecordsUIResourceConfig."""
+    assert isinstance(modelb_ui_resource_config, RDMRecordsUIResourceConfig)
+
+
+def test_modelb_has_expected_components(modelb_ui_resource_config, modelb_ui_resource):
+    """Test that modelb has the expected components from RDMRecordsUIResourceConfig."""
+    # ModelbUIResourceConfig should have components from parent class
+    assert hasattr(modelb_ui_resource_config, "components")
+    assert len(list(modelb_ui_resource.components)) == len(list(RDMRecordsUIResourceConfig().components))
