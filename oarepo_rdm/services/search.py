@@ -14,7 +14,10 @@ import logging
 from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
-from invenio_rdm_records.services.search_params import MetricsParam, SharedOrMyDraftsParam
+from invenio_rdm_records.services.search_params import (
+    MetricsParam,
+    SharedOrMyDraftsParam,
+)
 from invenio_records_resources.services.records.config import SearchOptions
 from invenio_records_resources.services.records.params import (
     FacetsParam,

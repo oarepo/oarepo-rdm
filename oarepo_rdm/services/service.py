@@ -112,7 +112,9 @@ permissions_search_mapping = {
 
 
 def check_fully_overridden(
-    pass_through: Iterable[str], delegate_to_specialized: Iterable[str], base_class: type
+    pass_through: Iterable[str],
+    delegate_to_specialized: Iterable[str],
+    base_class: type,
 ) -> Callable[[_T], _T]:
     """Check that all methods are fully overridden in the subclass."""
 

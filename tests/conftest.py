@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, override
 from unittest import mock
 from unittest.mock import MagicMock
 
-import arrow
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from flask_security import login_user
@@ -184,7 +183,10 @@ def app_config(app_config):
     # Disable invenio_records_ui routes - we use our own record_detail view
     app_config["RECORDS_UI_ENDPOINTS"] = {}
 
-    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (*DefaultRecordsComponents, MockReviewInRDMServiceComponent)
+    app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
+        *DefaultRecordsComponents,
+        MockReviewInRDMServiceComponent,
+    )
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -204,10 +206,15 @@ def app_config(app_config):
 
 # from invenio_rdm_records
 @pytest.fixture
-def embargoed_files_record(rdm_records_service, identity_simple):
+def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple):
     def _record(records_service) -> RDMRecord:
-        # Add embargo to record
-        with mock.patch("arrow.utcnow") as mock_arrow:
+        with mock.patch("invenio_rdm_records.services.schemas.access.datetime") as mock_dt:
+            # invenio validates inside invenio_rdm_records.services.schemas.access.EmbargoSchema that `until` is
+            # in the future. Because embargo is evaluated on daily basis we must pretend that actual time is in the
+            # past in order for the schema check to pass.
+            # Note that all other datetime fields on the record contain current date (so inconsistent with the date
+            # below) but no test that uses this embargoed file record uses those dates
+            mock_dt.now.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             data = {
                 "metadata": {"title": "aaaaa", "adescription": "jej"},
                 "files": {"enabled": False},
@@ -222,15 +229,10 @@ def embargoed_files_record(rdm_records_service, identity_simple):
                     },
                 },
             }
-
-            # We need to set the current date in the past to pass the validations
-            mock_arrow.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             draft = records_service.create(identity_simple, data)
             record = rdm_records_service.publish(id_=draft.id, identity=identity_simple)
             records_service.indexer.refresh()
             records_service.draft_indexer.refresh()
-            # Recover current date
-            mock_arrow.return_value = arrow.get(datetime.now(tz=UTC))
         return record
 
     return _record
@@ -523,7 +525,11 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "titletypes", "tttyp")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "titletypes", "id": "alternative-title", "title": {"en": "Alternative title"}},
+        {
+            "type": "titletypes",
+            "id": "alternative-title",
+            "title": {"en": "Alternative title"},
+        },
     )
 
     # creatorsroles
@@ -558,7 +564,12 @@ def vocab_fixtures():
     current_vocabularies_service.create_type(system_identity, "removalreasons", "rmrsn")
     current_vocabularies_service.create(
         system_identity,
-        {"type": "removalreasons", "id": "spam", "title": {"en": "Spam"}, "tags": ["deletion-request"]},
+        {
+            "type": "removalreasons",
+            "id": "spam",
+            "title": {"en": "Spam"},
+            "tags": ["deletion-request"],
+        },
     )
 
     current_vocabularies_service.indexer.refresh()
