@@ -206,9 +206,14 @@ def app_config(app_config):
 
 # from invenio_rdm_records
 @pytest.fixture
-def embargoed_files_record(rdm_records_service, identity_simple):
+def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple):
     def _record(records_service) -> RDMRecord:
         with mock.patch("invenio_rdm_records.services.schemas.access.datetime") as mock_dt:
+            # invenio validates inside invenio_rdm_records.services.schemas.access.EmbargoSchema that `until` is
+            # in the future. Because embargo is evaluated on daily basis we must pretend that actual time is in the
+            # past in order for the schema check to pass.
+            # Note that all other datetime fields on the record contain current date (so inconsistent with the date
+            # below) but no test that uses this embargoed file record uses those dates
             mock_dt.now.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             data = {
                 "metadata": {"title": "aaaaa", "adescription": "jej"},

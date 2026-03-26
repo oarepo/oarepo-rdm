@@ -17,8 +17,8 @@ modelb_service = modelb.proxies.current_service
 modelc_service = modelc.proxies.current_service
 
 
-def test_embargo_lift_without_draft(rdm_records_service, embargoed_files_record, search_clear):
-    record = embargoed_files_record(modela_service)
+def test_embargo_lift_without_draft(rdm_records_service, unlifted_expired_embargoed_files_record, search_clear):
+    record = unlifted_expired_embargoed_files_record(modela_service)
     update_expired_embargos()
     record_lifted = rdm_records_service.record_cls.pid.resolve(record["id"])
     assert record_lifted.access.embargo.active is False
@@ -27,8 +27,10 @@ def test_embargo_lift_without_draft(rdm_records_service, embargoed_files_record,
     assert record_lifted.access.status.value == "metadata-only"
 
 
-def test_embargo_lift_with_draft(rdm_records_service, embargoed_files_record, identity_simple, search_clear):
-    record = embargoed_files_record(modela_service)
+def test_embargo_lift_with_draft(
+    rdm_records_service, unlifted_expired_embargoed_files_record, identity_simple, search_clear
+):
+    record = unlifted_expired_embargoed_files_record(modela_service)
     service = rdm_records_service
 
     # Edit a draft
@@ -49,8 +51,10 @@ def test_embargo_lift_with_draft(rdm_records_service, embargoed_files_record, id
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_embargo_lift_with_updated_draft(rdm_records_service, embargoed_files_record, identity_simple, search_clear):
-    record = embargoed_files_record(modela_service)
+def test_embargo_lift_with_updated_draft(
+    rdm_records_service, unlifted_expired_embargoed_files_record, identity_simple, search_clear
+):
+    record = unlifted_expired_embargoed_files_record(modela_service)
     service = rdm_records_service
 
     # This draft simulates an existing one while lifting the record
@@ -78,9 +82,9 @@ def test_embargo_lift_with_updated_draft(rdm_records_service, embargoed_files_re
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_embargo_lift_multiple_models(rdm_records_service, embargoed_files_record, search_clear):
-    record1 = embargoed_files_record(modela_service)
-    record2 = embargoed_files_record(modelb_service)
+def test_embargo_lift_multiple_models(rdm_records_service, unlifted_expired_embargoed_files_record, search_clear):
+    record1 = unlifted_expired_embargoed_files_record(modela_service)
+    record2 = unlifted_expired_embargoed_files_record(modelb_service)
 
     update_expired_embargos()
 
