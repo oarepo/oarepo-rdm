@@ -20,6 +20,7 @@ from oarepo_ui.resources import (
 
 from oarepo_rdm.ui.components import (
     CommunitiesMembershipsComponent,
+    RDMPIDsConfigComponent,
     RDMVocabularyOptionsComponent,
 )
 from tests.ui.common import ModelUISerializer
@@ -51,5 +52,6 @@ class ModelaUIResourceConfig(RecordsUIResourceConfig):
         AllowedHtmlTagsComponent,
         CustomFieldsComponent,
         CommunitiesMembershipsComponent,
+        RDMPIDsConfigComponent,
         RDMVocabularyOptionsComponent,
     )
