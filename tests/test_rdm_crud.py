@@ -63,6 +63,7 @@ def test_simple_flow(
     # - db
     with pytest.raises(PIDDoesNotExistError):
         test_rdm_service.read(identity_simple, id_)
+
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
@@ -117,6 +118,7 @@ def test_publish(
     # - db
     with pytest.raises(RecordDeletedException):
         test_rdm_service.read(identity_simple, id_)
+
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
@@ -186,6 +188,7 @@ def test_rdm_publish(
     # - db
     with pytest.raises(RecordDeletedException):
         test_rdm_service.read(identity_simple, id_)
+
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
