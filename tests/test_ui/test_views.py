@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from .models import modela
+from tests.models import modela
 
 modela_service = modela.proxies.current_service
 

@@ -27,7 +27,7 @@ from flask_webpackext.manifest import (
 )
 from invenio_access.permissions import system_identity
 from invenio_accounts.testutils import login_user_via_session
-from invenio_app.factory import create_app as _create_app
+from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.components import DefaultRecordsComponents
 from invenio_records_resources.services.records.components.base import ServiceComponent
@@ -43,11 +43,16 @@ if TYPE_CHECKING:
 
 # TODO: add pytest-oarepo and remove some of the fixtures below
 
+pytest_plugins = [
+    "pytest_oarepo.files",
+    "pytest_oarepo.fixtures",
+]
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
     """Application factory fixture."""
-    return _create_app
+    return create_api
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -152,8 +157,6 @@ def app_config(app_config):
             "port": os.environ.get("OPENSEARCH_PORT", "9200"),
         }
     ]
-    app_config["SITE_API_URL"] = "http://localhost"
-    app_config["SITE_UI_URL"] = "http://localhost"
     app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
         "L": "Local",
         "F": "Fetch",
@@ -602,7 +605,7 @@ class MockManifestLoader(JinjaManifestLoader):
 @pytest.fixture(scope="module")
 def modela_ui_resource_config():
     """UI resource config for modela."""
-    from tests.ui.modela import ModelaUIResourceConfig
+    from tests.test_ui.ui.modela import ModelaUIResourceConfig
 
     return ModelaUIResourceConfig()
 

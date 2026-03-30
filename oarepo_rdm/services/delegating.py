@@ -30,9 +30,6 @@ if TYPE_CHECKING:
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
     from invenio_records_resources.services.records.results import RecordItem
 
-else:
-    InvenioService = object
-
 pass_through_service_access = {
     "link_result_item",
     "link_result_list",
