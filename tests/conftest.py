@@ -148,8 +148,12 @@ def rdm_model(model_types, finalization_called):
 def app_config(app_config):
     """Mimic an instance's configuration."""
     app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
-    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
+    app_config["RECORDS_REFRESOLVER_CLS"] = (
+        "invenio_records.resolver.InvenioRefResolver"
+    )
+    app_config["RECORDS_REFRESOLVER_STORE"] = (
+        "invenio_jsonschemas.proxies.current_refresolver_store"
+    )
     app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
     app_config["SEARCH_HOSTS"] = [
         {
@@ -171,12 +175,12 @@ def app_config(app_config):
     app_config["RDM_DEFAULT_FILES_ENABLED"] = False
     app_config["RDM_SEARCH_SORT_BY_VERIFIED"] = False
 
-    app_config["SQLALCHEMY_ENGINE_OPTIONS"] = (
-        {  # avoid pool_timeout set in invenio_app_rdm
-            "pool_pre_ping": False,
-            "pool_recycle": 3600,
-        },
-    )
+    app_config[
+        "SQLALCHEMY_ENGINE_OPTIONS"
+    ] = {  # avoid pool_timeout set in invenio_app_rdm
+        "pool_pre_ping": False,
+        "pool_recycle": 3600,
+    }
     app_config["REST_CSRF_ENABLED"] = False
 
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
@@ -211,7 +215,9 @@ def app_config(app_config):
 @pytest.fixture
 def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple):
     def _record(records_service) -> RDMRecord:
-        with mock.patch("invenio_rdm_records.services.schemas.access.datetime") as mock_dt:
+        with mock.patch(
+            "invenio_rdm_records.services.schemas.access.datetime"
+        ) as mock_dt:
             # invenio validates inside invenio_rdm_records.services.schemas.access.EmbargoSchema that `until` is
             # in the future. Because embargo is evaluated on daily basis we must pretend that actual time is in the
             # past in order for the schema check to pass.
@@ -464,8 +470,12 @@ def input_data():
 def add_file_to_draft():
     """Add a file to the record."""
 
-    def _add_file_to_draft(draft_file_service, draft_id, file_id, identity) -> dict[str, Any]:
-        result = draft_file_service.init_files(identity, draft_id, data=[{"key": file_id}])
+    def _add_file_to_draft(
+        draft_file_service, draft_id, file_id, identity
+    ) -> dict[str, Any]:
+        result = draft_file_service.init_files(
+            identity, draft_id, data=[{"key": file_id}]
+        )
         file_md = next(iter(result.entries))
         assert file_md["key"] == "test.txt"
         assert file_md["status"] == "pending"
@@ -488,7 +498,9 @@ def add_file_to_draft():
 def vocab_fixtures():
     """Create vocabulary types required for VocabulariesOptions.dump()."""
     # contributorsroles
-    current_vocabularies_service.create_type(system_identity, "contributorsroles", "v-ct")
+    current_vocabularies_service.create_type(
+        system_identity, "contributorsroles", "v-ct"
+    )
     current_vocabularies_service.create(
         system_identity,
         {
@@ -543,7 +555,9 @@ def vocab_fixtures():
     )
 
     # descriptiontypes
-    current_vocabularies_service.create_type(system_identity, "descriptiontypes", "dstyp")
+    current_vocabularies_service.create_type(
+        system_identity, "descriptiontypes", "dstyp"
+    )
     current_vocabularies_service.create(
         system_identity,
         {"type": "descriptiontypes", "id": "abstract", "title": {"en": "Abstract"}},
