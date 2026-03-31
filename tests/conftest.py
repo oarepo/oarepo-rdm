@@ -17,7 +17,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from invenio_access.permissions import system_identity
-from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.components import DefaultRecordsComponents
@@ -34,11 +33,6 @@ pytest_plugins = [
     "pytest_oarepo.users",
     "pytest_oarepo.files",
     "pytest_oarepo.ui.fixtures",
-]
-
-pytest_plugins = [
-    "pytest_oarepo.files",
-    "pytest_oarepo.fixtures",
 ]
 
 
@@ -130,23 +124,6 @@ def rdm_model(model_types, finalization_called):
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Mimic an instance's configuration."""
-    app_config["JSONSCHEMAS_HOST"] = "localhost"
-    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
-    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
-    app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
-    app_config["SEARCH_HOSTS"] = [
-        {
-            "host": os.environ.get("OPENSEARCH_HOST", "localhost"),
-            "port": os.environ.get("OPENSEARCH_PORT", "9200"),
-        }
-    ]
-    app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
-        "L": "Local",
-        "F": "Fetch",
-        "R": "Remote",
-    }
-    app_config["FILES_REST_DEFAULT_STORAGE_CLASS"] = "L"
-
     app_config["RDM_PERSISTENT_IDENTIFIERS"] = {}
     app_config["RDM_USER_MODERATION_ENABLED"] = False
     app_config["RDM_RECORDS_ALLOW_RESTRICTION_AFTER_GRACE_PERIOD"] = False
@@ -172,6 +149,7 @@ def app_config(app_config):
     )
     # Disable invenio_records_ui routes - we use our own record_detail view
     app_config["RECORDS_UI_ENDPOINTS"] = {}
+    app_config["SITE_API_URL"] = ""
 
     # if on macOS, we need to add homebrew path otherwise we'll have problems
     # with loading cairo-2
@@ -387,19 +365,3 @@ def vocab_fixtures():
     )
 
     current_vocabularies_service.indexer.refresh()
-
-
-@pytest.fixture(scope="module")
-def modela_ui_resource_config():
-    """UI resource config for modela."""
-    from tests.ui.modela import ModelaUIResourceConfig
-
-    return ModelaUIResourceConfig()
-
-
-@pytest.fixture(scope="module")
-def modela_ui_resource(app, modela_ui_resource_config):
-    """UI resource for modela."""
-    from oarepo_ui.resources import RecordsUIResource
-
-    return RecordsUIResource(modela_ui_resource_config)

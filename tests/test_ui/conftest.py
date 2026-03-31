@@ -23,3 +23,19 @@ def app_config(app_config):
     """Mimic an instance's configuration."""
     app_config["SITE_UI_URL"] = "http://localhost"
     return app_config
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource_config():
+    """UI resource config for modela."""
+    from .ui.modela import ModelaUIResourceConfig
+
+    return ModelaUIResourceConfig()
+
+
+@pytest.fixture(scope="module")
+def modela_ui_resource(app, modela_ui_resource_config):
+    """UI resource for modela."""
+    from oarepo_ui.resources import RecordsUIResource
+
+    return RecordsUIResource(modela_ui_resource_config)
