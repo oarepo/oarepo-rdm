@@ -206,8 +206,8 @@ def test_links(db, rdm_records_service, identity_simple, vocab_fixtures, require
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "https://127.0.0.1:5000/api/records?page=1&q=blah&size=20&sort=bestmatch"
-    assert results["hits"]["hits"][0]["links"]["self"].startswith("https://127.0.0.1:5000/api/modelb/")
+    assert results["links"]["self"] == "/records?page=1&q=blah&size=20&sort=bestmatch"
+    assert results["hits"]["hits"][0]["links"]["self"].startswith("/modelb/")
 
 
 def test_second_page(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
@@ -229,8 +229,8 @@ def test_second_page(db, rdm_records_service, identity_simple, vocab_fixtures, r
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "https://127.0.0.1:5000/api/records?page=1&q=blah&size=5&sort=bestmatch"
-    assert results["links"]["next"] == "https://127.0.0.1:5000/api/records?page=2&q=blah&size=5&sort=bestmatch"
+    assert results["links"]["self"] == "/records?page=1&q=blah&size=5&sort=bestmatch"
+    assert results["links"]["next"] == "/records?page=2&q=blah&size=5&sort=bestmatch"
 
     result = rdm_records_service.search(
         identity_simple,
@@ -238,8 +238,8 @@ def test_second_page(db, rdm_records_service, identity_simple, vocab_fixtures, r
     )
     results = result.to_dict()
 
-    assert results["links"]["self"] == "https://127.0.0.1:5000/api/records?page=2&q=blah&size=5&sort=bestmatch"
-    assert results["links"]["prev"] == "https://127.0.0.1:5000/api/records?page=1&q=blah&size=5&sort=bestmatch"
+    assert results["links"]["self"] == "/records?page=2&q=blah&size=5&sort=bestmatch"
+    assert results["links"]["prev"] == "/records?page=1&q=blah&size=5&sort=bestmatch"
 
 
 def test_zero_hits(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
