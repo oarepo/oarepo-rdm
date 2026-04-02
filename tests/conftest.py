@@ -171,12 +171,10 @@ def app_config(app_config):
     app_config["RDM_DEFAULT_FILES_ENABLED"] = False
     app_config["RDM_SEARCH_SORT_BY_VERIFIED"] = False
 
-    app_config["SQLALCHEMY_ENGINE_OPTIONS"] = (
-        {  # avoid pool_timeout set in invenio_app_rdm
-            "pool_pre_ping": False,
-            "pool_recycle": 3600,
-        },
-    )
+    app_config["SQLALCHEMY_ENGINE_OPTIONS"] = {  # avoid pool_timeout set in invenio_app_rdm
+        "pool_pre_ping": False,
+        "pool_recycle": 3600,
+    }
     app_config["REST_CSRF_ENABLED"] = False
 
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
