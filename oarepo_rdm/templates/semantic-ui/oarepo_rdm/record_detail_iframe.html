@@ -1,5 +1,5 @@
 <iframe                                                                                                                                 
-    src="{{ record_ui.links.preview_html }}&embed=true"                                                                                   
+    src="{{ (record_ui.links.preview_html if record_ui.links.preview_html else record_ui.links.self_html) | append_query_params({"embed": "true"}) }}"                                                                                   
     style="width: 100%; min-height: 80vh; border: none;"                                                                                  
     title="{{ _('Record preview') }}"                                                                                                     
-  ></iframe>     
+  ></iframe>

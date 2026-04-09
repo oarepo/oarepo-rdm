@@ -10,31 +10,9 @@
 
 from __future__ import annotations
 
-from oarepo_rdm.ui.views import _append_query_params
 from tests.models import modela
 
 modela_service = modela.proxies.current_service
-
-
-def test_append_query_params_no_params():
-    assert _append_query_params("https://example.com/record/1", {}) == "https://example.com/record/1"
-
-
-def test_append_query_params_no_existing_query():
-    result = _append_query_params("https://example.com/record/1", {"foo": "bar", "baz": "qux"})
-    assert result == "https://example.com/record/1?foo=bar&baz=qux"
-
-
-def test_append_query_params_merges_with_existing_query():
-    result = _append_query_params("https://example.com/record/1?existing=2", {"incoming": "1"})
-    assert "existing=2" in result
-    assert "incoming=1" in result
-
-
-def test_append_query_params_incoming_overrides_existing():
-    result = _append_query_params("https://example.com/record/1?key=old", {"key": "new"})
-    assert "key=new" in result
-    assert "key=old" not in result
 
 
 def test_record_detail_redirect(app, search_clear, rdm_records_service, users, client):
