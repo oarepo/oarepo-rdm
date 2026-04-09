@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
-from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from flask import Blueprint, Flask, request
 from invenio_access.permissions import system_identity
@@ -60,6 +59,7 @@ from invenio_records_resources.services.errors import (
     PermissionDeniedError,
     RecordPermissionDeniedError,
 )
+from oarepo_ui.utils import append_query_params
 from sqlalchemy.exc import NoResultFound
 from werkzeug.utils import redirect
 
@@ -163,23 +163,13 @@ def create_records_blueprint(app: Flask) -> Blueprint:
     return blueprint
 
 
-def _append_query_params(url: str, params: dict) -> str:
-    """Append params to a URL, merging with any existing query string."""
-    if not params:
-        return url
-    parsed = urlparse(url)
-    merged = dict(parse_qsl(parsed.query, keep_blank_values=True))
-    merged.update(params)
-    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, urlencode(merged), parsed.fragment))
-
-
 @pass_include_deleted
 def record_detail(pid_value: str, include_deleted: bool = False) -> Response:
     """Redirect to the record detail page."""
     service = cast("RDMRecordService", current_service_registry.get("records"))
     rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
     data = rec.to_dict()
-    self_html = _append_query_params(data["links"]["self_html"], request.args)
+    self_html = append_query_params(data["links"]["self_html"], request.args)
     return redirect(self_html)
 
 
@@ -188,5 +178,5 @@ def deposit_edit(pid_value: str) -> Response:
     service = cast("RDMRecordService", current_service_registry.get("records"))
     draft = service.read_draft(system_identity, pid_value)
     data = draft.to_dict()
-    self_html = _append_query_params(data["links"]["self_html"], request.args)
+    self_html = append_query_params(data["links"]["self_html"], request.args)
     return redirect(self_html)
