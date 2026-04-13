@@ -180,6 +180,7 @@ modelb = model(
     presets=[
         rdm_basic_preset,
     ],
+    configuration={"ui_blueprint_name": "modelb_ui"},
     types=[
         {
             "Metadata": {
@@ -218,6 +219,7 @@ modelc = model(
     presets=[
         rdm_complete_preset,
     ],
+    configuration={"ui_blueprint_name": "modelc_ui"},
     types=[
         {
             "Metadata": {
@@ -278,3 +280,17 @@ def create_modela_ui_blueprint(app):
         return "deposit_edit ok"
 
     return bp
+
+
+def create_modelb_ui_blueprint(app):
+    from oarepo_rdm.ui.resource import RDMRecordsUIResource
+    from tests.test_ui.ui.modelb import ModelbUIResourceConfig
+
+    return RDMRecordsUIResource(ModelbUIResourceConfig()).as_blueprint()
+
+
+def create_modelc_ui_blueprint(app):
+    from oarepo_rdm.ui.resource import RDMRecordsUIResource
+    from tests.test_ui.ui.modelc import ModelcUIResourceConfig
+
+    return RDMRecordsUIResource(ModelcUIResourceConfig()).as_blueprint()

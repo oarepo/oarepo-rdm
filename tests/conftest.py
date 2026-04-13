@@ -248,6 +248,8 @@ def extra_entry_points(model_a, model_b, model_c, rdm_model):
     return {
         "invenio_base.blueprints": [
             "modela_ui = tests.models:create_modela_ui_blueprint",
+            "modelb_ui = tests.models:create_modelb_ui_blueprint",
+            "modelc_ui = tests.models:create_modelc_ui_blueprint",
         ],
     }
 

@@ -25,6 +25,11 @@ from oarepo_ui.resources.records.config import RecordsUIResourceConfig
 
 from oarepo_rdm.ui.components import (
     CommunitiesMembershipsComponent,
+    DepositFormDefaultsComponent,
+    DoiRequiredComponent,
+    EmptyRecordPidsComponent,
+    FilesEnabledComponent,
+    InjectParentDoiComponent,
     RDMVocabularyOptionsComponent,
 )
 
@@ -56,6 +61,9 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         BabelComponent,
         PermissionsComponent,
         FilesComponent,
+        FilesEnabledComponent,
+        EmptyRecordPidsComponent,
+        DepositFormDefaultsComponent,
         CustomFieldsComponent,
         RecordRestrictionComponent,
         EmptyRecordAccessComponent,
@@ -63,6 +71,8 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         FilesQuotaAndTransferComponent,
         RDMVocabularyOptionsComponent,
         CommunitiesMembershipsComponent,
+        InjectParentDoiComponent,
+        DoiRequiredComponent,
     )
 
     # Default components for RDM UI resources.
