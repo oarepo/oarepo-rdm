@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from flask_resources import HTTPJSONException, create_error_handler
@@ -187,3 +188,11 @@ RDM_RECORDS_ERROR_HANDLERS = {
     ),
 }
 APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
+
+APP_RDM_DEPOSIT_FORM_DEFAULTS = {
+    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
+}
+"""Default values pre-filled in the deposit form for new records."""
+
+RDM_DEFAULT_FILES_ENABLED = True
+"""Default value for files.enabled on new records."""

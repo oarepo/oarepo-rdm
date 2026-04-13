@@ -10,45 +10,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from oarepo_ui.resources import (
-    BabelComponent,
-    PermissionsComponent,
-    RecordsUIResourceConfig,
-)
-from oarepo_ui.resources.components.bleach import AllowedHtmlTagsComponent
-from oarepo_ui.resources.components.custom_fields import CustomFieldsComponent
-
-from oarepo_rdm.ui.components import (
-    CommunitiesMembershipsComponent,
-    RDMVocabularyOptionsComponent,
-)
+from oarepo_rdm.ui.config import RDMRecordsUIResourceConfig
 from tests.test_ui.ui.common import ModelUISerializer
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-class ModelcUIResourceConfig(RecordsUIResourceConfig):
+class ModelcUIResourceConfig(RDMRecordsUIResourceConfig):
     """UI resource config for the ModelC."""
 
-    api_service = "simple_model"  # must be something included in oarepo, as oarepo is used in tests
-
-    blueprint_name = "simple_model"
-    url_prefix = "/simple-model"
+    api_service = "modelc"  # must be something included in oarepo, as oarepo is used in tests
+    model_name = "modelc"
+    blueprint_name = "modelc_ui"
+    url_prefix = "/modelc"
     ui_serializer_class = ModelUISerializer
     templates: Mapping = {
-        **RecordsUIResourceConfig.templates,
+        **RDMRecordsUIResourceConfig.templates,
         "detail": "TestDetail",
         "search": "TestSearch",
         "create": "test.TestCreate",
         "edit": "TestEdit",
     }
-
-    components = (
-        BabelComponent,
-        PermissionsComponent,
-        AllowedHtmlTagsComponent,
-        CustomFieldsComponent,
-        CommunitiesMembershipsComponent,
-        RDMVocabularyOptionsComponent,
-    )
