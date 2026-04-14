@@ -13,6 +13,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast, override
 
+from flask import current_app
 from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services.services import RDMRecordService
 from invenio_records_resources.services import Service as InvenioService
@@ -252,6 +253,8 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         """Get the model from the record data."""
         if "$schema" in data:
             schema = data["$schema"]
+        elif "RDM_PREFERRED_METADATA_SCHEMA" in current_app.config:
+            schema = current_app.config["RDM_PREFERRED_METADATA_SCHEMA"]
 
         if schema is None:
             if len(current_runtime.rdm_models_by_schema) > 1:

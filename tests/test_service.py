@@ -9,9 +9,11 @@
 from __future__ import annotations
 
 import pytest
+from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_resources.proxies import current_service_registry
+from oarepo_runtime import current_runtime
 
 from oarepo_rdm.errors import UndefinedModelError
 
@@ -27,8 +29,9 @@ ModelbDraft = modelb.Draft
 
 
 def test_create(rdm_records_service, identity_simple, search_clear):
-    with pytest.raises(UndefinedModelError):
-        rdm_records_service.create(identity_simple, data={})
+    recorda = rdm_records_service.create(identity_simple, data={})
+    default = current_runtime.rdm_models_by_schema[current_app.config["RDM_PREFERRED_METADATA_SCHEMA"]]
+    assert isinstance(record_from_result(recorda), default.draft_cls)
     recorda = rdm_records_service.create(identity_simple, data={"$schema": "local://modela-v1.0.0.json"})
     recordb = rdm_records_service.create(identity_simple, data={"$schema": "local://modelb-v1.0.0.json"})
     with pytest.raises(UndefinedModelError):
@@ -38,6 +41,12 @@ def test_create(rdm_records_service, identity_simple, search_clear):
         )
     assert isinstance(record_from_result(recorda), ModelaDraft)
     assert isinstance(record_from_result(recordb), ModelbDraft)
+
+
+def test_create_without_preferred_schema(rdm_records_service, identity_simple, search_clear, monkeypatch):
+    monkeypatch.delitem(current_app.config, "RDM_PREFERRED_METADATA_SCHEMA", raising=False)
+    with pytest.raises(UndefinedModelError):
+        rdm_records_service.create(identity_simple, data={})
 
 
 def test_read(rdm_records_service, identity_simple, search_clear):
