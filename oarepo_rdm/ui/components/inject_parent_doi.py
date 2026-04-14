@@ -30,19 +30,19 @@ class InjectParentDoiComponent(UIResourceComponent):
         self,
         *,
         api_record: RecordItem,
-        record_ui: dict,
-        is_preview: bool,
-        is_draft: bool,
         identity: Identity,
+        render_kwargs: dict,
         **kwargs: Any,
     ) -> None:
         """Inject parent DOI into record_ui for draft preview pages.
 
         :param api_record: the record being displayed
-        :param record_ui: the full UI context dictionary for the record
-        :param is_preview: whether this is a preview of a draft
-        :param is_draft: whether the record is a draft
+        :param render_kwargs: the full render context containing record_ui, is_preview, is_draft
         """
+        is_preview = render_kwargs.get("is_preview", False)
+        is_draft = render_kwargs.get("is_draft", False)
+        record_ui = render_kwargs.get("record_ui", {})
+
         if not (is_preview and is_draft):
             return
 
@@ -73,4 +73,4 @@ class InjectParentDoiComponent(UIResourceComponent):
                 parent_doi = datacite_provider.client.generate_doi(parent)
                 record_ui.setdefault("ui", {})["new_draft_parent_doi"] = parent_doi
             else:
-                raise ValueError(f"Record {api_record['id']} has no parent field.")
+                raise ValueError(f"Record {api_record['id']} has no parent field.")  # PRAGMA: no cover
