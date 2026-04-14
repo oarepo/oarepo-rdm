@@ -16,6 +16,7 @@ from invenio_drafts_resources.services.records.config import (
     is_draft,
 )
 from invenio_rdm_records.services.config import (
+    RDMRecordServiceConfig,
     ThumbnailLinks,
     _groups_enabled,
     archive_download_enabled,
@@ -31,6 +32,7 @@ from invenio_records_resources.services.base.links import (
 from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
 )
+from oarepo_model.api import FunctionalPreset
 from oarepo_model.customizations import (
     AddToDictionary,
     Customization,
@@ -44,6 +46,7 @@ from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from types import SimpleNamespace
 
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
@@ -134,3 +137,25 @@ class RDMServiceConfigLinks(Preset):
             "record_version_search_links",
             rdm_pagination_record_endpoint_links(f"{model.blueprint_base}.search_versions"),
         )
+
+
+class RDMCheckLinksDefinedPreset(FunctionalPreset):
+    """Preset for checking all RDM item links are present in the model."""
+
+    @override
+    def after_model_built(
+        self,
+        model: InvenioModel,
+        types: list[dict[str, Any]],
+        presets: list[type[Preset] | list[type[Preset]] | tuple[type[Preset]]],
+        builder: InvenioModelBuilder,
+        customizations: list[Customization],
+        model_namespace: SimpleNamespace,
+        params: dict[str, Any],
+    ) -> None:
+
+        rdm_links = set(RDMRecordServiceConfig.links_item.keys())
+        model_links = set(model_namespace.RecordServiceConfig().links_item.keys())
+
+        if not rdm_links <= model_links:
+            raise ValueError(f"RDM complete model {model.name} links miss RDM links links: {rdm_links - model_links}")
