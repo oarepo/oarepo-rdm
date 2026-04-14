@@ -25,4 +25,4 @@ class FilesEnabledComponent(UIResourceComponent):
 
         :param empty_data: empty record data
         """
-        empty_data.setdefault("files", {})["enabled"] = current_app.config.get("RDM_DEFAULT_FILES_ENABLED")
+        empty_data.setdefault("files", {})["enabled"] = current_app.config.get("RDM_DEFAULT_FILES_ENABLED", True)

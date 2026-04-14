@@ -218,6 +218,68 @@ def test_create_page_contains_pids_with_doi(
     assert record["pids"] == {"doi": {"provider": "external", "identifier": ""}}
 
 
+def test_create_page_contains_empty_pids_when_not_default_selected(
+    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, monkeypatch
+):
+    """Test that pids is empty when doi default_selected is not 'yes'."""
+    import idutils
+    from invenio_i18n import lazy_gettext as _
+    from invenio_rdm_records.services.pids import providers
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", True)  # NOQA: FBT003
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIER_PROVIDERS",
+        [
+            providers.DataCitePIDProvider(
+                "datacite",
+                client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
+                label=_("DOI"),
+            ),
+            providers.ExternalPIDProvider(
+                "external",
+                "doi",
+                validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+                label=_("DOI"),
+            ),
+            providers.OAIPIDProvider(
+                "oai",
+                label=_("OAI ID"),
+            ),
+        ],
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite", "external"],
+                "required": True,
+                "label": _("DOI"),
+                "validator": idutils.is_doi,
+                "normalizer": idutils.normalize_doi,
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+                "ui": {"default_selected": "no"},
+            },
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": _("OAI"),
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    client = logged_client(user)
+
+    response = client.get("/modelb/uploads/new")
+    assert response.status_code == 200
+
+    record = _get_hidden_input(response, "deposits-record")
+    assert record["pids"] == {}
+
+
 def test_create_page_contains_doi_required(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, monkeypatch
 ):
@@ -387,17 +449,237 @@ def test_inject_parent_doi_on_draft_preview(
     api_record = modelb_service.read_draft(user.identity, draft["id"])
 
     record_ui = {}
+    render_kwargs = {"record_ui": record_ui, "is_preview": True, "is_draft": True}
     with app.test_request_context():
         modelb_ui_resource.run_components(
             "before_ui_detail",
             api_record=api_record,
-            record_ui=record_ui,
             record={},
-            is_preview=True,
-            is_draft=True,
             identity=user.identity,
             ui_links={},
             extra_context={},
+            render_kwargs=render_kwargs,
         )
 
     assert "new_draft_parent_doi" in record_ui.get("ui", {})
+
+
+def test_inject_parent_doi_skipped_when_not_preview(
+    app, db, users, search_clear, extra_entry_points, modelb_ui_resource
+):
+    """Test that InjectParentDoiComponent does nothing when is_preview=False."""
+    from tests.models import modelb
+
+    user = users[0]
+    modelb_service = modelb.proxies.current_service
+    draft = modelb_service.create(
+        user.identity,
+        {
+            "metadata": {"title": "Test B", "bdescription": "desc b"},
+            "files": {"enabled": False},
+        },
+    )
+    api_record = modelb_service.read_draft(user.identity, draft["id"])
+
+    record_ui = {}
+    render_kwargs = {"record_ui": record_ui, "is_preview": False, "is_draft": True}
+    with app.test_request_context():
+        modelb_ui_resource.run_components(
+            "before_ui_detail",
+            api_record=api_record,
+            record={},
+            identity=user.identity,
+            ui_links={},
+            extra_context={},
+            render_kwargs=render_kwargs,
+        )
+
+    assert "new_draft_parent_doi" not in record_ui.get("ui", {})
+
+
+def test_inject_parent_doi_skipped_when_datacite_disabled(
+    app, db, users, search_clear, extra_entry_points, monkeypatch, modelb_ui_resource
+):
+    """Test that InjectParentDoiComponent does nothing when DATACITE_ENABLED=False."""
+    from tests.models import modelb
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", False)  # noqa: FBT003
+
+    user = users[0]
+    modelb_service = modelb.proxies.current_service
+    draft = modelb_service.create(
+        user.identity,
+        {
+            "metadata": {"title": "Test B", "bdescription": "desc b"},
+            "files": {"enabled": False},
+        },
+    )
+    api_record = modelb_service.read_draft(user.identity, draft["id"])
+
+    record_ui = {}
+    render_kwargs = {"record_ui": record_ui, "is_preview": True, "is_draft": True}
+    with app.test_request_context():
+        modelb_ui_resource.run_components(
+            "before_ui_detail",
+            api_record=api_record,
+            record={},
+            identity=user.identity,
+            ui_links={},
+            extra_context={},
+            render_kwargs=render_kwargs,
+        )
+
+    assert "new_draft_parent_doi" not in record_ui.get("ui", {})
+
+
+def test_inject_parent_doi_skipped_when_no_datacite_provider(
+    app, db, users, search_clear, extra_entry_points, monkeypatch, modelb_ui_resource
+):
+    """Test that InjectParentDoiComponent does nothing when no datacite parent provider."""
+    from invenio_rdm_records.services.pids import providers
+
+    from tests.models import modelb
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", True)  # noqa: FBT003
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PARENT_PERSISTENT_IDENTIFIER_PROVIDERS",
+        [
+            providers.OAIPIDProvider(
+                "oai",
+                label="OAI ID",
+            ),
+        ],
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PARENT_PERSISTENT_IDENTIFIERS",
+        {
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": "OAI",
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    modelb_service = modelb.proxies.current_service
+    draft = modelb_service.create(
+        user.identity,
+        {
+            "metadata": {"title": "Test B", "bdescription": "desc b"},
+            "files": {"enabled": False},
+        },
+    )
+    api_record = modelb_service.read_draft(user.identity, draft["id"])
+
+    record_ui = {}
+    render_kwargs = {"record_ui": record_ui, "is_preview": True, "is_draft": True}
+    with app.test_request_context():
+        modelb_ui_resource.run_components(
+            "before_ui_detail",
+            api_record=api_record,
+            record={},
+            identity=user.identity,
+            ui_links={},
+            extra_context={},
+            render_kwargs=render_kwargs,
+        )
+
+    assert "new_draft_parent_doi" not in record_ui.get("ui", {})
+
+
+def test_inject_parent_doi_skipped_when_not_required_and_no_reserved_doi(
+    app, db, users, search_clear, extra_entry_points, monkeypatch, modelb_ui_resource
+):
+    """Test that parent DOI is not injected when doi is not required and no reserved doi."""
+    import idutils
+    from invenio_i18n import lazy_gettext as _
+    from invenio_rdm_records.services.pids import providers
+
+    from tests.models import modelb
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", True)  # noqa: FBT003
+    monkeypatch.setitem(app.config, "DATACITE_PREFIX", "10.5072")
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIER_PROVIDERS",
+        [
+            providers.DataCitePIDProvider(
+                "datacite",
+                client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
+                label=_("DOI"),
+            ),
+            providers.ExternalPIDProvider(
+                "external",
+                "doi",
+                validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+                label=_("DOI"),
+            ),
+            providers.OAIPIDProvider(
+                "oai",
+                label=_("OAI ID"),
+            ),
+        ],
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite", "external"],
+                "required": True,
+                "label": _("DOI"),
+                "validator": idutils.is_doi,
+                "normalizer": idutils.normalize_doi,
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+                "ui": {"default_selected": "yes"},
+            },
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": _("OAI"),
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PARENT_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite"],
+                "required": False,
+                "label": _("DOI"),
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    modelb_service = modelb.proxies.current_service
+    draft = modelb_service.create(
+        user.identity,
+        {
+            "metadata": {"title": "Test B", "bdescription": "desc b"},
+            "files": {"enabled": False},
+        },
+    )
+    api_record = modelb_service.read_draft(user.identity, draft["id"])
+
+    record_ui = {}
+    render_kwargs = {"record_ui": record_ui, "is_preview": True, "is_draft": True}
+    with app.test_request_context():
+        modelb_ui_resource.run_components(
+            "before_ui_detail",
+            api_record=api_record,
+            record={},
+            identity=user.identity,
+            ui_links={},
+            extra_context={},
+            render_kwargs=render_kwargs,
+        )
+
+    assert "new_draft_parent_doi" not in record_ui.get("ui", {})

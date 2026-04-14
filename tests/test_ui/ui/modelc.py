@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class ModelcUIResourceConfig(RDMRecordsUIResourceConfig):
     """UI resource config for the ModelC."""
 
-    api_service = "modelc"  # must be something included in oarepo, as oarepo is used in tests
+    api_service = "modelc"
     model_name = "modelc"
     blueprint_name = "modelc_ui"
     url_prefix = "/modelc"

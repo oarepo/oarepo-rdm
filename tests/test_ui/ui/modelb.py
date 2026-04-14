@@ -16,7 +16,7 @@ class ModelbUIResourceConfig(RDMRecordsUIResourceConfig):
     """UI resource config for the ModelB."""
 
     template_folder = "templates"
-    api_service = "modelb"  # must be something included in oarepo, as oarepo is used in tests
+    api_service = "modelb"
     model_name = "modelb"
     blueprint_name = "modelb_ui"
     url_prefix = "/modelb"
