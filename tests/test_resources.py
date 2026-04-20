@@ -156,7 +156,6 @@ def test_read(
     client,
     vocab_fixtures,
     required_rdm_metadata,
-    link2testclient,
     search_clear,
 ):
     user = users[0]
@@ -206,7 +205,7 @@ def test_read(
 
     # 1. get UI representation from the self url
     result = client.get(
-        link2testclient(result.json["links"]["self"]),
+        result.json["links"]["self"],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert result.status_code == 200
@@ -284,16 +283,16 @@ def test_read(
     }
 
 
-def _upload_file_via_resource(client, sample, link2testclient, link="files") -> None:
+def _upload_file_via_resource(client, sample, link="files") -> None:
     init = client.post(
-        link2testclient(sample["links"][link]),
+        sample["links"][link],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
         json=[
             {"key": "test.pdf", "metadata": {"title": "Test file"}},
         ],
     )
     client.put(
-        link2testclient(init.json["entries"][0]["links"]["content"]),
+        init.json["entries"][0]["links"]["content"],
         headers={
             "content-type": "application/octet-stream",
             "Accept": "application/vnd.inveniordm.v1+json",
@@ -301,14 +300,12 @@ def _upload_file_via_resource(client, sample, link2testclient, link="files") -> 
         data=BytesIO(b"testfile"),
     )
     client.post(
-        link2testclient(init.json["entries"][0]["links"]["commit"]),
+        init.json["entries"][0]["links"]["commit"],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
 
 
-def test_draft_file_ui_serialization(
-    rdm_records_service, users, logged_client, link2testclient, location, search_clear
-):
+def test_draft_file_ui_serialization(rdm_records_service, users, logged_client, location, search_clear):
     user = users[0]
     client = logged_client(user)
 
@@ -323,9 +320,9 @@ def test_draft_file_ui_serialization(
     )
     assert resp.status_code == 201
     sample_draft = resp.json
-    _upload_file_via_resource(client, sample_draft, link2testclient)
+    _upload_file_via_resource(client, sample_draft)
     file_resp = client.get(
-        link2testclient(sample_draft["links"]["files"]),
+        sample_draft["links"]["files"],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200
@@ -333,7 +330,7 @@ def test_draft_file_ui_serialization(
     assert len(file_resp.json["entries"]) == 1
 
 
-def test_file_ui_serialization(rdm_records_service, users, logged_client, link2testclient, location, search_clear):
+def test_file_ui_serialization(rdm_records_service, users, logged_client, location, search_clear):
     user = users[0]
     client = logged_client(user)
 
@@ -347,15 +344,15 @@ def test_file_ui_serialization(rdm_records_service, users, logged_client, link2t
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     sample_draft = resp.json
-    _upload_file_via_resource(client, sample_draft, link2testclient)
+    _upload_file_via_resource(client, sample_draft)
     publish_resp = client.post(
-        link2testclient(sample_draft["links"]["publish"]),
+        sample_draft["links"]["publish"],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert publish_resp.status_code == 202
     published = publish_resp.json
     file_resp = client.get(
-        link2testclient(published["links"]["files"]),
+        published["links"]["files"],
         headers={"Accept": "application/vnd.inveniordm.v1+json"},
     )
     assert file_resp.status_code == 200

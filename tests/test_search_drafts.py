@@ -42,5 +42,5 @@ def test_description_search(app, db, search_clear, identity_simple):
 
     rec_id = modelc_record2.data["id"]
     assert rec_id == results["hits"]["hits"][0]["id"]
-    assert results["links"]["self"] == "https://127.0.0.1:5000/api/user/records?page=1&q=jej&size=10&sort=bestmatch"
-    assert results["hits"]["hits"][0]["links"]["self"] == f"https://127.0.0.1:5000/api/modelc/{rec_id}/draft"
+    assert results["links"]["self"] == "/user/records?page=1&q=jej&size=10&sort=bestmatch"
+    assert results["hits"]["hits"][0]["links"]["self"] == f"/modelc/{rec_id}/draft"
