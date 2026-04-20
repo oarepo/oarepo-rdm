@@ -175,6 +175,7 @@ def app_config(app_config):
         "pool_pre_ping": False,
         "pool_recycle": 3600,
     }
+
     app_config["REST_CSRF_ENABLED"] = False
 
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
@@ -201,6 +202,8 @@ def app_config(app_config):
         APP_RDM_RECORD_THUMBNAIL_SIZES=[500],
         WEBPACKEXT_MANIFEST_LOADER=MockManifestLoader,
     )
+
+    app_config["RDM_PREFERRED_METADATA_SCHEMA"] = "local://modela-v1.0.0.json"
 
     return app_config
 
