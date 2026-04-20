@@ -361,3 +361,18 @@ def test_file_ui_serialization(rdm_records_service, users, logged_client, link2t
     assert file_resp.status_code == 200
     assert "entries" in file_resp.json
     assert len(file_resp.json["entries"]) == 1
+
+
+def test_undefined_model_error_handler(rdm_records_service, users, logged_client, search_clear):
+    user = users[0]
+    client = logged_client(user)
+
+    sample_draft = client.post(
+        "/records",
+        json={
+            "$schema": "local://idontexist-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    assert sample_draft.status_code == 400
+    assert sample_draft.json["message"] == "Model for schema local://idontexist-v1.0.0.json does not exist."

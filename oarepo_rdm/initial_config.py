@@ -12,8 +12,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypedDict
 
+from flask_resources import HTTPJSONException, create_error_handler
 from invenio_app_rdm import config as rdm_config  # noqa
+from invenio_rdm_records.resources.config import error_handlers
 
+from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
 
 if TYPE_CHECKING:
@@ -173,3 +176,13 @@ class ExternalLinkConfig(TypedDict):
 
 APP_RDM_RECORD_LANDING_PAGE_EXTERNAL_LINKS: list[ExternalLinkConfig] = []
 """External links to be shown on record landing page."""
+
+RDM_RECORDS_ERROR_HANDLERS = {
+    **error_handlers,
+    UndefinedModelError: create_error_handler(
+        lambda exc: HTTPJSONException(
+            code=400,
+            description=str(exc),
+        )
+    ),
+}
