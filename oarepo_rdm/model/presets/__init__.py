@@ -18,7 +18,6 @@ from .rdm.services.records.rdm_complete_record_schema import (
     RDMRecordMetadataSchemaPreset,
 )
 from .rdm.services.records.rdm_record_ui_schema import RDMCompleteRecordUISchemaPreset
-from .rdm.services.records.service_config_links import RDMCheckLinksDefinedPreset
 from .rdm_metadata import RDMMetadataPreset
 
 if TYPE_CHECKING:
@@ -50,7 +49,6 @@ rdm_complete_preset: list[type[Preset | FunctionalPreset]] = [
     RDMCompleteMetadataPreset,
     RDMCompleteExportsPreset,
     RDMCompleteRecordUISchemaPreset,
-    RDMCheckLinksDefinedPreset,
 ]
 rdm_basic_preset: list[type[Preset | FunctionalPreset]] = [
     *rdm_static_preset,
