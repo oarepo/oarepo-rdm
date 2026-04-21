@@ -40,6 +40,7 @@ from invenio_app_rdm.records_ui.views.records import (
     record_file_download,
     record_file_preview,
     record_from_pid,
+    record_latest,
     record_media_file_download,
     record_permission_denied_error,
     record_thumbnail,
@@ -124,6 +125,13 @@ def create_records_blueprint(app: Flask) -> Blueprint:
         **create_url_rule(
             routes["record_media_file_download"],
             default_view_func=record_media_file_download,
+        )
+    )
+
+    blueprint.add_url_rule(
+        **create_url_rule(
+            routes["record_latest"],
+            default_view_func=record_latest,
         )
     )
 
