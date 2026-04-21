@@ -12,21 +12,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_drafts_resources.services.records.config import (
-    is_draft,
-)
 from invenio_rdm_records.services.config import (
-    ThumbnailLinks,
-    _groups_enabled,
+    RDMRecordServiceConfig,
     archive_download_enabled,
-    has_image_files,
-    is_draft_and_has_review,
-    record_thumbnail_sizes,
-    vars_self_iiif,
 )
 from invenio_records_resources.services.base.links import (
     ConditionalLink,
-    EndpointLink,
 )
 from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
@@ -40,7 +31,6 @@ from oarepo_runtime.services.config import (
     is_published_record,
 )
 from oarepo_runtime.services.records.links import rdm_pagination_record_endpoint_links
-from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -64,32 +54,16 @@ class RDMServiceConfigLinks(Preset):
         yield AddToDictionary(
             "record_links_item",
             {
-                # TODO: add parent_doi, doi, self_doi to be compatible with rdm
-                "self_iiif_manifest": EndpointLink("iiif.manifest", params=["uuid"], vars=vars_self_iiif),
-                "self_iiif_sequence": EndpointLink("iiif.sequence", params=["uuid"], vars=vars_self_iiif),
-                # Files
-                "reserve_doi": RecordEndpointLink(
-                    "records.pids_reserve",
-                    params=["pid_value", "scheme"],
-                    vars=lambda record, parameters: parameters.update({"scheme": "doi"}),  # noqa: ARG005
-                ),
+                **RDMRecordServiceConfig.links_item,
                 "files": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),
                     else_=RecordEndpointLink(f"{model.blueprint_base}_draft_files.search"),
                 ),
-                "submit-review": RecordEndpointLink(
-                    "records.review_submit",
-                    when=is_draft_and_has_review,
-                ),
                 "media_files": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(f"{model.blueprint_base}_media_files.search"),
                     else_=RecordEndpointLink(f"{model.blueprint_base}_draft_media_files.search"),
-                ),
-                "thumbnails": ThumbnailLinks(
-                    sizes=LocalProxy(record_thumbnail_sizes),  # type: ignore[assignment]
-                    when=has_image_files,
                 ),
                 # Reads a zipped version of all files
                 "archive": ConditionalLink(
@@ -103,7 +77,6 @@ class RDMServiceConfigLinks(Preset):
                         when=archive_download_enabled,
                     ),
                 ),
-                "review": RecordEndpointLink("records.review_read", when=is_draft),
                 "archive_media": ConditionalLink(
                     cond=is_published_record(),
                     if_=RecordEndpointLink(
@@ -115,20 +88,9 @@ class RDMServiceConfigLinks(Preset):
                         when=archive_download_enabled,
                     ),
                 ),
-                # Access
-                "access_links": RecordEndpointLink("record_links.search"),
-                "access_grants": RecordEndpointLink("record_grants.search"),
-                "access_users": RecordEndpointLink("record_user_access.search"),
-                "access_groups": RecordEndpointLink(
-                    "record_group_access.search",
-                    when=_groups_enabled,
-                ),
-                # Working out of the box
-                "access_request": RecordEndpointLink("records.create_access_request"),
-                "access": RecordEndpointLink("records.update_access_settings"),
             },
+            override_values=False,
         )
-
         # Versions
         yield AddToDictionary(
             "record_version_search_links",
