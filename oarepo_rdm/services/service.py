@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
     from invenio_access.permissions import Identity
-    from invenio_rdm_records.services.config import RDMRecordServiceConfig
     from invenio_records_permissions.policies.base import BasePermissionPolicy
     from invenio_records_resources.services.records.results import (
         RecordItem,
@@ -300,7 +299,7 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
                 params=copy.deepcopy(params),
                 search_preference=search_preference,
                 record_cls=record_cls,
-                search_opts=self._search_options(service, search_opts),
+                search_opts=search_opts,
                 extra_filter=extra_filter,
                 permission_action=permission_action,
                 versioning=versioning,
@@ -322,16 +321,6 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
             versioning=versioning,
             **kwargs,
         )
-
-    def _search_options(self, service: RDMRecordService, search_opts: Any) -> Any:
-        rdm_config = cast("RDMRecordServiceConfig", service.config)
-        if search_opts is rdm_config.search:
-            return rdm_config.search
-        if search_opts is rdm_config.search_drafts:
-            return rdm_config.search_drafts
-        if search_opts is rdm_config.search_versions:
-            return rdm_config.search_versions
-        return search_opts
 
     def _search_eligible_services(
         self, identity: Identity, permission_action: str, **kwargs: Any
