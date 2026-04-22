@@ -168,18 +168,28 @@ RDMBasicMetadata:
       label:
         en: Resource type
         cs: Typ záznamu
+      required: true
 
     creators:
       label:
         en: Creators
         cs: Autoři
       type: RDMCreators
+      required: true
+
+    publication_date:
+      type: RDMPublicationDate
+      label:
+        en: Publication date
+        cs: Datum publikace
+      required: true
 
     title:
       type: RDMTitle
       label:
         en: Title
         cs: Název
+      required: true
 
     contributors:
       label:
