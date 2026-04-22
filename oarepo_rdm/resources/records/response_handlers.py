@@ -94,8 +94,8 @@ class DelegatedSerializer(BaseSerializer):
         if not exporters:
             return self.serializers[0].serialize_object_list(self._update_hits(obj_list, []))
 
-        # 3. if all exporters are the same, use it
-        if all(type(exporter[1]) is type(exporters[0][1]) for exporter in exporters):
+        # 3. if all exporters are the same instance, use it
+        if all(exporter[1] is exporters[0][1] for exporter in exporters):
             return exporters[0][1].serialize_object_list(self._update_hits(obj_list, [x[0] for x in exporters]))
 
         # 4. if not, check if all exporters are instance of MarshmallowSerializer
