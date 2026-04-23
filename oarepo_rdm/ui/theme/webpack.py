@@ -8,11 +8,11 @@
 #
 """Webpack theme definition."""
 
-from __future__ import annotations
+from __future__ import annotations  # pragma: no cover
 
-from invenio_assets.webpack import WebpackThemeBundle
+from invenio_assets.webpack import WebpackThemeBundle  # pragma: no cover
 
-theme = WebpackThemeBundle(
+theme = WebpackThemeBundle(  # pragma: no cover
     __name__,
     "assets",
     default="semantic-ui",
