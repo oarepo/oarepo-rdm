@@ -8,26 +8,16 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from oarepo_rdm.ui.config import RDMRecordsUIResourceConfig
 from tests.test_ui.ui.common import ModelUISerializer
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 
 class ModelbUIResourceConfig(RDMRecordsUIResourceConfig):
     """UI resource config for the ModelB."""
 
-    api_service = "simple_model"  # must be something included in oarepo, as oarepo is used in tests
-
-    blueprint_name = "simple_model"
-    url_prefix = "/simple-model"
+    template_folder = "templates"
+    api_service = "modelb"  # must be something included in oarepo, as oarepo is used in tests
+    model_name = "modelb"
+    blueprint_name = "modelb_ui"
+    url_prefix = "/modelb"
     ui_serializer_class = ModelUISerializer
-    templates: Mapping = {
-        "detail": "TestDetail",
-        "search": "TestSearch",
-        "create": "test.TestCreate",
-        "edit": "TestEdit",
-    }

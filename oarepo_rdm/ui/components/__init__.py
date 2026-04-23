@@ -11,9 +11,19 @@
 from __future__ import annotations
 
 from .communities_memberships_dump import CommunitiesMembershipsComponent
+from .deposit_form_defaults import DepositFormDefaultsComponent
+from .doi_required import DoiRequiredComponent
+from .empty_record_pids import EmptyRecordPidsComponent
+from .files_enabled import FilesEnabledComponent
+from .inject_parent_doi import InjectParentDoiComponent
 from .rdm_vocabularies_dump import RDMVocabularyOptionsComponent
 
 __all__ = [
     "CommunitiesMembershipsComponent",
+    "DepositFormDefaultsComponent",
+    "DoiRequiredComponent",
+    "EmptyRecordPidsComponent",
+    "FilesEnabledComponent",
+    "InjectParentDoiComponent",
     "RDMVocabularyOptionsComponent",
 ]
