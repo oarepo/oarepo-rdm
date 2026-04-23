@@ -363,6 +363,79 @@ def test_file_ui_serialization(rdm_records_service, users, logged_client, link2t
     assert len(file_resp.json["entries"]) == 1
 
 
+def test_ui_list_serializer_per_model(
+    db,
+    rdm_records_service,
+    users,
+    logged_client,
+    vocab_fixtures,
+    required_rdm_metadata,
+    search_clear,
+):
+    """Regression: /records with UI mimetype must delegate to each model's own serializer.
+
+    Before ff9623b, DelegatedSerializer.serialize_object_list compared serializers
+    by type() instead of identity.  Every model's UI serializer is a distinct
+    MarshmallowSerializer instance of the same class, so the old check treated them
+    as identical and used only the first one for all hits.
+
+    modelc (rdm_complete_preset) includes UIRecordSchema which produces ui.creators
+    with an affiliations index.  modela (rdm_minimal_preset) does not.
+    If the wrong serializer is used for modelc's hit, ui.creators will be missing.
+    """
+    user = users[0]
+    client = logged_client(user)
+
+    # modela — minimal preset, no creators UI processing
+    sample_draft_a = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modela-v1.0.0.json",
+            "files": {"enabled": False},
+        },
+    )
+    rdm_records_service.publish(user.identity, sample_draft_a["id"])
+    modela_service.indexer.refresh()
+    modela_service.draft_indexer.refresh()
+
+    # modelc — complete preset with creators, processed by UIRecordSchema
+    sample_draft_c = rdm_records_service.create(
+        user.identity,
+        data={
+            "$schema": "local://modelc-v1.0.0.json",
+            "files": {"enabled": False},
+            "metadata": required_rdm_metadata,
+        },
+    )
+    rdm_records_service.publish(user.identity, sample_draft_c["id"])
+    modelc_service.indexer.refresh()
+    modelc_service.draft_indexer.refresh()
+
+    result = client.get(
+        "/records",
+        headers={"Accept": "application/vnd.inveniordm.v1+json"},
+    )
+    assert result.status_code == 200
+
+    hits = result.json["hits"]["hits"]
+    assert len(hits) == 2
+
+    hits_by_schema = {hit["$schema"]: hit for hit in hits}
+
+    # modelc's hit must have ui.creators — only present when the complete-preset
+    # UIRecordSchema is used (make_affiliation_index processes creators)
+    modelc_hit = hits_by_schema["local://modelc-v1.0.0.json"]
+    assert "ui" in modelc_hit
+    assert "creators" in modelc_hit["ui"], "modelc hit is missing ui.creators — wrong serializer was likely used"
+    assert "creators" in modelc_hit["ui"]["creators"]
+    assert "affiliations" in modelc_hit["ui"]["creators"]
+
+    # modela's hit must NOT have ui.creators — minimal preset has no UIRecordSchema mixin
+    modela_hit = hits_by_schema["local://modela-v1.0.0.json"]
+    assert "ui" in modela_hit
+    assert "creators" not in modela_hit["ui"]
+
+
 def test_undefined_model_error_handler(rdm_records_service, users, logged_client, search_clear):
     user = users[0]
     client = logged_client(user)
