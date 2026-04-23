@@ -1,0 +1,63 @@
+#
+msgid ""
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/config.py:19
+msgid "OAI ID"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/config.py:27
+msgid "OAI"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:54
+msgid "JSON-LD (schema.org)"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:60
+msgid "CSV (full)"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:66
+msgid "CSV (simple)"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:86
+msgid "MARCXML"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:95
+msgid "CSL JSON"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:101
+msgid "GeoJSON"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:107
+msgid "DataCite XML"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:116
+msgid "Data Package"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:122
+msgid "Dublin Core XML"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:131
+msgid "Citation"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:137
+msgid "BibTeX"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/model/presets/rdm/resources/records/exports.py:143
+msgid "DCAT XML"
+msgstr ""
+
+#: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/templates/semantic-ui/oarepo_rdm/record_detail_iframe.html:4
+msgid "Record preview"
+msgstr ""
