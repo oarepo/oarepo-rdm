@@ -82,7 +82,9 @@ def test_embargo_lift_with_updated_draft(
     assert draft_lifted.access.protection.record == "public"
 
 
-def test_embargo_lift_multiple_models(rdm_records_service, unlifted_expired_embargoed_files_record, search_clear):
+def test_embargo_lift_multiple_models(
+    rdm_records_service, unlifted_expired_embargoed_files_record, vocab_fixtures, search_clear
+):
     record1 = unlifted_expired_embargoed_files_record(modela_service)
     record2 = unlifted_expired_embargoed_files_record(modelb_service)
 

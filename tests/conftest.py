@@ -210,7 +210,7 @@ def app_config(app_config):
 
 # from invenio_rdm_records
 @pytest.fixture
-def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple):
+def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple, required_rdm_metadata):
     def _record(records_service) -> RDMRecord:
         with mock.patch("invenio_rdm_records.services.schemas.access.datetime") as mock_dt:
             # invenio validates inside invenio_rdm_records.services.schemas.access.EmbargoSchema that `until` is
@@ -220,7 +220,7 @@ def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple
             # below) but no test that uses this embargoed file record uses those dates
             mock_dt.now.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             data = {
-                "metadata": {"title": "aaaaa", "adescription": "jej"},
+                "metadata": {**required_rdm_metadata, "title": "aaaaa", "adescription": "jej"},
                 "files": {"enabled": False},
                 "access": {
                     "record": "public",

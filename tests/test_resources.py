@@ -51,7 +51,9 @@ def test_list_with_model_a(db, rdm_records_service, users, logged_client, search
     assert "test-a-ok" in result.json["hits"]["hits"][0]
 
 
-def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, search_clear):
+def test_list_with_model_a_and_b(
+    db, rdm_records_service, users, logged_client, vocab_fixtures, required_rdm_metadata, search_clear
+):
     user = users[0]
     client = logged_client(user)
 
@@ -71,6 +73,7 @@ def test_list_with_model_a_and_b(db, rdm_records_service, users, logged_client, 
         user.identity,
         data={
             "$schema": "local://modelb-v1.0.0.json",
+            "metadata": required_rdm_metadata,
             "files": {"enabled": False},
         },
     )
@@ -119,6 +122,7 @@ def test_list_with_model_a_and_b_and_c(
         user.identity,
         data={
             "$schema": "local://modelb-v1.0.0.json",
+            "metadata": required_rdm_metadata,
             "files": {"enabled": False},
         },
     )

@@ -109,6 +109,8 @@ def test_get_record(
     identity_simple,
     users,
     logged_client,
+    vocab_fixtures,
+    required_rdm_metadata,
     oai_prefix,
     search,
     search_clear,
@@ -129,6 +131,7 @@ def test_get_record(
         identity_simple,
         data={
             "$schema": "local://modelb-v1.0.0.json",
+            "metadata": required_rdm_metadata,
             "files": {"enabled": False},
         },
     )
@@ -149,6 +152,8 @@ def test_list_records(
     identity_simple,
     users,
     logged_client,
+    vocab_fixtures,
+    required_rdm_metadata,
     search_clear,
     percolators,
 ):
@@ -170,6 +175,7 @@ def test_list_records(
             identity_simple,
             data={
                 "$schema": "local://modelb-v1.0.0.json",
+                "metadata": required_rdm_metadata,
                 "files": {"enabled": False},
             },
         )
@@ -441,7 +447,7 @@ def test_listidentifiers(
     from invenio_oaiserver.models import OAISet
 
     data_a = {"metadata": {"title": "lalala", "adescription": "bbbb"}}
-    data_b = {"metadata": {"title": "lalala", "bdescription": "bbbb"}}
+    data_b = {"metadata": {**required_rdm_metadata, "title": "lalala", "bdescription": "bbbb"}}
     data_c = {"metadata": required_rdm_metadata}
 
     with app.app_context():
