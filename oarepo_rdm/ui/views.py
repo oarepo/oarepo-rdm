@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, cast
 from flask import Blueprint, Flask, request
 from invenio_access.permissions import system_identity
 from invenio_app_rdm.records_ui.searchapp import search_app_context
-from invenio_app_rdm.records_ui.views.decorators import pass_include_deleted
+from invenio_app_rdm.records_ui.views.decorators import pass_include_deleted, pass_is_preview
 from invenio_app_rdm.records_ui.views.filters import (
     can_list_files,
     compact_number,
@@ -172,13 +172,25 @@ def create_records_blueprint(app: Flask) -> Blueprint:
 
 
 @pass_include_deleted
-def record_detail(pid_value: str, include_deleted: bool = False) -> Response:
+@pass_is_preview
+def record_detail(pid_value: str, include_deleted: bool = False, is_preview: bool = False) -> Response:
     """Redirect to the record detail page."""
     service = cast("RDMRecordService", current_service_registry.get("records"))
-    rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
+    if is_preview:
+        rec = service.read_draft(system_identity, pid_value)
+    else:
+        try:
+            rec = service.read(system_identity, pid_value, include_deleted=include_deleted)
+        except NoResultFound:
+            rec = service.read_latest(system_identity, pid_value)
+            data = rec.to_dict()
+            url = data["links"]["latest_html"]
+            url_with_params = append_query_params(url, request.args)
+            return redirect(url_with_params)
     data = rec.to_dict()
-    self_html = append_query_params(data["links"]["self_html"], request.args)
-    return redirect(self_html)
+    url = data["links"]["preview_html"] if is_preview else data["links"]["self_html"]
+    url_with_params = append_query_params(url, request.args)
+    return redirect(url_with_params)
 
 
 def deposit_edit(pid_value: str) -> Response:

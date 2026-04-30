@@ -110,3 +110,34 @@ def test_deposit_edit_redirect_preserves_query_params(app, search_clear, rdm_rec
     response = client.get(f"/uploads/{pid_value}?embed=1")
     assert response.status_code == 302
     assert "embed=1" in response.location
+
+
+def test_record_detail_preview_redirects_to_draft(app, search_clear, rdm_records_service, users, client):
+    """Test that /records/<pid_value>?preview=1 reads the draft and redirects to preview_html."""
+    user = users[0]
+    draft = rdm_records_service.create(
+        user.identity,
+        data={"$schema": "local://modela-v1.0.0.json", "files": {"enabled": False}},
+    )
+    record_html = draft.to_dict()["links"]["record_html"]
+
+    response = client.get(f"{record_html}?preview=1")
+    assert response.status_code == 302
+    assert "preview" in response.location
+
+
+def test_record_detail_parent_pid_redirects_to_latest(app, search_clear, rdm_records_service, users, client):
+    """Test that /records/<parent_pid> redirects to the latest version."""
+    user = users[0]
+    draft = rdm_records_service.create(
+        user.identity,
+        data={"$schema": "local://modela-v1.0.0.json", "files": {"enabled": False}},
+    )
+    published = rdm_records_service.publish(user.identity, draft["id"])
+    parent_id = published.to_dict()["parent"]["id"]
+
+    modela_service.indexer.refresh()
+
+    response = client.get(f"/records/{parent_id}")
+    assert response.status_code == 302
+    assert "latest" in response.location
