@@ -66,6 +66,13 @@ templates_app_rdm_administration = "oarepo_rdm.ui.templates:administration_bluep
 oarepo_rdm_templates = "oarepo_rdm.ui.templates:oarepo_rdm_blueprint"
 # reuse app rdm blueprints
 
+[project.entry-points."invenio_assets.webpack"]
+oarepo_rdm_theme = "oarepo_rdm.ui.theme.webpack:theme"
+oarepo_rdm_i18n = "oarepo_rdm.i18n.webpack:theme"
+
+[project.entry-points."invenio_i18n.translations"]
+oarepo_rdm_messages = "oarepo_rdm"
+
 [project.entry-points."invenio_search.mappings"]
 oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
 
