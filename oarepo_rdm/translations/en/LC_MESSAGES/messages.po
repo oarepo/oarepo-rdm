@@ -61,3 +61,21 @@ msgstr ""
 #: /Users/dusanstojanovic/Projects/oarepo-rdm/oarepo_rdm/templates/semantic-ui/oarepo_rdm/record_detail_iframe.html:4
 msgid "Record preview"
 msgstr ""
+
+msgid "Alternative identifiers"
+msgstr ""
+
+msgid "Community and Access"
+msgstr ""
+
+msgid "Visibility"
+msgstr ""
+
+msgid "Upload files"
+msgstr ""
+
+msgid "Funding"
+msgstr ""
+
+msgid "General information"
+msgstr ""
