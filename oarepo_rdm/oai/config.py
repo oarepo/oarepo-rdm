@@ -89,6 +89,7 @@ class OAIServerMetadataFormats(Dict):
                         "schema": export.oai_schema,
                         "model_schema": schema.value,
                         "serializer": export.serializer,
+                        "about_serializer": export.about_serializer,
                     }
                 )
 
@@ -107,6 +108,8 @@ class OAIServerMetadataFormats(Dict):
                     f"Multiple different schemas for OAI metadata prefix {key}: "
                     f"{[x['schema'] for x in serialization_infos]}"
                 )
+            about_serializer = serialization_infos[0].get("about_serializer")
+
             ret[key] = {
                 "namespace": serialization_infos[0]["namespace"],
                 "schema": serialization_infos[0]["schema"],
@@ -114,5 +117,6 @@ class OAIServerMetadataFormats(Dict):
                     multiplexing_oai_serializer,
                     {"model_serializers": {x["model_schema"]: x["serializer"] for x in serialization_infos}},
                 ),
+                **({"about_serializer": about_serializer} if about_serializer else {}),
             }
         return ret
