@@ -3,32 +3,33 @@
 # within the Czech National Repository platform. Other metadata are added by CCMM core
 # and CCMM profiles.
 #
-# * RDMFullMetadata provides the full RDM metadata schema.
-# * RDMBasicMetadata provides a basic subset of RDM metadata that is useful for
-#   extending a minimal schema (title, creators, contributors). Admin pages will
-#   mostly work with this schema.
-# * RDMEmptyMetadata provides an empty schema with only the version field.
-#   admin pages will not work with this schema, will not show title, for example.
+# * RDMCompleteMetadata provides the full RDM metadata schema.
+# * RDMBasicMetadata provides a basic subset of RDM metadata (title, resource_type,
+#   creators, contributors, publication_date, version). Admin pages will mostly
+#   work with this schema.
+# * RDMMinimalMetadata provides an empty schema with only the version field.
+#   Admin pages will not work with this schema, will not show title, for example.
 #
 RDMCompleteMetadata:
   type: object
   properties:
     resource_type:
       type: RDMResourceType
+      required: true
       label:
         en: Resource type
         cs: Typ záznamu
 
     creators:
+      type: RDMCreators
       required: true
       label:
         en: Creators
         cs: Autoři
-      type: RDMCreators
 
     title:
-      required: true
       type: RDMTitle
+      required: true
       label:
         en: Title
         cs: Název
@@ -46,23 +47,23 @@ RDMCompleteMetadata:
         cs: Vydavatel
 
     publication_date:
-      required: true
       type: RDMPublicationDate
+      required: true
       label:
         en: Publication date
         cs: Datum publikace
 
     subjects:
+      type: RDMSubjects
       label:
         en: Subjects
         cs: Předměty
-      type: RDMSubjects
 
     contributors:
+      type: RDMContributors
       label:
         en: Contributors
         cs: Přispěvatelé
-      type: RDMContributors
 
     dates:
       type: RDMDates
@@ -77,6 +78,7 @@ RDMCompleteMetadata:
         cs: Jazyky
 
     identifiers:
+      type: RDMRecordIdentifiers
       label:
         en: Identifiers
         cs: Identifikátory
@@ -86,7 +88,6 @@ RDMCompleteMetadata:
       help:
         en: Include any identifiers that reference this record, such as DOIs, Handles, or other scheme-based IDs.
         cs: Uveďte jakékoliv identifikátory, které odkazují na tento záznam, jako jsou DOI, Handle nebo jiné identifikátory založené na schématu.
-      type: RDMRecordIdentifiers
 
     related_identifiers:
       type: RDMRelatedIdentifiers
@@ -165,27 +166,37 @@ RDMBasicMetadata:
   properties:
     resource_type:
       type: RDMResourceType
+      required: true
       label:
         en: Resource type
         cs: Typ záznamu
 
     creators:
+      type: RDMCreators
+      required: true
       label:
         en: Creators
         cs: Autoři
-      type: RDMCreators
+
+    publication_date:
+      type: RDMPublicationDate
+      required: true
+      label:
+        en: Publication date
+        cs: Datum publikace
 
     title:
       type: RDMTitle
+      required: true
       label:
         en: Title
         cs: Název
 
     contributors:
+      type: RDMContributors
       label:
         en: Contributors
         cs: Přispěvatelé
-      type: RDMContributors
 
     version:
       type: RDMRecordVersion
