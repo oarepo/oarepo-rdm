@@ -370,6 +370,204 @@ def test_edit_page_contains_doi_required(
     assert config["is_doi_required"] is True
 
 
+def test_create_page_deposits_config_contains_pids_with_doi(
+    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, monkeypatch
+):
+    """Test that deposits-config contains pids list with DOI entry when DataCite is enabled."""
+    import idutils
+    from invenio_i18n import lazy_gettext as _
+    from invenio_rdm_records.services.pids import providers
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", True)  # NOQA: FBT003
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIER_PROVIDERS",
+        [
+            providers.DataCitePIDProvider(
+                "datacite",
+                client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
+                label=_("DOI"),
+            ),
+            providers.ExternalPIDProvider(
+                "external",
+                "doi",
+                validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+                label=_("DOI"),
+            ),
+            providers.OAIPIDProvider(
+                "oai",
+                label=_("OAI ID"),
+            ),
+        ],
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite", "external"],
+                "required": True,
+                "label": _("DOI"),
+                "validator": idutils.is_doi,
+                "normalizer": idutils.normalize_doi,
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+                "ui": {"default_selected": "yes"},
+            },
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": _("OAI"),
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    client = logged_client(user)
+
+    response = client.get("/modelb/uploads/new")
+    assert response.status_code == 200
+
+    config = _get_hidden_input(response, "deposits-config")
+    assert "pids" in config
+    pids = config["pids"]
+    assert isinstance(pids, list)
+    assert len(pids) == 1
+
+    doi_entry = pids[0]
+    assert doi_entry["scheme"] == "doi"
+    assert doi_entry["pid_label"] == "DOI"
+    assert doi_entry["can_be_managed"] is True
+    assert doi_entry["can_be_unmanaged"] is True
+    assert doi_entry["default_selected"] == "yes"
+    assert "field_label" in doi_entry
+    assert "pid_placeholder" in doi_entry
+    assert "managed_help_text" in doi_entry
+    assert "unmanaged_help_text" in doi_entry
+    assert "btn_label_get_pid" in doi_entry
+    assert "btn_label_discard_pid" in doi_entry
+    assert "optional_doi_transitions" in doi_entry
+
+
+def test_create_page_deposits_config_has_empty_pids_when_datacite_disabled(
+    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, monkeypatch
+):
+    """Test that deposits-config pids list is empty when DataCite is disabled."""
+    import idutils
+    from invenio_i18n import lazy_gettext as _
+    from invenio_rdm_records.services.pids import providers
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", False)  # NOQA: FBT003
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite", "external"],
+                "required": True,
+                "label": _("DOI"),
+                "validator": idutils.is_doi,
+                "normalizer": idutils.normalize_doi,
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+                "ui": {"default_selected": "yes"},
+            },
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": _("OAI"),
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    client = logged_client(user)
+
+    response = client.get("/modelb/uploads/new")
+    assert response.status_code == 200
+
+    config = _get_hidden_input(response, "deposits-config")
+    assert "pids" in config
+    assert config["pids"] == []
+
+
+def test_edit_page_deposits_config_contains_pids_with_doi(
+    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, monkeypatch
+):
+    """Test that the edit page's deposits-config contains pids list with DOI entry."""
+    import idutils
+    from invenio_i18n import lazy_gettext as _
+    from invenio_rdm_records.services.pids import providers
+
+    from tests.models import modelb
+
+    monkeypatch.setitem(app.config, "DATACITE_ENABLED", True)  # NOQA: FBT003
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIER_PROVIDERS",
+        [
+            providers.DataCitePIDProvider(
+                "datacite",
+                client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
+                label=_("DOI"),
+            ),
+            providers.ExternalPIDProvider(
+                "external",
+                "doi",
+                validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+                label=_("DOI"),
+            ),
+            providers.OAIPIDProvider(
+                "oai",
+                label=_("OAI ID"),
+            ),
+        ],
+    )
+    monkeypatch.setitem(
+        app.config,
+        "RDM_PERSISTENT_IDENTIFIERS",
+        {
+            "doi": {
+                "providers": ["datacite", "external"],
+                "required": True,
+                "label": _("DOI"),
+                "validator": idutils.is_doi,
+                "normalizer": idutils.normalize_doi,
+                "is_enabled": providers.DataCitePIDProvider.is_enabled,
+                "ui": {"default_selected": "yes"},
+            },
+            "oai": {
+                "providers": ["oai"],
+                "required": True,
+                "label": _("OAI"),
+                "is_enabled": providers.OAIPIDProvider.is_enabled,
+            },
+        },
+    )
+
+    user = users[0]
+    modelb_service = modelb.proxies.current_service
+    draft = modelb_service.create(
+        user.identity,
+        {
+            "metadata": {"title": "Test B", "bdescription": "desc b"},
+            "files": {"enabled": False},
+        },
+    )
+
+    client = logged_client(user)
+    response = client.get(f"/modelb/uploads/{draft['id']}")
+    assert response.status_code == 200
+
+    config = _get_hidden_input(response, "deposits-config")
+    assert "pids" in config
+    pids = config["pids"]
+    assert isinstance(pids, list)
+    assert len(pids) == 1
+    assert pids[0]["scheme"] == "doi"
+    assert pids[0]["default_selected"] == "yes"
+
+
 def test_inject_parent_doi_on_draft_preview(
     app, db, users, search_clear, extra_entry_points, monkeypatch, modelb_ui_resource
 ):
