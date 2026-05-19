@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from flask import Blueprint, Flask, request
+from flask import Blueprint, Flask, abort, current_app, render_template, request, url_for
+from flask_security import login_required
 from invenio_access.permissions import system_identity
 from invenio_app_rdm.records_ui.searchapp import search_app_context
 from invenio_app_rdm.records_ui.views.decorators import pass_include_deleted, pass_is_preview
@@ -60,12 +61,15 @@ from invenio_records_resources.services.errors import (
     PermissionDeniedError,
     RecordPermissionDeniedError,
 )
+from oarepo_runtime.proxies import current_runtime
 from oarepo_ui.utils import append_query_params
 from sqlalchemy.exc import NoResultFound
 from werkzeug.utils import redirect
 
 if TYPE_CHECKING:
+    from flask.typing import ResponseReturnValue
     from invenio_rdm_records.services.services import RDMRecordService
+    from oarepo_runtime.api import Model
     from werkzeug import Response
 
 
@@ -92,6 +96,8 @@ def create_records_blueprint(app: Flask) -> Blueprint:
             default_view_func=record_detail,
         )
     )
+
+    blueprint.add_url_rule(**create_url_rule(routes["deposit_create"], default_view_func=deposit_create))
 
     blueprint.add_url_rule(**create_url_rule(routes["deposit_edit"], default_view_func=deposit_edit))
 
@@ -200,3 +206,46 @@ def deposit_edit(pid_value: str) -> Response:
     data = draft.to_dict()
     self_html = append_query_params(data["links"]["self_html"], request.args)
     return redirect(self_html)
+
+
+@login_required
+def deposit_create() -> ResponseReturnValue:
+    """Handle the deposit_create route for creating new records.
+
+    If only one model is available, redirects directly to that model's deposit create page.
+    If multiple models are available, renders a selection page with model cards.
+    Preserves community parameter from query string when redirecting.
+    """
+    models = list(current_runtime.rdm_models)
+    community_slug = request.args.get("community")
+
+    def get_deposit_url(model: Model) -> str:
+        if community_slug:
+            return cast(
+                "str",
+                url_for(
+                    f"{model.ui_blueprint_name}.deposit_create",
+                    community=community_slug,
+                ),
+            )
+        return cast("str", url_for(f"{model.ui_blueprint_name}.deposit_create"))
+
+    if len(models) == 1:
+        model = models[0]
+        if not model.ui_blueprint_name:
+            abort(404)
+        return redirect(get_deposit_url(model))
+
+    serialized_models = [
+        {
+            "name": model.name,
+            "description": model.description,
+            "url": get_deposit_url(model),
+        }
+        for model in models
+    ]
+
+    return render_template(
+        current_app.config.get("OAREPO_RDM_NEW_UPLOAD_PAGE_TEMPLATE", "oarepo_rdm/new_upload_page.html"),
+        models=serialized_models,
+    )
