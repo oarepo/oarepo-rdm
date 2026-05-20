@@ -12,9 +12,52 @@ from __future__ import annotations
 
 import json
 
+import idutils
 from flask import g
+from invenio_i18n import lazy_gettext as _
+from invenio_rdm_records.services.pids import providers
 
 from oarepo_rdm.ui.config import RDMRecordsUIResourceConfig
+
+
+def make_pid_providers():
+    return [
+        providers.DataCitePIDProvider(
+            "datacite",
+            client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
+            label=_("DOI"),
+        ),
+        providers.ExternalPIDProvider(
+            "external",
+            "doi",
+            validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+            label=_("DOI"),
+        ),
+        providers.OAIPIDProvider(
+            "oai",
+            label=_("OAI ID"),
+        ),
+    ]
+
+
+def make_rdm_identifiers_config(default_selected="yes"):
+    return {
+        "doi": {
+            "providers": ["datacite", "external"],
+            "required": True,
+            "label": _("DOI"),
+            "validator": idutils.is_doi,
+            "normalizer": idutils.normalize_doi,
+            "is_enabled": providers.DataCitePIDProvider.is_enabled,
+            "ui": {"default_selected": default_selected},
+        },
+        "oai": {
+            "providers": ["oai"],
+            "required": True,
+            "label": _("OAI"),
+            "is_enabled": providers.OAIPIDProvider.is_enabled,
+        },
+    }
 
 
 def test_form_config_contains_communities_memberships_and_vocabularies(
@@ -156,47 +199,11 @@ def test_create_page_contains_pids_with_doi(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that the create page contains pids with doi when DOI providers are configured."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -214,47 +221,11 @@ def test_create_page_contains_empty_pids_when_not_default_selected(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that pids is empty when doi default_selected is not 'yes'."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "no"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(default_selected="no"),
         }
     )
 
@@ -272,29 +243,9 @@ def test_create_page_contains_doi_required(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that the create page contains is_doi_required in deposits-config."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     set_app_config_fn_scoped(
         {
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -312,31 +263,11 @@ def test_edit_page_contains_doi_required(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that the edit page contains is_doi_required in deposits-config."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     from tests.models import modelb
 
     set_app_config_fn_scoped(
         {
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -362,47 +293,11 @@ def test_create_page_deposits_config_contains_pids_with_doi(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that deposits-config contains pids list with DOI entry when DataCite is enabled."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -437,30 +332,10 @@ def test_create_page_deposits_config_has_empty_pids_when_datacite_disabled(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that deposits-config pids list is empty when DataCite is disabled."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": False,
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -479,49 +354,13 @@ def test_edit_page_deposits_config_contains_pids_with_doi(
     app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
 ):
     """Test that the edit page's deposits-config contains pids list with DOI entry."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     from tests.models import modelb
 
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
         }
     )
 
@@ -552,50 +391,14 @@ def test_inject_parent_doi_on_draft_preview(
     app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
 ):
     """Test that InjectParentDoiComponent injects parent DOI on draft preview."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     from tests.models import modelb
 
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
             "DATACITE_PREFIX": "10.5072",
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
             "RDM_PARENT_PERSISTENT_IDENTIFIERS": {
                 "doi": {
                     "providers": ["datacite"],
@@ -706,8 +509,6 @@ def test_inject_parent_doi_skipped_when_no_datacite_provider(
     app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
 ):
     """Test that InjectParentDoiComponent does nothing when no datacite parent provider."""
-    from invenio_rdm_records.services.pids import providers
-
     from tests.models import modelb
 
     set_app_config_fn_scoped(
@@ -761,50 +562,14 @@ def test_inject_parent_doi_skipped_when_not_required_and_no_reserved_doi(
     app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
 ):
     """Test that parent DOI is not injected when doi is not required and no reserved doi."""
-    import idutils
-    from invenio_i18n import lazy_gettext as _
-    from invenio_rdm_records.services.pids import providers
-
     from tests.models import modelb
 
     set_app_config_fn_scoped(
         {
             "DATACITE_ENABLED": True,
             "DATACITE_PREFIX": "10.5072",
-            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": [
-                providers.DataCitePIDProvider(
-                    "datacite",
-                    client=providers.DataCiteClient("datacite", config_prefix="DATACITE"),
-                    label=_("DOI"),
-                ),
-                providers.ExternalPIDProvider(
-                    "external",
-                    "doi",
-                    validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
-                    label=_("DOI"),
-                ),
-                providers.OAIPIDProvider(
-                    "oai",
-                    label=_("OAI ID"),
-                ),
-            ],
-            "RDM_PERSISTENT_IDENTIFIERS": {
-                "doi": {
-                    "providers": ["datacite", "external"],
-                    "required": True,
-                    "label": _("DOI"),
-                    "validator": idutils.is_doi,
-                    "normalizer": idutils.normalize_doi,
-                    "is_enabled": providers.DataCitePIDProvider.is_enabled,
-                    "ui": {"default_selected": "yes"},
-                },
-                "oai": {
-                    "providers": ["oai"],
-                    "required": True,
-                    "label": _("OAI"),
-                    "is_enabled": providers.OAIPIDProvider.is_enabled,
-                },
-            },
+            "RDM_PERSISTENT_IDENTIFIER_PROVIDERS": make_pid_providers(),
+            "RDM_PERSISTENT_IDENTIFIERS": make_rdm_identifiers_config(),
             "RDM_PARENT_PERSISTENT_IDENTIFIERS": {
                 "doi": {
                     "providers": ["datacite"],
