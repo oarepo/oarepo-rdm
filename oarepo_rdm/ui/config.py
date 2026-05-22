@@ -30,6 +30,7 @@ from oarepo_rdm.ui.components import (
     EmptyRecordPidsComponent,
     FilesEnabledComponent,
     InjectParentDoiComponent,
+    RDMPIDsConfigComponent,
     RDMVocabularyOptionsComponent,
 )
 
@@ -73,6 +74,7 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         CommunitiesMembershipsComponent,
         InjectParentDoiComponent,
         DoiRequiredComponent,
+        RDMPIDsConfigComponent,
     )
 
     # Default components for RDM UI resources.
