@@ -10,11 +10,15 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
+import idutils
 from flask_resources import HTTPJSONException, create_error_handler
 from invenio_app_rdm import config as rdm_config
+from invenio_i18n import lazy_gettext as _
+from invenio_rdm_records import config as rdm_records_config
 from invenio_rdm_records.resources.config import error_handlers
 
 from oarepo_rdm.errors import UndefinedModelError
@@ -181,4 +185,50 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
 """Default values pre-filled in the deposit form for new records."""
 
 RDM_DEFAULT_FILES_ENABLED = True
-"""Default value for files.enabled on new records.."""
+"""Default value for files.enabled on new records."""
+
+
+def is_researcher_id(identifier: str) -> bool:
+    """Validate ResearcherID format: letters, dash, 4 digits, dash, 4 digits."""
+    pattern = r"^[A-Za-z]+-\d{4}-\d{4}$"
+    return bool(re.fullmatch(pattern, identifier))
+
+
+def is_vedidk(identifier: str) -> bool:
+    """Validate vedIDK: 7-digit numeric string (whitespace ignored)."""
+    cleaned_identifier = identifier.strip()
+    return cleaned_identifier.isdigit() and len(cleaned_identifier) == 7  # noqa: PLR2004
+
+
+def is_scopus_id(identifier: str) -> bool:
+    """Validate Scopus Author ID: numeric, tolerating a trailing ``.0``."""
+    return bool(re.fullmatch(r"\d+(?:\.0)?", identifier))
+
+
+RDM_RECORDS_PERSONORG_SCHEMES = {
+    **rdm_records_config.RDM_RECORDS_PERSONORG_SCHEMES,
+    "scopusid": {
+        "label": _("Scopus Author ID"),
+        "validator": is_scopus_id,
+        "datacite": "Scopus Author ID",
+    },
+    "researcherid": {
+        "label": _("Researcher ID"),
+        "validator": is_researcher_id,
+        "datacite": "ResearcherID",
+    },
+    "czenasautid": {
+        "label": _("CzenasAutID"),
+        "validator": lambda _: True,
+    },
+    "vedidk": {"label": _("vedIDK"), "validator": is_vedidk},
+    "institutionalid": {
+        "label": _("InstitutionalID"),
+        "validator": lambda _: True,
+    },
+    "ico": {"label": _("ICO"), "validator": lambda _: True},
+    "doi": {"label": _("DOI"), "validator": idutils.is_doi, "datacite": "DOI"},  # pyright: ignore[reportAttributeAccessIssue]
+    "url": {"label": _("URL"), "validator": lambda _: True},
+    "grid": {"label": _("GRID"), "validator": lambda _: True},
+}
+"""Default values for person/org schemes."""
