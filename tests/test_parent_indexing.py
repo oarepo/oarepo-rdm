@@ -13,18 +13,18 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from tests.models import modela
+from tests.models import modelb
 
-modela_service = modela.proxies.current_service
+modelb_service = modelb.proxies.current_service
 
 
-def _create_versioned_record(service, user) -> tuple[str, str]:
+def _create_versioned_record(service, user, required_rdm_metadata) -> tuple[str, str]:
     """Create a record with two published versions, return (v1_pid, v2_pid)."""
     draft_v1 = service.create(
         user.identity,
         data={
-            "$schema": "local://modela-v1.0.0.json",
-            "metadata": {"title": "Version 1", "adescription": "first"},
+            "$schema": "local://modelb-v1.0.0.json",
+            "metadata": {**required_rdm_metadata, "title": "Version 1", "bdescription": "first"},
             "files": {"enabled": True},
             "access": {"record": "restricted", "files": "restricted"},
         },
@@ -49,7 +49,7 @@ def _create_versioned_record(service, user) -> tuple[str, str]:
     record_v2 = service.publish(user.identity, v2_id)
     v2_pid = record_v2.id
 
-    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
     return v1_pid, v2_pid
 
 
@@ -63,7 +63,7 @@ SETTINGS_ENABLED = {
 
 def _get_settings_from_search(service, user) -> list[tuple[str, dict]]:
     """Return list of (record_id, settings_dict) from search hits."""
-    modela_service.indexer.refresh()
+    modelb_service.indexer.refresh()
     hits = list(service.search(user.identity))
     return [(hit["id"], hit.get("parent", {}).get("access", {}).get("settings", {})) for hit in hits]
 
@@ -74,24 +74,26 @@ def test_access_settings_via_model_specific_service(
     users,
     location,
     search_clear,
+    vocab_fixtures,
+    required_rdm_metadata,
 ):
     """Update access settings via the model-specific access service.
 
     The model-specific RecordAccessService has the correct record_cls
-    (ModelaRecord with ModelaRecordMetadata), so ParentRecordCommitOp
+    (ModelbRecord with ModelbRecordMetadata), so ParentRecordCommitOp
     finds all sibling versions via get_records_by_parent and bulk-indexes them.
     """
     user = users[0]
     service = rdm_records_service
-    v1_pid, v2_pid = _create_versioned_record(service, user)
+    v1_pid, v2_pid = _create_versioned_record(service, user, required_rdm_metadata)
 
     # Use the MODEL-SPECIFIC access service directly
-    model_access_service = modela_service.access
+    model_access_service = modelb_service.access
     model_access_service.update_access_settings(user.identity, v1_pid, SETTINGS_ENABLED)
 
     # Verify: the model-specific service correctly enqueues siblings for reindexing.
     # Process the queue and refresh to make changes visible in search.
-    modela_service.indexer.process_bulk_queue()
+    modelb_service.indexer.process_bulk_queue()
 
     # DB reads should reflect the settings on both versions (parent is shared)
     read_v1 = service.read(user.identity, v1_pid)
@@ -114,6 +116,8 @@ def test_access_settings_via_global_delegating_service(
     users,
     location,
     search_clear,
+    vocab_fixtures,
+    required_rdm_metadata,
 ):
     """Update access settings via the global DelegatingRecordAccessService.
 
@@ -124,9 +128,9 @@ def test_access_settings_via_global_delegating_service(
     """
     user = users[0]
     service = rdm_records_service
-    v1_pid, v2_pid = _create_versioned_record(service, user)
+    v1_pid, v2_pid = _create_versioned_record(service, user, required_rdm_metadata)
     # This shouldn't work with rdm_records_service bc of invenio_indexer.api.RecordIndexer._index_action
-    modela_service.indexer.process_bulk_queue()
+    modelb_service.indexer.process_bulk_queue()
 
     search_hits = _get_settings_from_search(service, user)
     for _, settings in search_hits:
@@ -136,7 +140,7 @@ def test_access_settings_via_global_delegating_service(
     service.access.update_access_settings(user.identity, v1_pid, SETTINGS_ENABLED)
 
     # Process the bulk queue so that ParentRecordCommitOp's post_commit reindexing takes effect
-    modela_service.indexer.process_bulk_queue()
+    modelb_service.indexer.process_bulk_queue()
 
     # DB reads should reflect the settings on both versions (parent is shared)
     read_v1 = service.read(user.identity, v1_pid)
