@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from flask_resources import HTTPJSONException, create_error_handler
-from invenio_app_rdm import config as rdm_config  # noqa
+from invenio_app_rdm import config as rdm_config
 from invenio_rdm_records.resources.config import error_handlers
 
 from oarepo_rdm.errors import UndefinedModelError
@@ -108,11 +108,7 @@ OAISERVER_DELETE_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_delete_per
 # cleared rest endpoints
 RECORDS_REST_ENDPOINTS: list[Any] = []
 
-APP_RDM_USER_DASHBOARD_ROUTES = {
-    "uploads": "/me/uploads",
-    "communities": "/me/communities",
-    "requests": "/me/requests",
-}
+APP_RDM_USER_DASHBOARD_ROUTES = rdm_config.APP_RDM_USER_DASHBOARD_ROUTES
 """Routes for user dashboard"""
 
 USER_DASHBOARD_MENU_OVERRIDES: dict[str, str] = {}
@@ -131,13 +127,7 @@ RDM_SEARCH_USER_REQUESTS = {
 """User requests search configuration"""
 
 
-RDM_COMMUNITIES_ROUTES = {
-    "community-detail": "/communities/<pid_value>/records",
-    "community-home": "/communities/<pid_value>/",
-    "community-browse": "/communities/<pid_value>/browse",
-    "community-static-page": "/communities/<pid_value>/pages/<path:page_slug>",
-    "community-collection": "/communities/<pid_value>/collections/<tree_slug>/<collection_slug>",
-}
+RDM_COMMUNITIES_ROUTES = rdm_config.RDM_COMMUNITIES_ROUTES
 """Communities routes from app RDM."""
 
 
@@ -148,11 +138,7 @@ COMMUNITIES_RECORDS_SEARCH = {
 """Communities records search configuration."""
 
 
-RDM_REQUESTS_ROUTES = {
-    "user-dashboard-request-details": "/me/requests/<uuid:request_pid_value>",
-    "community-dashboard-request-details": "/communities/<pid_value>/requests/<uuid:request_pid_value>",
-    "community-dashboard-invitation-details": "/communities/<pid_value>/invitations/<uuid:request_pid_value>",
-}
+RDM_REQUESTS_ROUTES = rdm_config.RDM_REQUESTS_ROUTES
 """Routes for requests in RDM."""
 
 APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
@@ -195,4 +181,4 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
 """Default values pre-filled in the deposit form for new records."""
 
 RDM_DEFAULT_FILES_ENABLED = True
-"""Default value for files.enabled on new records."""
+"""Default value for files.enabled on new records.."""
