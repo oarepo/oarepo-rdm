@@ -10,44 +10,13 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, TypedDict
 
-import idutils
 from flask_resources import HTTPJSONException, create_error_handler
-from invenio_app_rdm import config as rdm_config
-from invenio_i18n import lazy_gettext as _
-from invenio_rdm_records import config as rdm_records_config
 from invenio_rdm_records.resources.config import error_handlers
 
 from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-# TODO: Why not to add other RDM routes here?
-APP_RDM_ROUTES = {
-    "index": "/",
-    "robots": "/robots.txt",
-    "help_search": "/help/search",
-    "help_statistics": "/help/statistics",
-    # "help_versioning": "/help/versioning", #noqa
-    "record_search": "/search",
-    "record_detail": "/records/<pid_value>",
-    "record_export": "/records/<pid_value>/export/<export_format>",
-    "record_file_preview": "/records/<pid_value>/preview/<path:filename>",
-    "record_file_download": "/records/<pid_value>/files/<path:filename>",
-    "record_thumbnail": "/records/<pid_value>/thumb<int:size>",
-    "record_media_file_download": "/records/<pid_value>/media-files/<path:filename>",
-    "record_from_pid": "/<any({schemes}):pid_scheme>/<path:pid_value>",
-    "record_latest": "/records/<pid_value>/latest",
-    # "dashboard_home": "/me", #noqa
-    "deposit_create": "/uploads/new",
-    "deposit_edit": "/uploads/<pid_value>",
-}
-
 
 RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceConfig"
 """Service config class."""
@@ -71,102 +40,8 @@ RDM_RECORDS_PIDS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingPIDsS
 # (Using GitHub because documentation site out-of-sync at time of writing)
 
 
-OAISERVER_SEARCH_CLS = "invenio_rdm_records.oai:OAIRecordSearch"
-"""Class for record search."""
-
-OAISERVER_ID_FETCHER = "invenio_rdm_records.oai:oaiid_fetcher"
-"""OAI ID fetcher function."""
-
 OAISERVER_METADATA_FORMATS = OAIServerMetadataFormats()
 
-OAISERVER_LAST_UPDATE_KEY = "updated"
-"""Record update key."""
-
-OAISERVER_CREATED_KEY = "created"
-"""Record created key."""
-
-OAISERVER_RECORD_CLS = "invenio_rdm_records.records.api:RDMRecord"
-"""Record retrieval class."""
-
-OAISERVER_RECORD_SETS_FETCHER = "invenio_oaiserver.percolator:find_sets_for_record"
-"""Record's OAI sets function."""
-
-OAISERVER_RECORD_INDEX = "oaisource"
-"""oaisource is a mapping alias for records that can be sent over OAI-PMH.
-
-To mark your model as oaisource, add `oarepo_rdm.oai.oai_presets` to your model's presets."""
-
-# TODO: oarepo extension, maybe not needed
-OAISERVER_RECORD_LIST_SETS_FETCHER = "invenio_oaiserver.percolator:sets_search_all"
-
-"""Specify a search index with records that should be exposed via OAI-PMH."""
-
-OAISERVER_GETRECORD_FETCHER = "invenio_rdm_records.oai:getrecord_fetcher"
-"""Record data fetcher for serialization."""
-
-# extra oarepo extensions - TODO: maybe not needed
-OAISERVER_NEW_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_new_percolator"
-# TODO: maybe not needed
-OAISERVER_DELETE_PERCOLATOR_FUNCTION = "invenio_oaiserver.percolator:_delete_percolator"
-
-# cleared rest endpoints
-RECORDS_REST_ENDPOINTS: list[Any] = []
-
-APP_RDM_USER_DASHBOARD_ROUTES = rdm_config.APP_RDM_USER_DASHBOARD_ROUTES
-"""Routes for user dashboard"""
-
-USER_DASHBOARD_MENU_OVERRIDES: dict[str, str] = {}
-"""Menu overrides for user dashboard"""
-
-RDM_SEARCH_USER_COMMUNITIES = {
-    "facets": ["visibility", "type"],
-    "sort": ["bestmatch", "newest", "oldest"],
-}
-"""User communities search configuration"""
-
-RDM_SEARCH_USER_REQUESTS = {
-    "facets": ["type", "status"],
-    "sort": ["bestmatch", "newest", "oldest"],
-}
-"""User requests search configuration"""
-
-
-RDM_COMMUNITIES_ROUTES = rdm_config.RDM_COMMUNITIES_ROUTES
-"""Communities routes from app RDM."""
-
-
-COMMUNITIES_RECORDS_SEARCH = {
-    "facets": ["access_status", "resource_type", "language"],
-    "sort": ["bestmatch", "newest", "oldest", "version"],
-}
-"""Communities records search configuration."""
-
-
-RDM_REQUESTS_ROUTES = rdm_config.RDM_REQUESTS_ROUTES
-"""Routes for requests in RDM."""
-
-APP_RDM_DETAIL_SIDE_BAR_TEMPLATES = [
-    "invenio_app_rdm/records/details/side_bar/external_resources.html",
-    "invenio_app_rdm/records/details/side_bar/keywords_subjects.html",
-    "invenio_app_rdm/records/details/side_bar/details.html",
-    "invenio_app_rdm/records/details/side_bar/licenses.html",
-    "oarepo_ui/record_detail/side_bar/export.html",
-    "invenio_app_rdm/records/details/side_bar/citations.html",
-    "invenio_app_rdm/records/details/side_bar/manage_menu.html",
-    "invenio_app_rdm/records/details/side_bar/technical_metadata.html",
-]
-"""Template names for detail view sidebar components."""
-
-
-class ExternalLinkConfig(TypedDict):
-    """Configuration for an external link on the record landing page."""
-
-    id: str
-    render: Callable[..., Any]
-
-
-APP_RDM_RECORD_LANDING_PAGE_EXTERNAL_LINKS: list[ExternalLinkConfig] = []
-"""External links to be shown on record landing page."""
 
 RDM_RECORDS_ERROR_HANDLERS = {
     **error_handlers,
@@ -183,52 +58,3 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
 }
 """Default values pre-filled in the deposit form for new records."""
-
-RDM_DEFAULT_FILES_ENABLED = True
-"""Default value for files.enabled on new records."""
-
-
-def is_researcher_id(identifier: str) -> bool:
-    """Validate ResearcherID format: letters, dash, 4 digits, dash, 4 digits."""
-    pattern = r"^[A-Za-z]+-\d{4}-\d{4}$"
-    return bool(re.fullmatch(pattern, identifier))
-
-
-def is_vedidk(identifier: str) -> bool:
-    """Validate vedIDK: 7-digit numeric string (whitespace ignored)."""
-    cleaned_identifier = identifier.strip()
-    return cleaned_identifier.isdigit() and len(cleaned_identifier) == 7  # noqa: PLR2004
-
-
-def is_scopus_id(identifier: str) -> bool:
-    """Validate Scopus Author ID: numeric, tolerating a trailing ``.0``."""
-    return bool(re.fullmatch(r"\d+(?:\.0)?", identifier))
-
-
-RDM_RECORDS_PERSONORG_SCHEMES = {
-    **rdm_records_config.RDM_RECORDS_PERSONORG_SCHEMES,
-    "scopusid": {
-        "label": _("Scopus Author ID"),
-        "validator": is_scopus_id,
-        "datacite": "Scopus Author ID",
-    },
-    "researcherid": {
-        "label": _("Researcher ID"),
-        "validator": is_researcher_id,
-        "datacite": "ResearcherID",
-    },
-    "czenasautid": {
-        "label": _("CzenasAutID"),
-        "validator": lambda _: True,
-    },
-    "vedidk": {"label": _("vedIDK"), "validator": is_vedidk},
-    "institutionalid": {
-        "label": _("InstitutionalID"),
-        "validator": lambda _: True,
-    },
-    "ico": {"label": _("ICO"), "validator": lambda _: True},
-    "doi": {"label": _("DOI"), "validator": idutils.is_doi, "datacite": "DOI"},  # pyright: ignore[reportAttributeAccessIssue]
-    "url": {"label": _("URL"), "validator": lambda _: True},
-    "grid": {"label": _("GRID"), "validator": lambda _: True},
-}
-"""Default values for person/org schemes."""
