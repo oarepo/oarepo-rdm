@@ -14,6 +14,8 @@ from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.errors import RecordDeletedException
 
+from .models import modela
+
 
 def test_finalization_called(app, rdm_model, finalization_called):
     assert finalization_called.called
@@ -81,7 +83,7 @@ def test_publish(
     logged_client,
     search_clear,
     location,
-    add_file_to_draft,
+    upload_file,
 ):
     # Create an item
     item = test_rdm_service.create(identity_simple, input_data)
@@ -89,7 +91,12 @@ def test_publish(
     test_rdm_service.draft_indexer.refresh()
 
     # Add a file
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
+    upload_file(
+        files_service=test_rdm_draft_files_service,
+        record_id=id_,
+        file_name="test.txt",
+        identity=identity_simple,
+    )
 
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)
@@ -126,12 +133,9 @@ def test_publish(
 
 def test_delete(
     app,
-    test_rdm_service,
-    test_rdm_draft_files_service,
     identity_simple,
     input_data,
-    rdm_model,
-    add_file_to_draft,
+    upload_file,
     search,
     search_clear,
     location,
@@ -142,7 +146,12 @@ def test_delete(
 
     item = service.create(identity_simple, input_data | {"$schema": "local://modela-v1.0.0.json"})
     id_ = item.id
-    add_file_to_draft(service.draft_files, id_, "test.txt", identity_simple)
+    upload_file(
+        files_service=modela.proxies.current_service.draft_files,
+        record_id=id_,
+        file_name="test.txt",
+        identity=identity_simple,
+    )
     service.publish(identity_simple, id_)
     service.delete(identity_simple, id_)
 
@@ -158,7 +167,7 @@ def test_rdm_publish(
     identity_simple,
     input_data,
     rdm_model,
-    add_file_to_draft,
+    upload_file,
     search,
     search_clear,
     location,
@@ -169,7 +178,12 @@ def test_rdm_publish(
     test_rdm_service.draft_indexer.refresh()
 
     # Add a file
-    add_file_to_draft(test_rdm_draft_files_service, id_, "test.txt", identity_simple)
+    upload_file(
+        files_service=test_rdm_draft_files_service,
+        record_id=id_,
+        file_name="test.txt",
+        identity=identity_simple,
+    )
 
     # Can not publish as publishing needs files support in drafts
     test_rdm_service.publish(identity_simple, id_)
@@ -178,7 +192,6 @@ def test_rdm_publish(
         "removal_reason": {"id": "your stuff is gone"},
         "citation_text": "lalala",
         "note": "note",
-        "is_visible": True,
     }
 
     test_rdm_service.delete_record(system_identity, id_, data=delete_data)
