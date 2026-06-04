@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_checks.components import ChecksComponent
 from invenio_drafts_resources.services import (
     RecordServiceConfig as DraftRecordServiceConfig,
 )
@@ -80,7 +79,6 @@ class RDMRecordServiceConfigPreset(Preset):
         yield AddToList("record_service_components", ParentPIDsComponent)
         yield AddToList("record_service_components", ContentModerationComponent)
         yield AddToList("record_service_components", InternalNotesComponent)
-        yield AddToList("record_service_components", ChecksComponent)
         yield ReplaceBaseClass(
             "RecordServiceConfig",
             DraftRecordServiceConfig,
