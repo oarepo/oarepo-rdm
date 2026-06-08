@@ -1,0 +1,42 @@
+#
+# UI labels for record-level fields that come from RDMRecordSchemaMixin's
+# marshmallow schemas (files, access, pids, ...) and are therefore invisible
+# to the YAML-driven ui_model walker. Without these, paths like
+# `children.files.children.enabled` show up unlabeled in the UI.
+#
+# Shape is the ui_model tree itself — no type info, no marshmallow side, no
+# mapping side. Just labels/hints/help that get merged into `ui_model` by
+# RDMRecordRootLabelsPreset. Downstream profiles and repos can override any
+# key with their own AddToDictionary("ui_model", ..., patch=True).
+#
+files:
+  label:
+    en: Files
+    cs: Soubory
+  children:
+    enabled:
+      label:
+        en: Files
+        cs: Soubory
+      hint:
+        en: Whether files are attached to this record. Disable for metadata-only records.
+        cs: Zda jsou k záznamu připojeny soubory. Zakažte pro záznamy obsahující pouze metadata.
+
+access:
+  label:
+    en: Access
+    cs: Přístup
+  children:
+    record:
+      label:
+        en: Record access
+        cs: Přístup k záznamu
+    files:
+      label:
+        en: Files access
+        cs: Přístup k souborům
+
+pids:
+  label:
+    en: Persistent identifiers
+    cs: Trvalé identifikátory

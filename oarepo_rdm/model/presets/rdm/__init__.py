@@ -66,6 +66,9 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config_links import (
 from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links import (
     RDMServiceConfigUILinks,
 )
+from oarepo_rdm.model.presets.rdm_metadata.rdm_record_root_labels import (
+    RDMRecordRootLabelsPreset,
+)
 
 rdm_static_preset = [
     RDMMappingPreset,
@@ -89,4 +92,5 @@ rdm_static_preset = [
     RDMServiceConfigUILinks,
     RDMPermissionPolicyPreset,
     RDMRecordUISchemaPreset,
+    RDMRecordRootLabelsPreset,
 ]
