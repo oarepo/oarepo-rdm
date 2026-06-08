@@ -54,3 +54,35 @@ def test_runtime_model(
         "application/linkset+json",
         "application/vnd.inveniordm.v1+json",
     }
+
+
+def test_record_root_labels_in_ui_model(
+    app,
+    rdm_model,
+):
+    """RDMRecordRootLabelsPreset must inject labels for files/access/pids."""
+    runtime_model = current_runtime.models["rdm_test"]
+    children = runtime_model.ui_model["children"]
+
+    files = children["files"]
+    assert files["label"] == {"en": "Files", "cs": "Soubory"}
+    enabled = files["children"]["enabled"]
+    assert enabled["label"] == {"en": "Files", "cs": "Soubory"}
+    assert "hint" in enabled
+
+    access = children["access"]
+    assert access["label"] == {"en": "Access", "cs": "Přístup"}
+    assert access["children"]["record"]["label"] == {
+        "en": "Record access",
+        "cs": "Přístup k záznamu",
+    }
+    assert access["children"]["files"]["label"] == {
+        "en": "Files access",
+        "cs": "Přístup k souborům",
+    }
+
+    pids = children["pids"]
+    assert pids["label"] == {
+        "en": "Persistent identifiers",
+        "cs": "Trvalé identifikátory",
+    }
