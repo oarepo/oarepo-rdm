@@ -37,6 +37,8 @@ from invenio_app_rdm.records_ui.views.filters import (
 from invenio_app_rdm.records_ui.views.records import (
     draft_not_found_error,
     not_found_error,
+    record_container_item_download,
+    record_container_item_preview,
     record_export,
     record_file_download,
     record_file_preview,
@@ -139,6 +141,20 @@ def create_records_blueprint(app: Flask) -> Blueprint:
         **create_url_rule(
             routes["record_latest"],
             default_view_func=record_latest,
+        )
+    )
+
+    blueprint.add_url_rule(
+        **create_url_rule(
+            routes["record_container_item_preview"],
+            default_view_func=record_container_item_preview,
+        )
+    )
+
+    blueprint.add_url_rule(
+        **create_url_rule(
+            routes["record_container_item_download"],
+            default_view_func=record_container_item_download,
         )
     )
 
