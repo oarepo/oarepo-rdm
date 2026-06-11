@@ -19,8 +19,9 @@ from invenio_drafts_resources.services import RecordService as DraftRecordServic
 from invenio_rdm_records.services.services import RDMRecordService
 
 # TODO: from oarepo_runtime.services.service import SearchAllRecordsService as RDMRecordService
-from oarepo_model.customizations import Customization, ReplaceBaseClass
+from oarepo_model.customizations import Customization, PrependMixin, ReplaceBaseClass
 from oarepo_model.presets import Preset
+from oarepo_runtime.services.config.components import ComponentsOrderingMixin
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -42,3 +43,4 @@ class RDMRecordServicePreset(Preset):
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
         yield ReplaceBaseClass("RecordService", DraftRecordService, RDMRecordService)
+        yield PrependMixin("RecordService", ComponentsOrderingMixin)
