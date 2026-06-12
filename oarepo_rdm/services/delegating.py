@@ -19,7 +19,7 @@ from invenio_rdm_records.services.access.service import RecordAccessService
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_rdm_records.services.review.service import ReviewService
 from oarepo_runtime.proxies import current_runtime
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound  # type: ignore[reportPrivateImportUsage]
 
 from oarepo_rdm.services.service import (
     DelegationToSpecializedServiceMixin,
