@@ -56,6 +56,7 @@ from oarepo_rdm.model.presets.rdm.services.records.rdm_record_schema import (
 from oarepo_rdm.model.presets.rdm.services.records.rdm_record_ui_schema import (
     RDMRecordUISchemaPreset,
 )
+from oarepo_rdm.model.presets.rdm.services.records.search_options import RDMRecordSearchOptionsPreset
 from oarepo_rdm.model.presets.rdm.services.records.service import RDMRecordServicePreset
 from oarepo_rdm.model.presets.rdm.services.records.service_config import (
     RDMRecordServiceConfigPreset,
@@ -93,4 +94,5 @@ rdm_static_preset = [
     RDMPermissionPolicyPreset,
     RDMRecordUISchemaPreset,
     RDMRecordRootLabelsPreset,
+    RDMRecordSearchOptionsPreset,
 ]
