@@ -30,6 +30,12 @@ RDM_RECORDS_RESOURCE_CONFIG_CLASS = "oarepo_rdm.resources.records.config:OARepoR
 RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRecordResource"
 """Replacement for the plain RDM resource class."""
 
+RDM_RECORDS_COMMUNITY_RECORDS_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoCommunityRecordsConfig"
+"""Community records service config that uses the multiplexed search options."""
+
+RDM_RECORDS_COMMUNITY_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARepoCommunityRecordsService"
+"""Community records service that multiplexes search across per-model services."""
+
 RDM_RECORDS_REVIEW_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingReviewService"
 RDM_RECORDS_ACCESS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingRecordAccessService"
 RDM_RECORDS_PIDS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingPIDsService"
