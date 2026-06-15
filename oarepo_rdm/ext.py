@@ -73,7 +73,7 @@ class OARepoRDM:
         return MultiplexedSearchOptions("search_all")
 
 
-def finalize_app(_app: Flask) -> None:
+def finalize_app(app: Flask) -> None:
     """Finalize app."""
     from invenio_rdm_records.records.api import RDMDraft as InvenioRDMDraft
     from invenio_rdm_records.records.api import RDMRecord as InvenioRDMRecord
@@ -94,3 +94,39 @@ def finalize_app(_app: Flask) -> None:
         "never-used-for-indexing-drafts-search-alias-used-instead",
         search_alias=[*current_runtime.draft_indices],
     )
+
+    _populate_facet_configs(app)
+
+
+def _populate_facet_configs(app: Flask) -> None:
+    """Derive RDM_FACETS and per-view facet lists from per-model search options.
+
+    The multiplexed search options already merge facets across all registered
+    models for each view (published / drafts / versions). Here we project that
+    merged state onto the Flask config keys read by the FE search apps so the
+    UI selections cannot drift from the backend aggregations.
+    """
+    ext: OARepoRDM = app.extensions["oarepo-rdm"]
+
+    published = dict(ext.search_options.facets)
+    drafts = dict(ext.draft_search_options.facets)
+    # versions = dict(ext.versions_search_options.facets)
+
+    # Build RDM_FACETS pool from per-model search options. FE expects the
+    # `{"facet": TermsFacet, "ui": {...}}` wrapper shape; per-model search
+    # options expose the raw TermsFacet, so wrap with a default `ui.field`.
+    app.config["RDM_FACETS"] = {
+        name: {"facet": facet, "ui": {"field": name}} for name, facet in {**drafts, **published}.items()
+    }
+
+    # FE search apps read `<CONFIG>["facets"]` as the *selected* names to render.
+    # Backend services already aggregate exactly those, via the same merge.
+    _set_facets(app.config, "RDM_SEARCH", published)
+    _set_facets(app.config, "RDM_SEARCH_DRAFTS", drafts)
+    # _set_facets(app.config, "RDM_SEARCH_VERSIONING", versions)
+    # Community records reuse the published search backend.
+    _set_facets(app.config, "COMMUNITIES_RECORDS_SEARCH", published)
+
+
+def _set_facets(config: dict, key: str, facets: dict) -> None:
+    config[key] = {**config.get(key, {}), "facets": list(facets.keys())}
