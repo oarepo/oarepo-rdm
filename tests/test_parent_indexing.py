@@ -24,11 +24,7 @@ def _create_versioned_record(service, user, required_rdm_metadata) -> tuple[str,
         user.identity,
         data={
             "$schema": "local://modelb-v1.0.0.json",
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "Version 1",
-                "bdescription": "first",
-            },
+            "metadata": {**required_rdm_metadata, "title": "Version 1", "bdescription": "first"},
             "files": {"enabled": True},
             "access": {"record": "restricted", "files": "restricted"},
         },

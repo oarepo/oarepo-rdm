@@ -28,10 +28,7 @@ def test_embargo_lift_without_draft(rdm_records_service, unlifted_expired_embarg
 
 
 def test_embargo_lift_with_draft(
-    rdm_records_service,
-    unlifted_expired_embargoed_files_record,
-    identity_simple,
-    search_clear,
+    rdm_records_service, unlifted_expired_embargoed_files_record, identity_simple, search_clear
 ):
     record = unlifted_expired_embargoed_files_record(modela_service)
     service = rdm_records_service
@@ -55,10 +52,7 @@ def test_embargo_lift_with_draft(
 
 
 def test_embargo_lift_with_updated_draft(
-    rdm_records_service,
-    unlifted_expired_embargoed_files_record,
-    identity_simple,
-    search_clear,
+    rdm_records_service, unlifted_expired_embargoed_files_record, identity_simple, search_clear
 ):
     record = unlifted_expired_embargoed_files_record(modela_service)
     service = rdm_records_service
@@ -89,10 +83,7 @@ def test_embargo_lift_with_updated_draft(
 
 
 def test_embargo_lift_multiple_models(
-    rdm_records_service,
-    unlifted_expired_embargoed_files_record,
-    vocab_fixtures,
-    search_clear,
+    rdm_records_service, unlifted_expired_embargoed_files_record, vocab_fixtures, search_clear
 ):
     record1 = unlifted_expired_embargoed_files_record(modela_service)
     record2 = unlifted_expired_embargoed_files_record(modelb_service)

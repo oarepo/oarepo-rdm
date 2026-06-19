@@ -173,11 +173,7 @@ def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple
             # below) but no test that uses this embargoed file record uses those dates
             mock_dt.now.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             data = {
-                "metadata": {
-                    **required_rdm_metadata,
-                    "title": "aaaaa",
-                    "adescription": "jej",
-                },
+                "metadata": {**required_rdm_metadata, "title": "aaaaa", "adescription": "jej"},
                 "files": {"enabled": False},
                 "access": {
                     "record": "public",

@@ -52,13 +52,7 @@ def test_list_with_model_a(db, rdm_records_service, users, logged_client, search
 
 
 def test_list_with_model_a_and_b(
-    db,
-    rdm_records_service,
-    users,
-    logged_client,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
+    db, rdm_records_service, users, logged_client, vocab_fixtures, required_rdm_metadata, search_clear
 ):
     user = users[0]
     client = logged_client(user)

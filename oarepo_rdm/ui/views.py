@@ -12,22 +12,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from flask import (
-    Blueprint,
-    Flask,
-    abort,
-    current_app,
-    render_template,
-    request,
-    url_for,
-)
+from flask import Blueprint, Flask, abort, current_app, render_template, request, url_for
 from flask_security import login_required
 from invenio_access.permissions import system_identity
 from invenio_app_rdm.records_ui.searchapp import search_app_context
-from invenio_app_rdm.records_ui.views.decorators import (
-    pass_include_deleted,
-    pass_is_preview,
-)
+from invenio_app_rdm.records_ui.views.decorators import pass_include_deleted, pass_is_preview
 from invenio_app_rdm.records_ui.views.filters import (
     can_list_files,
     compact_number,

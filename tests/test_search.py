@@ -16,12 +16,7 @@ modelc_service = modelc.proxies.current_service
 
 
 def test_description_search(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
+    db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear
 ):
     modela_record1 = modela_service.create(
         identity_simple,
@@ -40,11 +35,7 @@ def test_description_search(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "blah",
-                "bdescription": "blah",
-            },
+            "metadata": {**required_rdm_metadata, "title": "blah", "bdescription": "blah"},
             "files": {"enabled": False},
         },
     )
@@ -72,14 +63,7 @@ def test_description_search(
     assert modela_record1["id"] not in hit_ids
 
 
-def test_basic_search(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
-):
+def test_basic_search(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     modela_record1 = modela_service.create(
         identity_simple,
         {
@@ -97,11 +81,7 @@ def test_basic_search(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "blah",
-                "bdescription": "blah",
-            },
+            "metadata": {**required_rdm_metadata, "title": "blah", "bdescription": "blah"},
             "files": {"enabled": False},
         },
     )
@@ -130,12 +110,7 @@ def test_basic_search(
 
 
 def test_mixed_with_drafts(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
+    db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear
 ):
     modela_record1 = modela_service.create(
         identity_simple,
@@ -154,11 +129,7 @@ def test_mixed_with_drafts(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "blah",
-                "bdescription": "blah",
-            },
+            "metadata": {**required_rdm_metadata, "title": "blah", "bdescription": "blah"},
             "files": {"enabled": False},
         },
     )
@@ -216,22 +187,11 @@ def test_record_and_edited_draft(rdm_records_service, identity_simple, search_cl
     assert modela_record1["id"] in hit_ids
 
 
-def test_links(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
-):
+def test_links(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "blah",
-                "bdescription": "blah",
-            },
+            "metadata": {**required_rdm_metadata, "title": "blah", "bdescription": "blah"},
             "files": {"enabled": False},
         },
     )
@@ -250,23 +210,12 @@ def test_links(
     assert results["hits"]["hits"][0]["links"]["self"].startswith("/modelb/")
 
 
-def test_second_page(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
-):
+def test_second_page(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     for r in range(10):
         draft = modelb_service.create(
             identity_simple,
             {
-                "metadata": {
-                    **required_rdm_metadata,
-                    "title": f"blah {r}",
-                    "bdescription": "blah",
-                },
+                "metadata": {**required_rdm_metadata, "title": f"blah {r}", "bdescription": "blah"},
                 "files": {"enabled": False},
             },
         )
@@ -293,14 +242,7 @@ def test_second_page(
     assert results["links"]["prev"] == "/records?page=1&q=blah&size=5&sort=bestmatch"
 
 
-def test_zero_hits(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
-):
+def test_zero_hits(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     modela_record1 = modela_service.create(
         identity_simple,
         {
@@ -318,11 +260,7 @@ def test_zero_hits(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "blah",
-                "bdescription": "blah",
-            },
+            "metadata": {**required_rdm_metadata, "title": "blah", "bdescription": "blah"},
             "files": {"enabled": False},
         },
     )
@@ -343,12 +281,7 @@ def test_zero_hits(
 
 
 def test_multiple_from_one_schema(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
+    db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear
 ):
     modela_record1 = modela_service.create(
         identity_simple,
@@ -367,11 +300,7 @@ def test_multiple_from_one_schema(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "kkkkkkkkk",
-                "bdescription": "kkkkk",
-            },
+            "metadata": {**required_rdm_metadata, "title": "kkkkkkkkk", "bdescription": "kkkkk"},
             "files": {"enabled": False},
         },
     )
@@ -395,14 +324,7 @@ def test_multiple_from_one_schema(
     assert modelb_record1["id"] not in hit_ids
 
 
-def test_facets(
-    db,
-    rdm_records_service,
-    identity_simple,
-    vocab_fixtures,
-    required_rdm_metadata,
-    search_clear,
-):
+def test_facets(db, rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata, search_clear):
     modela_record1 = modela_service.create(
         identity_simple,
         {
@@ -420,11 +342,7 @@ def test_facets(
     modelb_record1 = modelb_service.create(
         identity_simple,
         {
-            "metadata": {
-                **required_rdm_metadata,
-                "title": "kkkkkkkkk",
-                "bdescription": "3",
-            },
+            "metadata": {**required_rdm_metadata, "title": "kkkkkkkkk", "bdescription": "3"},
             "files": {"enabled": False},
         },
     )
