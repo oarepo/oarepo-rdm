@@ -196,7 +196,14 @@ def test_create_page_contains_files_enabled(
 
 
 def test_create_page_contains_pids_with_doi(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that the create page contains pids with doi when DOI providers are configured."""
     set_app_config_fn_scoped(
@@ -218,7 +225,14 @@ def test_create_page_contains_pids_with_doi(
 
 
 def test_create_page_contains_empty_pids_when_not_default_selected(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that pids is empty when doi default_selected is not 'yes'."""
     set_app_config_fn_scoped(
@@ -240,7 +254,14 @@ def test_create_page_contains_empty_pids_when_not_default_selected(
 
 
 def test_create_page_contains_doi_required(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that the create page contains is_doi_required in deposits-config."""
     set_app_config_fn_scoped(
@@ -260,7 +281,14 @@ def test_create_page_contains_doi_required(
 
 
 def test_edit_page_contains_doi_required(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that the edit page contains is_doi_required in deposits-config."""
     from tests.models import modelb
@@ -290,7 +318,14 @@ def test_edit_page_contains_doi_required(
 
 
 def test_create_page_deposits_config_contains_pids_with_doi(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that deposits-config contains pids list with DOI entry when DataCite is enabled."""
     set_app_config_fn_scoped(
@@ -329,7 +364,14 @@ def test_create_page_deposits_config_contains_pids_with_doi(
 
 
 def test_create_page_deposits_config_has_empty_pids_when_datacite_disabled(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that deposits-config pids list is empty when DataCite is disabled."""
     set_app_config_fn_scoped(
@@ -351,7 +393,14 @@ def test_create_page_deposits_config_has_empty_pids_when_datacite_disabled(
 
 
 def test_edit_page_deposits_config_contains_pids_with_doi(
-    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points, set_app_config_fn_scoped
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
 ):
     """Test that the edit page's deposits-config contains pids list with DOI entry."""
     from tests.models import modelb
@@ -388,7 +437,13 @@ def test_edit_page_deposits_config_contains_pids_with_doi(
 
 
 def test_inject_parent_doi_on_draft_preview(
-    app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
+    app,
+    db,
+    users,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
+    modelb_ui_resource,
 ):
     """Test that InjectParentDoiComponent injects parent DOI on draft preview."""
     from tests.models import modelb
@@ -471,7 +526,13 @@ def test_inject_parent_doi_skipped_when_not_preview(
 
 
 def test_inject_parent_doi_skipped_when_datacite_disabled(
-    app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
+    app,
+    db,
+    users,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
+    modelb_ui_resource,
 ):
     """Test that InjectParentDoiComponent does nothing when DATACITE_ENABLED=False."""
     from tests.models import modelb
@@ -506,7 +567,13 @@ def test_inject_parent_doi_skipped_when_datacite_disabled(
 
 
 def test_inject_parent_doi_skipped_when_no_datacite_provider(
-    app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
+    app,
+    db,
+    users,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
+    modelb_ui_resource,
 ):
     """Test that InjectParentDoiComponent does nothing when no datacite parent provider."""
     from tests.models import modelb
@@ -559,7 +626,13 @@ def test_inject_parent_doi_skipped_when_no_datacite_provider(
 
 
 def test_inject_parent_doi_skipped_when_not_required_and_no_reserved_doi(
-    app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
+    app,
+    db,
+    users,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
+    modelb_ui_resource,
 ):
     """Test that parent DOI is not injected when doi is not required and no reserved doi."""
     from tests.models import modelb

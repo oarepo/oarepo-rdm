@@ -44,6 +44,18 @@ from oarepo_rdm.model.presets.rdm.resources.records.resource import (
 from oarepo_rdm.model.presets.rdm.resources.records.resource_config import (
     RDMRecordResourceConfigPreset,
 )
+from oarepo_rdm.model.presets.rdm.services.files.draft_file_service import (
+    RDMDraftFileServicePreset,
+)
+from oarepo_rdm.model.presets.rdm.services.files.draft_file_service_config import (
+    RDMDraftFileServiceConfigPreset,
+)
+from oarepo_rdm.model.presets.rdm.services.files.file_service import (
+    RDMFileServicePreset,
+)
+from oarepo_rdm.model.presets.rdm.services.files.file_service_config import (
+    RDMFileServiceConfigPreset,
+)
 from oarepo_rdm.model.presets.rdm.services.records.permission_policy import (
     RDMPermissionPolicyPreset,
 )
@@ -56,7 +68,9 @@ from oarepo_rdm.model.presets.rdm.services.records.rdm_record_schema import (
 from oarepo_rdm.model.presets.rdm.services.records.rdm_record_ui_schema import (
     RDMRecordUISchemaPreset,
 )
-from oarepo_rdm.model.presets.rdm.services.records.search_options import RDMRecordSearchOptionsPreset
+from oarepo_rdm.model.presets.rdm.services.records.search_options import (
+    RDMRecordSearchOptionsPreset,
+)
 from oarepo_rdm.model.presets.rdm.services.records.service import RDMRecordServicePreset
 from oarepo_rdm.model.presets.rdm.services.records.service_config import (
     RDMRecordServiceConfigPreset,
@@ -80,6 +94,10 @@ rdm_static_preset = [
     RDMRecordResourceConfigPreset,
     RDMRecordServicePreset,
     RDMRecordServiceConfigPreset,
+    RDMDraftFileServicePreset,
+    RDMDraftFileServiceConfigPreset,
+    RDMFileServicePreset,
+    RDMFileServiceConfigPreset,
     RDMDraftRecordMetadataWithFilesPreset,
     RDMRecordMetadataWithFilesPreset,
     RDMDraftFileResourceConfigPreset,

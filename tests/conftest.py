@@ -156,6 +156,8 @@ def app_config(app_config):
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib"
 
     app_config["RDM_PREFERRED_METADATA_SCHEMA"] = "local://modela-v1.0.0.json"
+
+    app_config["RDM_RECORDS_MAX_FILES_COUNT"] = 5
     return app_config
 
 
@@ -171,7 +173,11 @@ def unlifted_expired_embargoed_files_record(rdm_records_service, identity_simple
             # below) but no test that uses this embargoed file record uses those dates
             mock_dt.now.return_value = datetime(1954, 9, 29, tzinfo=UTC)
             data = {
-                "metadata": {**required_rdm_metadata, "title": "aaaaa", "adescription": "jej"},
+                "metadata": {
+                    **required_rdm_metadata,
+                    "title": "aaaaa",
+                    "adescription": "jej",
+                },
                 "files": {"enabled": False},
                 "access": {
                     "record": "public",

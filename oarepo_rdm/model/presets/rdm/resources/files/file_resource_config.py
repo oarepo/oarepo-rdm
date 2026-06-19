@@ -12,7 +12,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, override
 
-from invenio_rdm_records.resources.config import RDMDraftFilesResourceConfig, RDMRecordFilesResourceConfig
+from invenio_rdm_records.resources.config import (
+    RDMDraftFilesResourceConfig,
+    RDMRecordFilesResourceConfig,
+)
 from invenio_records_resources.resources import FileResourceConfig
 from oarepo_model.customizations import (
     AddToDictionary,

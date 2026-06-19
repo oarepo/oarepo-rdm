@@ -20,7 +20,9 @@ from .response_handlers import get_response_handlers
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from invenio_rdm_records.resources.config import RDMRecordResourceConfig as RDMRecordResourceConfig_Typing
+    from invenio_rdm_records.resources.config import (
+        RDMRecordResourceConfig as RDMRecordResourceConfig_Typing,
+    )
 else:
     RDMRecordResourceConfig_Typing = object
 
