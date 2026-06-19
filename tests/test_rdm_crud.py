@@ -13,6 +13,7 @@ from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDeletedError, PIDDoesNotExistError
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.errors import RecordDeletedException
+from invenio_records_resources.services.errors import FilesCountExceededException
 
 from .models import modela
 
@@ -205,3 +206,17 @@ def test_rdm_publish(
     # - search
     res = test_rdm_service.search(identity_simple, q=f"id:{id_}", size=25, page=1)
     assert res.total == 0
+
+
+def test_file_limit(app, identity_simple, input_data, upload_file, search, search_clear, location):
+
+    service = current_rdm_records_service
+
+    item = service.create(identity_simple, input_data | {"$schema": "local://modela-v1.0.0.json"})
+    id_ = item.id
+    with pytest.raises(FilesCountExceededException):
+        service.draft_files.init_files(
+            system_identity,
+            id_,
+            data=[{"key": f"{i}.jpg", "metadata": {"title": str(i)}} for i in range(6)],
+        )

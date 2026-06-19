@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2026 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see http://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Module for RDM file service implementations.
+
+This module provides service-related functionality for RDM files.
+"""
+
+from __future__ import annotations
