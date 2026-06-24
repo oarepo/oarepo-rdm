@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 class RDMServiceConfigLinks(Preset):
     """Preset for extra RDM service config links."""
 
-    modifies = ("record_links_item", "record_search_item_links", "record_version_search_links")
+    modifies = ("record_links_item", "record_version_search_links")
 
     @override
     def apply(
@@ -51,50 +51,44 @@ class RDMServiceConfigLinks(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        rdm_links = {
-            **RDMRecordServiceConfig.links_item,
-            "files": ConditionalLink(
-                cond=is_published_record(),
-                if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),
-                else_=RecordEndpointLink(f"{model.blueprint_base}_draft_files.search"),
-            ),
-            "media_files": ConditionalLink(
-                cond=is_published_record(),
-                if_=RecordEndpointLink(f"{model.blueprint_base}_media_files.search"),
-                else_=RecordEndpointLink(f"{model.blueprint_base}_draft_media_files.search"),
-            ),
-            # Reads a zipped version of all files
-            "archive": ConditionalLink(
-                cond=is_published_record(),
-                if_=RecordEndpointLink(
-                    f"{model.blueprint_base}_files.read_archive",
-                    when=archive_download_enabled,
-                ),
-                else_=RecordEndpointLink(
-                    f"{model.blueprint_base}_draft_files.read_archive",
-                    when=archive_download_enabled,
-                ),
-            ),
-            "archive_media": ConditionalLink(
-                cond=is_published_record(),
-                if_=RecordEndpointLink(
-                    f"{model.blueprint_base}_media_files.read_archive",
-                    when=archive_download_enabled,
-                ),
-                else_=RecordEndpointLink(
-                    f"{model.blueprint_base}_draft_media_files.read_archive",
-                    when=archive_download_enabled,
-                ),
-            ),
-        }
         yield AddToDictionary(
             "record_links_item",
-            rdm_links,
-            override_values=False,
-        )
-        yield AddToDictionary(
-            "record_search_item_links",
-            rdm_links,
+            {
+                **RDMRecordServiceConfig.links_item,
+                "files": ConditionalLink(
+                    cond=is_published_record(),
+                    if_=RecordEndpointLink(f"{model.blueprint_base}_files.search"),
+                    else_=RecordEndpointLink(f"{model.blueprint_base}_draft_files.search"),
+                ),
+                "media_files": ConditionalLink(
+                    cond=is_published_record(),
+                    if_=RecordEndpointLink(f"{model.blueprint_base}_media_files.search"),
+                    else_=RecordEndpointLink(f"{model.blueprint_base}_draft_media_files.search"),
+                ),
+                # Reads a zipped version of all files
+                "archive": ConditionalLink(
+                    cond=is_published_record(),
+                    if_=RecordEndpointLink(
+                        f"{model.blueprint_base}_files.read_archive",
+                        when=archive_download_enabled,
+                    ),
+                    else_=RecordEndpointLink(
+                        f"{model.blueprint_base}_draft_files.read_archive",
+                        when=archive_download_enabled,
+                    ),
+                ),
+                "archive_media": ConditionalLink(
+                    cond=is_published_record(),
+                    if_=RecordEndpointLink(
+                        f"{model.blueprint_base}_media_files.read_archive",
+                        when=archive_download_enabled,
+                    ),
+                    else_=RecordEndpointLink(
+                        f"{model.blueprint_base}_draft_media_files.read_archive",
+                        when=archive_download_enabled,
+                    ),
+                ),
+            },
             override_values=False,
         )
         # Versions
