@@ -22,7 +22,8 @@ from invenio_rdm_records.services.components.files import (
     RDMDraftFilesComponent as InvenioRDMDraftFilesComponent,
 )
 from invenio_rdm_records.services.config import RDMRecordServiceConfig
-from oarepo_model.customizations import AddToList, Customization, ReplaceBaseClass
+from oarepo_model.customizations import AddToList, Customization, PrependMixin, ReplaceBaseClass
+from oarepo_model.model import ModelMixin
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
@@ -53,6 +54,16 @@ class RDMDraftFilesComponent(InvenioRDMDraftFilesComponent):
     )
 
 
+class RDMSearchItemsUseFullLinksMixin(ModelMixin):
+    """Make each search hit expose the same link set as a full record read.
+
+    Avoids drift between record_links_item and record_search_item_links — see
+    oarepo-model ServiceConfigMixin.links_search_item for the branch this enables.
+    """
+
+    search_items_use_full_links = True
+
+
 class RDMRecordServiceConfigPreset(Preset):
     """Preset for record service class."""
 
@@ -72,3 +83,4 @@ class RDMRecordServiceConfigPreset(Preset):
             DraftRecordServiceConfig,
             RDMRecordServiceConfigWithoutLinks,
         )
+        yield PrependMixin("RecordServiceConfig", RDMSearchItemsUseFullLinksMixin)
