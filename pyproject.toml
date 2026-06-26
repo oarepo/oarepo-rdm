@@ -79,6 +79,9 @@ oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
 [project.entry-points."oarepo.cli.search.init"]
 install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
 
+[project.entry-points."flask.commands"]
+communities = "oarepo_rdm.cli:rdm_records"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/oarepo_rdm",
