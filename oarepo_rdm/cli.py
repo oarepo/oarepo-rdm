@@ -1,4 +1,16 @@
-from typing import cast
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
+#
+# oarepo-rdm is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""CLI commands for managing RDM records."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, cast
 
 import click
 from flask.cli import with_appcontext
@@ -9,34 +21,34 @@ from invenio_db.uow import UnitOfWork
 from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_rdm_records.cli import rdm_records
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.records.api import RDMDraft, RDMParent, RDMRecord
-from invenio_rdm_records.services import RDMRecordService
 from oarepo_runtime.proxies import current_runtime
 from sqlalchemy import func
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from invenio_rdm_records.records.api import RDMDraft, RDMParent, RDMRecord
+    from invenio_rdm_records.services import RDMRecordService
 
 
 def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     """Get the record from its persistent identifier - might be published or draft."""
     record: RDMRecord | RDMDraft
     try:
-        record = current_rdm_records_service.read(system_identity, record_id)._record
-    except Exception:
-        record = current_rdm_records_service.read_draft(
-            system_identity, record_id
-        )._record
+        record = current_rdm_records_service.read(system_identity, record_id)._record  # noqa: SLF001
+    except Exception:  # noqa: BLE001
+        record = current_rdm_records_service.read_draft(system_identity, record_id)._record  # noqa: SLF001
 
-    specialized_service = cast(
-        "RDMRecordService", current_runtime.get_record_service_for_record(record)
-    )
+    specialized_service = cast("RDMRecordService", current_runtime.get_record_service_for_record(record))
 
     return record, specialized_service
 
 
-@rdm_records.command("replace-owner")
+@rdm_records.command("replace-owner")  # type: ignore[reportFunctionMemberAccess]
 @click.argument("record-id")
 @click.argument("owner-email")
 @with_appcontext
-def replace_owner(record_id, owner_email):
+def replace_owner(record_id: str, owner_email: str) -> None:
     """Set the owner of a record. The previous owner will be replaced with the new one."""
     with UnitOfWork() as uow:
         # get the new owner
@@ -60,15 +72,11 @@ def replace_owner(record_id, owner_email):
         parent.access.owner = owner
 
         # commit the changes
-        uow.register(
-            ParentRecordCommitOp(
-                parent, indexer_context={"service": specialized_service}
-            )
-        )
+        uow.register(ParentRecordCommitOp(parent, indexer_context={"service": specialized_service}))
         uow.commit()
 
 
-@rdm_records.command("merge-records")
+@rdm_records.command("merge-records")  # type: ignore[reportFunctionMemberAccess]
 @click.argument("old-record-id")
 @click.argument("new-record-id")
 @click.option(
@@ -78,7 +86,7 @@ def replace_owner(record_id, owner_email):
     help="If --rebase-on-old, the versions from the new record will be moved to the top of the old record",
 )
 @with_appcontext
-def merge_records(old_record_id, new_record_id, direction):
+def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> None:
     """Merge two RDM records by rebasing one onto the other."""
     rebase_direction = "old" if direction else "new"
 
@@ -88,10 +96,8 @@ def merge_records(old_record_id, new_record_id, direction):
 
     with db.session.begin_nested():
         if old_specialized_service is not new_specialized_service:
-            click.secho(
-                "Error: the records are not from the same service, aborting.", fg="red"
-            )
-            raise click.Abort()
+            click.secho("Error: the records are not from the same service, aborting.", fg="red")
+            raise click.Abort
 
         old_parent = old_record.parent
         new_parent = new_record.parent
@@ -100,72 +106,54 @@ def merge_records(old_record_id, new_record_id, direction):
         draft_class = old_specialized_service.config.draft_cls.model_cls
 
         if rebase_direction == "old":
-            # rebasing on old version -> all versions from the new_parent are moved to the old_parent, new_parent is deleted
+            # rebasing on old version -> all versions from the new_parent
+            # are moved to the old_parent, new_parent is deleted
+            destination_record = old_record
+            source_record = new_record
             destination_parent = old_parent
             destination_parent_id = old_parent.id
             source_parent = new_parent
             source_parent_id = new_parent.id
         else:
-            # rebasing on new version -> all versions from the old_parent are moved to the new_parent, old_parent is deleted
+            # rebasing on new version -> all versions from the old_parent
+            # are moved to the new_parent, old_parent is deleted
+            destination_record = new_record
+            source_record = old_record
             destination_parent = new_parent
             destination_parent_id = new_parent.id
             source_parent = old_parent
             source_parent_id = old_parent.id
 
-        records_to_move = db.session.query(model_class).filter_by(
-            parent_id=source_parent_id
-        )
-        drafts_to_move = db.session.query(draft_class).filter_by(
-            parent_id=source_parent_id
-        )
+        records_to_move = db.session.query(model_class).filter_by(parent_id=source_parent_id)
+        drafts_to_move = db.session.query(draft_class).filter_by(parent_id=source_parent_id)
 
         destination_last_index = (
-            db.session.query(func.max(model_class.index))
-            .filter_by(parent_id=destination_parent_id)
-            .scalar()
-            or 0
+            db.session.query(func.max(model_class.index)).filter_by(parent_id=destination_parent_id).scalar() or 0
+        )
+        destination_last_draft_index = (
+            db.session.query(func.max(draft_class.index)).filter_by(parent_id=destination_parent_id).scalar() or 0
         )
 
         record_count = records_to_move.count()
 
-        # print user the records that will be moved
-        click.echo(
-            f"Moving records from parent {source_parent_id} to parent {destination_parent_id}"
+        confirm_before_move(
+            source_parent_id, destination_parent_id, records_to_move, drafts_to_move, source_record, destination_record
         )
-        for record in records_to_move.all():
-            click.echo(
-                f"  - pid={(record.json or {}).get('id')} uuid={record.id} index={record.index}"
-            )
-        click.echo("")
-        click.echo(
-            f"Moving drafts from parent {source_parent_id} to parent {destination_parent_id}"
-        )
-        for record in drafts_to_move.all():
-            click.echo(
-                f"  - pid={(record.json or {}).get('id')} uuid={record.id} index={record.index}"
-            )
-        click.echo("")
-        for version_obj in db.session.query(old_record.versions_model_cls).filter_by(
-            parent_id=source_parent_id
-        ):
-            click.echo(
-                f"  -version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}"
-            )
-
-        click.confirm("Are you sure you want to continue?", abort=True)
 
         # do a bulk update of the parent_id for all records
         records_to_move.update(
             {
                 "parent_id": destination_parent_id,
                 "index": model_class.index + destination_last_index,
-            }
+            },
+            synchronize_session=False,
         )
         drafts_to_move.update(
             {
                 "parent_id": destination_parent_id,
-                "index": model_class.index + destination_last_index,
-            }
+                "index": draft_class.index + destination_last_draft_index,
+            },
+            synchronize_session=False,
         )
 
         # latest_id is max of ids
@@ -184,37 +172,12 @@ def merge_records(old_record_id, new_record_id, direction):
         )
 
         # update versions_model_cls
-        versions_objects = db.session.query(old_record.versions_model_cls).filter_by(
+        versions_objects = db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
             parent_id=destination_parent_id
         )
         versions_objects.update({"latest_id": latest_id, "latest_index": latest_index})
 
-        click.secho("After the move, we will have the following published records:")
-        # for each of the records, print the id and index
-        for record in (
-            db.session.query(model_class)
-            .filter_by(parent_id=destination_parent_id)
-            .order_by("index")
-        ):
-            click.echo(
-                f"  - {(record.json or {}).get('id')} {record.id} {record.index}"
-            )
-        click.echo("After the move, we will have the following drafts:")
-        # and for drafts
-        for draft in (
-            db.session.query(draft_class)
-            .filter_by(parent_id=destination_parent_id)
-            .order_by("index")
-        ):
-            click.echo(f"  - {(draft.json or {}).get('id')} {draft.id} {draft.index}")
-            click.echo("")
-        for version_obj in db.session.query(old_record.versions_model_cls).filter_by(
-            parent_id=destination_parent_id
-        ):
-            click.echo(
-                f"  -version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}"
-            )
-        click.echo("")
+        print_after_move(model_class, draft_class, destination_parent_id, destination_record)
 
         # remove the old parent if it no longer has any records
         db.session.delete(source_parent.model)
@@ -236,3 +199,55 @@ def merge_records(old_record_id, new_record_id, direction):
         "Please go to the Datacite Fabrica and remove the old parent from it, this was not done automatically !!!",
         fg="red",
     )
+    click.secho(
+        "Please also run invenio rdm-records reindex !!!",
+        fg="red",
+    )
+
+
+def confirm_before_move(  # noqa: PLR0913
+    source_parent_id: UUID,
+    destination_parent_id: UUID,
+    records_to_move: Any,
+    drafts_to_move: Any,
+    source_record: Any,
+    destination_record: Any,
+) -> None:
+    """Ask the user to confirm before moving records from one parent to another."""
+    # print user the records that will be moved
+    click.echo(f"Moving records from parent {source_parent_id} to parent {destination_parent_id}")
+    for record in records_to_move.all():
+        click.echo(f"  - pid={(record.json or {}).get('id')} uuid={record.id} index={record.index}")
+    click.echo("")
+    click.echo(f"Moving drafts from parent {source_parent_id} to parent {destination_parent_id}")
+    for record in drafts_to_move.all():
+        click.echo(f"  - pid={(record.json or {}).get('id')} uuid={record.id} index={record.index}")
+    click.echo("")
+    for version_obj in db.session.query(source_record.versions_model_cls).filter_by(parent_id=source_parent_id):
+        click.echo(f"  -source version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}")
+    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(
+        parent_id=destination_parent_id
+    ):
+        click.echo(f"  -destination version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}")
+
+    click.confirm("Are you sure you want to continue?", abort=True)
+
+
+def print_after_move(
+    model_class: type, draft_class: type, destination_parent_id: UUID, destination_record: RDMRecord | RDMDraft
+) -> None:
+    """Confirm that the user wants to move the record to the destination parent."""
+    click.secho("After the move, we will have the following published records:")
+    # for each of the records, print the id and index
+    for record in db.session.query(model_class).filter_by(parent_id=destination_parent_id).order_by("index"):
+        click.echo(f"  - {(record.json or {}).get('id')} {record.id} {record.index}")
+    click.echo("After the move, we will have the following drafts:")
+    # and for drafts
+    for draft in db.session.query(draft_class).filter_by(parent_id=destination_parent_id).order_by("index"):
+        click.echo(f"  - {(draft.json or {}).get('id')} {draft.id} {draft.index}")
+        click.echo("")
+    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
+        parent_id=destination_parent_id
+    ):
+        click.echo(f"  -version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}")
+    click.echo("")
