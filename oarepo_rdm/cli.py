@@ -88,41 +88,27 @@ def replace_owner(record_id: str, owner_email: str) -> None:
 @with_appcontext
 def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> None:
     """Merge two RDM records by rebasing one onto the other."""
-    rebase_direction = "old" if direction else "new"
-
     old_record, old_specialized_service = get_record(old_record_id)
     new_record, new_specialized_service = get_record(new_record_id)
+
+    model_class = old_specialized_service.config.record_cls.model_cls
+    draft_class = old_specialized_service.config.draft_cls.model_cls
+
+    (
+        source_record,
+        source_parent,
+        source_parent_id,
+        destination_record,
+        destination_parent,
+        destination_parent_id,
+    ) = get_move_source_and_destination(old_record, new_record, "old" if direction else "new")
+
     record_count = 0
 
     with db.session.begin_nested():
         if old_specialized_service is not new_specialized_service:
             click.secho("Error: the records are not from the same service, aborting.", fg="red")
             raise click.Abort
-
-        old_parent = old_record.parent
-        new_parent = new_record.parent
-
-        model_class = old_specialized_service.config.record_cls.model_cls
-        draft_class = old_specialized_service.config.draft_cls.model_cls
-
-        if rebase_direction == "old":
-            # rebasing on old version -> all versions from the new_parent
-            # are moved to the old_parent, new_parent is deleted
-            destination_record = old_record
-            source_record = new_record
-            destination_parent = old_parent
-            destination_parent_id = old_parent.id
-            source_parent = new_parent
-            source_parent_id = new_parent.id
-        else:
-            # rebasing on new version -> all versions from the old_parent
-            # are moved to the new_parent, old_parent is deleted
-            destination_record = new_record
-            source_record = old_record
-            destination_parent = new_parent
-            destination_parent_id = new_parent.id
-            source_parent = old_parent
-            source_parent_id = old_parent.id
 
         records_to_move = db.session.query(model_class).filter_by(parent_id=source_parent_id)
         drafts_to_move = db.session.query(draft_class).filter_by(parent_id=source_parent_id)
@@ -146,14 +132,12 @@ def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> No
                 "parent_id": destination_parent_id,
                 "index": model_class.index + destination_last_index,
             },
-            synchronize_session=False,
         )
         drafts_to_move.update(
             {
                 "parent_id": destination_parent_id,
                 "index": draft_class.index + destination_last_draft_index,
             },
-            synchronize_session=False,
         )
 
         # latest_id is max of ids
@@ -200,8 +184,44 @@ def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> No
         fg="red",
     )
     click.secho(
-        "Please also run invenio rdm-records reindex !!!",
+        "Please also run invenio rdm-records rebuild-index !!!",
         fg="red",
+    )
+
+
+def get_move_source_and_destination(
+    old_record: RDMRecord | RDMDraft, new_record: RDMRecord | RDMDraft, rebase_direction: str
+) -> tuple[RDMRecord | RDMDraft, RDMParent, UUID, RDMRecord | RDMDraft, RDMParent, UUID]:
+    """Return the source and destination records for a rebase operation."""
+    old_parent = old_record.parent
+    new_parent = new_record.parent
+
+    if rebase_direction == "old":
+        # rebasing on old version -> all versions from the new_parent
+        # are moved to the old_parent, new_parent is deleted
+        destination_record = old_record
+        source_record = new_record
+        destination_parent = old_parent
+        destination_parent_id = old_parent.id
+        source_parent = new_parent
+        source_parent_id = new_parent.id
+    else:
+        # rebasing on new version -> all versions from the old_parent
+        # are moved to the new_parent, old_parent is deleted
+        destination_record = new_record
+        source_record = old_record
+        destination_parent = new_parent
+        destination_parent_id = new_parent.id
+        source_parent = old_parent
+        source_parent_id = old_parent.id
+
+    return (
+        source_record,
+        source_parent,
+        source_parent_id,
+        destination_record,
+        destination_parent,
+        destination_parent_id,
     )
 
 
