@@ -1,7 +1,7 @@
 import React from "react";
 import { buildUID } from "react-searchkit";
 import Overridable from "react-overridable";
-import i18next from "i18next";
+import { i18next } from "@translations/oarepo_rdm";
 import { CommunityHeader, AccessRightField } from "@js/invenio_rdm_records";
 
 export const RDMCommunityAndAccess = {
