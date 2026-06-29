@@ -1,7 +1,7 @@
 import React from "react";
 import { buildUID } from "react-searchkit";
 import Overridable from "react-overridable";
-import i18next from "i18next";
+import { i18next } from "@translations/oarepo_rdm";
 import { FundingField } from "@js/oarepo_ui/forms";
 
 export const RDMFunding = {
