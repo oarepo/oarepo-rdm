@@ -10,7 +10,7 @@
 import React from "react";
 import { buildUID } from "react-searchkit";
 import Overridable from "react-overridable";
-import i18next from "i18next";
+import { i18next } from "@translations/oarepo_rdm";
 import { EDTFSingleDatePicker, CreatibutorsField } from "@js/oarepo_ui/forms";
 import { TitlesField, ResourceTypeField } from "@js/invenio_rdm_records";
 import { PIDFieldList } from "../components";
