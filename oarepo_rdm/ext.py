@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
@@ -71,6 +71,52 @@ class OARepoRDM:
     def all_search_options(self) -> SearchOptions:
         """Return all search options."""
         return MultiplexedSearchOptions("search_all")
+
+    @cached_property
+    def dynamic_rdm_facets(self) -> dict[str, dict[str, Any]]:
+        """Return a merged facet registry combining draft and published search options.
+
+        Draft facets are listed first; a published facet with the same name overrides
+        the draft entry. Each value has the shape expected by the InvenioRDM facet
+        configuration API: ``{"facet": <instance>, "ui": {"field": <name>}}``.
+        """
+        published = dict(self.search_options.facets)
+        drafts = dict(self.draft_search_options.facets)
+
+        return {name: {"facet": facet, "ui": {"field": name}} for name, facet in {**drafts, **published}.items()}
+
+    @cached_property
+    def dynamic_rdm_search(self) -> dict[str, Any]:
+        """Return search configuration for published records.
+
+        Includes facet names from the published search options and the standard sort
+        order expected by the InvenioRDM UI (view/download counts are meaningful for
+        publicly visible records).
+        """
+        return {
+            "facets": list(self.search_options.facets.keys()),
+            "sort": [
+                "bestmatch",
+                "newest",
+                "oldest",
+                "version",
+                "mostviewed",
+                "mostdownloaded",
+            ],
+        }
+
+    @cached_property
+    def dynamic_rdm_search_drafts(self) -> dict[str, Any]:
+        """Return search configuration for draft records.
+
+        Includes facet names from the draft search options and sort options relevant
+        to in-progress work. Update-time sorts are included; view/download count sorts
+        are excluded because drafts are not publicly visible.
+        """
+        return {
+            "facets": list(self.draft_search_options.facets.keys()),
+            "sort": ["bestmatch", "updated-desc", "updated-asc", "newest", "oldest", "version"],
+        }
 
 
 def finalize_app(_app: Flask) -> None:

@@ -14,9 +14,11 @@ from datetime import datetime
 
 from flask_resources import HTTPJSONException, create_error_handler
 from invenio_rdm_records.resources.config import error_handlers
+from werkzeug.local import LocalProxy
 
 from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
+from oarepo_rdm.proxies import current_oarepo_rdm
 
 RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceConfig"
 """Service config class."""
@@ -33,6 +35,14 @@ RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRec
 RDM_RECORDS_REVIEW_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingReviewService"
 RDM_RECORDS_ACCESS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingRecordAccessService"
 RDM_RECORDS_PIDS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingPIDsService"
+
+# community records
+RDM_RECORDS_COMMUNITY_RECORDS_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoCommunityRecordsConfig"
+"""Community records service config that uses the multiplexed search options."""
+
+RDM_RECORDS_COMMUNITY_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARepoCommunityRecordsService"
+"""Community records service that multiplexes search across per-model services."""
+
 
 # OAI-PMH
 # =======
@@ -58,3 +68,10 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
 }
 """Default values pre-filled in the deposit form for new records."""
+
+
+# dynamic rdm facets
+RDM_FACETS = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_facets)
+RDM_SEARCH = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search)
+RDM_SEARCH_DRAFTS = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search_drafts)
+COMMUNITIES_RECORDS_SEARCH = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search)
