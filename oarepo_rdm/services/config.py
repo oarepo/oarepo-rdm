@@ -17,7 +17,7 @@ from invenio_drafts_resources.services.records.config import (
     SearchOptions,
     is_record,
 )
-from invenio_rdm_records.services.config import RDMRecordServiceConfig
+from invenio_rdm_records.services.config import RDMCommunityRecordsConfig, RDMRecordServiceConfig
 from invenio_records_resources.services.base.links import (
     ConditionalLink,
     LinksTemplate,
@@ -158,3 +158,33 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     @search_all.setter
     def search_all(self, _value: Any) -> None:
         raise AttributeError("search_all is read-only")  # pragma: no cover
+
+
+class OARepoCommunityRecordsConfig(RDMCommunityRecordsConfig):
+    """Community records config that uses multiplexed search options.
+
+    Replaces the stock FromConfigSearchOptions descriptors with the shared
+    multiplexer instances, so /api/communities/<id>/records goes through the
+    same per-model fan-out as /api/records.
+    """
+
+    result_list_cls = MultiplexingResultList
+    schema = MultiplexingSchema  # type: ignore[assignment]
+
+    @property
+    @override
+    def search(self) -> SearchOptions:  # type: ignore[override]
+        return current_oarepo_rdm.search_options
+
+    @search.setter
+    def search(self, _value: Any) -> None:  # type: ignore[override]
+        raise AttributeError("search is read-only")  # pragma: no cover
+
+    @property
+    @override
+    def search_versions(self) -> SearchOptions:  # type: ignore[override]
+        return current_oarepo_rdm.versions_search_options
+
+    @search_versions.setter
+    def search_versions(self, _value: Any) -> None:  # type: ignore[override]
+        raise AttributeError("search_versions is read-only")  # pragma: no cover

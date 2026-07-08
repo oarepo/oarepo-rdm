@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast, override
 
 from flask import current_app
 from invenio_db.uow import UnitOfWork, unit_of_work
+from invenio_rdm_records.services import CommunityRecordsService
 from invenio_rdm_records.services.services import RDMRecordService
 from invenio_records_resources.services import Service as InvenioService
 from oarepo_runtime.proxies import current_runtime
@@ -197,6 +198,79 @@ class DelegationToSpecializedServiceMixin(InvenioService):
             )
         return super().permission_policy(action_name, **kwargs)
 
+    @property
+    def links_item_tpl(self) -> MultiplexingLinks:
+        """Item links template."""
+        return MultiplexingLinks()
+
+    # search is common for all rdm services, that is why it is declared here
+    def _search(  # noqa: PLR0913
+        self,
+        action: str,
+        identity: Identity,
+        params: dict[str, Any],
+        search_preference: str | None,
+        record_cls: type[RecordItem] | None = None,
+        search_opts: Any | None = None,
+        extra_filter: Any | None = None,
+        permission_action: str = "read",
+        versioning: bool = True,
+        **kwargs: Any,
+    ) -> RecordsSearchV2:
+        """Create the search engine DSL."""
+        params.update(kwargs)
+        # get services that can handle the search request [pid_type -> service]
+
+        services = self._search_eligible_services(
+            identity,
+            permissions_search_mapping.get(permission_action, permission_action),
+            **kwargs,
+        )
+        if not services:
+            raise Forbidden
+
+        queries_list: dict[str, dict] = {}
+
+        for jsonschema, service in services.items():
+            search = service._search(  # noqa: SLF001 # calling the same method on delegated
+                action=action,
+                identity=identity,
+                params=copy.deepcopy(params),
+                search_preference=search_preference,
+                record_cls=record_cls,
+                search_opts=search_opts,
+                extra_filter=extra_filter,
+                permission_action=permission_action,
+                versioning=versioning,
+                **kwargs,
+            )
+            queries_list[jsonschema] = search.to_dict()
+
+        params["delegated_query"] = [queries_list, search_opts or self.config.search]
+
+        return super()._search(  # type: ignore[reportAttributeAccessIssue]
+            action=action,
+            identity=identity,
+            params=params,
+            search_preference=search_preference,
+            record_cls=record_cls,
+            search_opts=search_opts,
+            extra_filter=extra_filter,
+            permission_action=permission_action,
+            versioning=versioning,
+            **kwargs,
+        )
+
+    def _search_eligible_services(
+        self, identity: Identity, permission_action: str, **kwargs: Any
+    ) -> dict[str, RDMRecordService]:
+        """Get a list of eligible RDM record services."""
+        return {
+            model.record_json_schema: cast("RDMRecordService", model.service)
+            for model in current_runtime.rdm_models
+            if model.service.check_permission(identity, permission_action, **kwargs)
+        }
+
 
 # TODO: won't work for indexer and ParentRecordCommitOp called directly on the global service or with it passed
 # as an argument
@@ -221,11 +295,6 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
     Searches have specific handling - a query is run against all the indices and
     then the results are converted to appropripate result classes.
     """
-
-    @property
-    def links_item_tpl(self) -> MultiplexingLinks:
-        """Item links template."""
-        return MultiplexingLinks()
 
     @unit_of_work()
     @override
@@ -264,73 +333,6 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         if schema in current_runtime.rdm_models_by_schema:
             return current_runtime.rdm_models_by_schema[schema]
         raise UndefinedModelError(f"Model for schema {schema} does not exist.")
-
-    @override
-    def _search(
-        self,
-        action: str,
-        identity: Identity,
-        params: dict[str, Any],
-        search_preference: str | None,
-        record_cls: type[RecordItem] | None = None,
-        search_opts: Any | None = None,
-        extra_filter: Any | None = None,
-        permission_action: str = "read",
-        versioning: bool = True,
-        **kwargs: Any,
-    ) -> RecordsSearchV2:
-        """Create the search engine DSL."""
-        params.update(kwargs)
-        # get services that can handle the search request [pid_type -> service]
-        services = self._search_eligible_services(
-            identity,
-            permissions_search_mapping.get(permission_action, permission_action),
-            **kwargs,
-        )
-        if not services:
-            raise Forbidden
-
-        queries_list: dict[str, dict] = {}
-
-        for jsonschema, service in services.items():
-            search = service._search(  # noqa: SLF001 # calling the same method on delegated
-                action=action,
-                identity=identity,
-                params=copy.deepcopy(params),
-                search_preference=search_preference,
-                record_cls=record_cls,
-                search_opts=search_opts,
-                extra_filter=extra_filter,
-                permission_action=permission_action,
-                versioning=versioning,
-                **kwargs,
-            )
-            queries_list[jsonschema] = search.to_dict()
-
-        params["delegated_query"] = [queries_list, search_opts or self.config.search]
-
-        return super()._search(
-            action=action,
-            identity=identity,
-            params=params,
-            search_preference=search_preference,
-            record_cls=record_cls,
-            search_opts=search_opts,
-            extra_filter=extra_filter,
-            permission_action=permission_action,
-            versioning=versioning,
-            **kwargs,
-        )
-
-    def _search_eligible_services(
-        self, identity: Identity, permission_action: str, **kwargs: Any
-    ) -> dict[str, RDMRecordService]:
-        """Get a list of eligible RDM record services."""
-        return {
-            model.record_json_schema: cast("RDMRecordService", model.service)
-            for model in current_runtime.rdm_models
-            if model.service.check_permission(identity, permission_action, **kwargs)
-        }
 
     @override
     def oai_result_item(self, identity: Identity, oai_record_source: dict[str, Any]) -> RecordItem:
@@ -434,3 +436,12 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
             else:
                 raise NotImplementedError(f"Model {model} does not support relation updates.")  # or pass or to do?
         return True
+
+
+class OARepoCommunityRecordsService(DelegationToSpecializedServiceMixin, CommunityRecordsService):
+    """Community records service that multiplexes search across per-model services.
+
+    Inherits CommunityRecordsService.search (community scope + permission), which
+    calls self._search — the multiplexer-aware override on the mixin assembles
+    per-model queries via DelegatedQueryParam.
+    """
