@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import copy
 import logging
 from typing import TYPE_CHECKING, Any, override
 
@@ -110,17 +111,15 @@ class MultiplexedSearchOptions(SearchOptions):
         self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
 
     def _search_opts_from_search_obj(self, search: Any) -> dict[str, Any]:
-        facets: dict[str, Any] = {}
-        sort_options = {}
-
-        facets.update(search.facets)
+        facets = copy.deepcopy(search.facets)
         try:
-            sort_options.update(search.sort_options)
+            sort_options = copy.deepcopy(search.sort_options)
         except AttributeError as e:
+            sort_options = {}
             log.warning("Error updating sort options: %s", e)
+        facet_groups = copy.deepcopy(search.facet_groups) if hasattr(search, "facet_groups") else {}
         sort_default = search.sort_default
         sort_default_no_query = search.sort_default_no_query
-        facet_groups = getattr(search, "facet_groups", {})
         return {
             "facets": facets,
             "facet_groups": facet_groups,
@@ -138,4 +137,5 @@ class MultiplexedSearchOptions(SearchOptions):
                     ret,
                     self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
                 )
+
         return ret
