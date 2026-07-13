@@ -18,6 +18,7 @@ from .files_enabled import FilesEnabledComponent
 from .inject_parent_doi import InjectParentDoiComponent
 from .pids_config_dump import RDMPIDsConfigComponent
 from .rdm_vocabularies_dump import RDMVocabularyOptionsComponent
+from .restricted_from_community import RestrictedFromCommunityComponent
 
 __all__ = [
     "CommunitiesMembershipsComponent",
@@ -28,4 +29,5 @@ __all__ = [
     "InjectParentDoiComponent",
     "RDMPIDsConfigComponent",
     "RDMVocabularyOptionsComponent",
+    "RestrictedFromCommunityComponent",
 ]
