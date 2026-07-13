@@ -14,7 +14,6 @@ from oarepo_ui.resources.components import (
     AllowedHtmlTagsComponent,
     BabelComponent,
     CustomFieldsComponent,
-    EmptyRecordAccessComponent,
     FilesComponent,
     FilesLockedComponent,
     FilesQuotaAndTransferComponent,
@@ -32,6 +31,7 @@ from oarepo_rdm.ui.components import (
     InjectParentDoiComponent,
     RDMPIDsConfigComponent,
     RDMVocabularyOptionsComponent,
+    RestrictedFromCommunityComponent,
 )
 
 
@@ -67,11 +67,11 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         DepositFormDefaultsComponent,
         CustomFieldsComponent,
         RecordRestrictionComponent,
-        EmptyRecordAccessComponent,
         FilesLockedComponent,
         FilesQuotaAndTransferComponent,
         RDMVocabularyOptionsComponent,
         CommunitiesMembershipsComponent,
+        RestrictedFromCommunityComponent,
         InjectParentDoiComponent,
         DoiRequiredComponent,
         RDMPIDsConfigComponent,

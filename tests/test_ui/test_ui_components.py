@@ -17,6 +17,7 @@ from flask import g
 from invenio_i18n import lazy_gettext as _
 from invenio_rdm_records.services.pids import providers
 
+from oarepo_rdm.ui.components import RestrictedFromCommunityComponent
 from oarepo_rdm.ui.config import RDMRecordsUIResourceConfig
 
 
@@ -556,6 +557,60 @@ def test_inject_parent_doi_skipped_when_no_datacite_provider(
         )
 
     assert "new_draft_parent_doi" not in record_ui.get("ui", {})
+
+
+def test_restricted_from_community_component_registered():
+    """RestrictedFromCommunityComponent is part of the RDM UI resource components."""
+    assert RestrictedFromCommunityComponent in RDMRecordsUIResourceConfig().components
+
+
+def test_restricted_from_community_restricts_record_and_files(modelb_ui_resource):
+    """A record created into a restricted community gets restricted record and files access."""
+    component = RestrictedFromCommunityComponent(modelb_ui_resource)
+
+    data = {"access": {"record": "public", "files": "public"}}
+    render_kwargs = {"community_ui": {"access": {"visibility": "restricted"}}}
+
+    component.before_ui_create(data=data, render_kwargs=render_kwargs)
+
+    assert data["access"]["record"] == "restricted"
+    assert data["access"]["files"] == "restricted"
+
+
+def test_restricted_from_community_creates_access_when_missing(modelb_ui_resource):
+    """The component creates a complete access dict even if none was set (Invenio-style empty record)."""
+    component = RestrictedFromCommunityComponent(modelb_ui_resource)
+
+    data = {}
+    render_kwargs = {"community_ui": {"access": {"visibility": "restricted"}}}
+
+    component.before_ui_create(data=data, render_kwargs=render_kwargs)
+
+    assert data["access"] == {"record": "restricted", "files": "restricted"}
+
+
+def test_restricted_from_community_public_community_leaves_access_untouched(modelb_ui_resource):
+    """A record created into a public community keeps its default access."""
+    component = RestrictedFromCommunityComponent(modelb_ui_resource)
+
+    data = {"access": {"record": "public", "files": "public"}}
+    render_kwargs = {"community_ui": {"access": {"visibility": "public"}}}
+
+    component.before_ui_create(data=data, render_kwargs=render_kwargs)
+
+    assert data["access"] == {"record": "public", "files": "public"}
+
+
+def test_restricted_from_community_no_preselected_community_is_noop(modelb_ui_resource):
+    """Without a preselected community the component does nothing and does not raise."""
+    component = RestrictedFromCommunityComponent(modelb_ui_resource)
+
+    data = {"access": {"record": "public", "files": "public"}}
+    render_kwargs = {"community_ui": None}
+
+    component.before_ui_create(data=data, render_kwargs=render_kwargs)
+
+    assert data["access"] == {"record": "public", "files": "public"}
 
 
 def test_inject_parent_doi_skipped_when_not_required_and_no_reserved_doi(
