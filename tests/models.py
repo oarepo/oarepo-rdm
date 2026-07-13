@@ -12,6 +12,7 @@ from typing import Any, override
 
 from flask import Blueprint
 from invenio_i18n import lazy_gettext as _
+from invenio_rdm_records.resources.serializers import DataCite43JSONSerializer
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.components.base import ServiceComponent
 from invenio_records_resources.services.records.facets import TermsFacet
@@ -149,6 +150,12 @@ modela = model(
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         ),
         AddMetadataExport(
+            code="datacite-json",
+            name=_("DataCite JSON"),
+            mimetype="application/vnd.datacite.datacite+json",
+            serializer=DataCite43JSONSerializer(),
+        ),
+        AddMetadataExport(
             code="test",
             name=_("Test export"),
             mimetype="application/test+json",
@@ -208,6 +215,12 @@ modelb = model(
             mimetype="application/test+json",
             serializer=ModelbTestSerializer(),
         ),
+        AddMetadataExport(
+            code="datacite-json",
+            name=_("DataCite JSON"),
+            mimetype="application/vnd.datacite.datacite+json",
+            serializer=DataCite43JSONSerializer(),
+        ),
         SetDefaultSearchFields("metadata.title", "metadata.bdescription"),
     ],
 )
@@ -240,6 +253,12 @@ modelc = model(
             oai_metadata_prefix="oai_dc",
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
+        ),
+        AddMetadataExport(
+            code="datacite-json",
+            name=_("DataCite JSON"),
+            mimetype="application/vnd.datacite.datacite+json",
+            serializer=DataCite43JSONSerializer(),
         ),
         SetDefaultSearchFields("metadata.title", "metadata.cdescription"),
     ],
