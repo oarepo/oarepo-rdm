@@ -117,7 +117,7 @@ class MultiplexedSearchOptions(SearchOptions):
         except AttributeError as e:
             sort_options = {}
             log.warning("Error updating sort options: %s", e)
-        facet_groups = copy.deepcopy(search.facet_groups)
+        facet_groups = copy.deepcopy(search.facet_groups) if hasattr(search, "facet_groups") else {}
         sort_default = search.sort_default
         sort_default_no_query = search.sort_default_no_query
         return {
