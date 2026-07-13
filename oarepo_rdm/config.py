@@ -10,8 +10,11 @@
 
 from __future__ import annotations
 
+from flask_resources import HTTPJSONException, create_error_handler
 from invenio_i18n import lazy_gettext as _
 from invenio_rdm_records.services.pids.providers.oai import OAIPIDProvider
+
+from oarepo_rdm.errors import UndefinedModelError
 
 RDM_PERSISTENT_IDENTIFIER_PROVIDERS = [
     OAIPIDProvider(
@@ -32,3 +35,11 @@ RDM_PERSISTENT_IDENTIFIERS = {
 INFO_ENDPOINT_COMPONENTS = [
     "oarepo_rdm.info:RDMInfoComponent",
 ]
+RDM_RECORDS_ERROR_HANDLERS = {
+    UndefinedModelError: create_error_handler(
+        lambda exc: HTTPJSONException(
+            code=400,
+            description=str(exc),
+        )
+    ),
+}
