@@ -12,7 +12,9 @@ from typing import Any, override
 
 from flask import Blueprint
 from invenio_i18n import lazy_gettext as _
-from invenio_rdm_records.resources.serializers import DataCite43JSONSerializer
+from invenio_rdm_records.resources.serializers import (  # type: ignore[reportAttributeAccessIssue]
+    DataCite43JSONSerializer,  # type: ignore[reportAttributeAccessIssue]
+)
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 from invenio_records_resources.services.records.components.base import ServiceComponent
 from invenio_records_resources.services.records.facets import TermsFacet
@@ -160,6 +162,12 @@ modela = model(
             name=_("Test export"),
             mimetype="application/test+json",
             serializer=ModelaTestSerializer(),
+        ),
+        AddMetadataExport(
+            code="datacite",
+            name=_("DataCite JSON"),
+            mimetype="application/vnd.datacite.datacite+json",
+            serializer=DataCite43JSONSerializer(),
         ),
         SetPermissionPolicy(PermissionPolicyWithModelAPermission),
         SetDefaultSearchFields("metadata.title", "metadata.adescription"),

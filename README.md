@@ -93,10 +93,7 @@ Full OAI-PMH support with percolator-based set management:
 from oarepo_rdm.oai import OAIPMHPresets
 
 # Configure OAI-PMH for your model
-presets = OAIPMHPresets(
-    serializer=datacite_serializer,
-    config=oai_config
-)
+presets = OAIPMHPresets(serializer=datacite_serializer, config=oai_config)
 ```
 
 **Components:**
@@ -114,6 +111,7 @@ Enhanced PID system fields that integrate with the multi-model architecture:
 
 ```python
 from oarepo_rdm.records.systemfields import OARepoPIDField
+
 
 class MyRecord(RDMRecord):
     pid = OARepoPIDField()
