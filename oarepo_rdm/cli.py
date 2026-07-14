@@ -225,7 +225,7 @@ def get_move_source_and_destination(
     )
 
 
-def confirm_before_move(  # noqa: PLR0913
+def confirm_before_move(  # noqa: PLR0913, PLR0917
     source_parent_id: UUID,
     destination_parent_id: UUID,
     records_to_move: Any,

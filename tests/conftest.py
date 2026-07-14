@@ -33,6 +33,7 @@ pytest_plugins = [
     "pytest_oarepo.users",
     "pytest_oarepo.files",
     "pytest_oarepo.ui.fixtures",
+    "pytest_oarepo.communities.fixtures",
 ]
 
 
@@ -139,8 +140,6 @@ def app_config(app_config):
     app_config["REST_CSRF_ENABLED"] = False
 
     app_config["OAISERVER_REPOSITORY_NAME"] = "Some thesis repository."
-
-    app_config["SEARCH_INDEX_PREFIX"] = "test-"
 
     app_config["RDM_RECORDS_SERVICE_COMPONENTS"] = (
         *DefaultRecordsComponents,
