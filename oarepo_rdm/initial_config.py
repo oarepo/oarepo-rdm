@@ -44,6 +44,11 @@ RDM_RECORDS_COMMUNITY_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARep
 """Community records service that multiplexes search across per-model services."""
 
 
+# community collections
+RDM_COMMUNITY_COLLECTIONS_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.collections:OARepoCollectionsRecordsService"
+"""Records service backing collections; searches all records for the global-collections community."""
+
+
 # OAI-PMH
 # =======
 # See https://github.com/inveniosoftware/invenio-oaiserver/blob/master/invenio_oaiserver/config.py
