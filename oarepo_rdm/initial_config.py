@@ -12,11 +12,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from flask_resources import HTTPJSONException, create_error_handler
 from invenio_rdm_records.resources.config import error_handlers
 from werkzeug.local import LocalProxy
 
-from oarepo_rdm.errors import UndefinedModelError
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
 from oarepo_rdm.proxies import current_oarepo_rdm
 
@@ -53,15 +51,7 @@ RDM_RECORDS_COMMUNITY_RECORDS_SERVICE_CLASS = "oarepo_rdm.services.service:OARep
 OAISERVER_METADATA_FORMATS = OAIServerMetadataFormats()
 
 
-RDM_RECORDS_ERROR_HANDLERS = {
-    **error_handlers,
-    UndefinedModelError: create_error_handler(
-        lambda exc: HTTPJSONException(
-            code=400,
-            description=str(exc),
-        )
-    ),
-}
+RDM_RECORDS_ERROR_HANDLERS = error_handlers
 APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {

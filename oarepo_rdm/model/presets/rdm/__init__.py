@@ -38,6 +38,7 @@ from oarepo_rdm.model.presets.rdm.resources.files.file_resource_config import (
 from oarepo_rdm.model.presets.rdm.resources.files.media_file_resource_config import (
     RDMMediaFileResourceConfigPreset,
 )
+from oarepo_rdm.model.presets.rdm.resources.records.error_handlers import RDMErrorHandlersPreset
 from oarepo_rdm.model.presets.rdm.resources.records.resource import (
     RDMRecordResourcePreset,
 )
@@ -105,6 +106,7 @@ rdm_static_preset = [
     RDMDraftMediaFileResourceConfigPreset,
     RDMFileResourceConfigPreset,
     RDMMediaFileResourceConfigPreset,
+    RDMErrorHandlersPreset,
     RDMExtPreset,
     RDMRecordSchemaPreset,
     RDMParentRecordSchemaPreset,
