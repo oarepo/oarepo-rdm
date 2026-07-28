@@ -27,6 +27,7 @@ from oarepo_rdm.ui.components import (
     DepositFormDefaultsComponent,
     DoiRequiredComponent,
     EmptyRecordPidsComponent,
+    FileModificationComponent,
     FilesEnabledComponent,
     InjectParentDoiComponent,
     RDMPIDsConfigComponent,
@@ -75,6 +76,7 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
         InjectParentDoiComponent,
         DoiRequiredComponent,
         RDMPIDsConfigComponent,
+        FileModificationComponent,
     )
 
     # Default components for RDM UI resources.
