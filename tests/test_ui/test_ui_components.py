@@ -388,6 +388,91 @@ def test_edit_page_deposits_config_contains_pids_with_doi(
     assert pids[0]["default_selected"] == "yes"
 
 
+def test_create_page_file_modification_empty(
+    app, db, users, vocab_fixtures, logged_client, search_clear, extra_entry_points
+):
+    """On the create page fileModification is an empty object (no published record to evaluate)."""
+    user = users[0]
+    client = logged_client(user)
+
+    response = client.get("/modelb/uploads/new")
+    assert response.status_code == 200
+
+    file_modification = _get_hidden_input(response, "deposits-file-modification")
+    assert file_modification == {}
+
+
+def test_edit_page_file_modification_empty_for_unpublished_draft(
+    app, db, users, vocab_fixtures, required_rdm_metadata, logged_client, search_clear, extra_entry_points
+):
+    """Editing a draft that was never published yields an empty fileModification object."""
+    from tests.models import modelb
+
+    user = users[0]
+    service = modelb.proxies.current_service
+    draft = service.create(user.identity, {"metadata": required_rdm_metadata, "files": {"enabled": False}})
+
+    client = logged_client(user)
+    response = client.get(f"/modelb/uploads/{draft['id']}")
+    assert response.status_code == 200
+
+    file_modification = _get_hidden_input(response, "deposits-file-modification")
+    assert file_modification == {}
+
+
+def test_edit_page_file_modification_allowed_within_grace_period(
+    app,
+    db,
+    users,
+    vocab_fixtures,
+    required_rdm_metadata,
+    logged_client,
+    search_clear,
+    extra_entry_points,
+    set_app_config_fn_scoped,
+):
+    """An owner within the grace period may modify files; the nested result is flattened to a dict."""
+    from invenio_rdm_records.services.request_policies import (
+        FileModificationAdminPolicy,
+        FileModificationGracePeriodPolicy,
+    )
+
+    from tests.models import modelb
+
+    set_app_config_fn_scoped(
+        {
+            "RDM_IMMEDIATE_FILE_MODIFICATION_POLICIES": [
+                FileModificationGracePeriodPolicy(),
+                FileModificationAdminPolicy(),
+            ],
+        }
+    )
+
+    user = users[0]
+    service = modelb.proxies.current_service
+    draft = service.create(user.identity, {"metadata": required_rdm_metadata, "files": {"enabled": False}})
+    service.publish(user.identity, draft["id"])
+    service.edit(user.identity, draft["id"])
+
+    client = logged_client(user)
+    response = client.get(f"/modelb/uploads/{draft['id']}")
+    assert response.status_code == 200
+
+    file_modification = _get_hidden_input(response, "deposits-file-modification")
+    assert file_modification["enabled"] is True
+    assert file_modification["valid_user"] is True
+    assert file_modification["allowed"] is True
+
+    # the component flattens the PolicyEvaluator.Result dataclass into a plain dict
+    nested = file_modification["fileModification"]
+    assert isinstance(nested, dict)
+    assert nested["allowed"] is True
+    assert nested["policy"]["id"] == "file-modification-grace-period-v1"
+
+    # days_until is measured from the published record's creation date
+    assert file_modification["context"]["days_until"] >= 0
+
+
 def test_inject_parent_doi_on_draft_preview(
     app, db, users, search_clear, extra_entry_points, set_app_config_fn_scoped, modelb_ui_resource
 ):

@@ -35,6 +35,9 @@ class RDMErrorHandlersPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
+        # ``error_handlers`` is keyed by exception classes (``dict[type, Any]``),
+        # whereas ``AddToDictionary`` is typed for ``dict[str, Any]``; the exception
+        # keys are intended here, so cast to satisfy the checker.
         yield AddToDictionary(
             "record_error_handlers",
             {

@@ -14,6 +14,7 @@ from .communities_memberships_dump import CommunitiesMembershipsComponent
 from .deposit_form_defaults import DepositFormDefaultsComponent
 from .doi_required import DoiRequiredComponent
 from .empty_record_pids import EmptyRecordPidsComponent
+from .file_modification import FileModificationComponent
 from .files_enabled import FilesEnabledComponent
 from .inject_parent_doi import InjectParentDoiComponent
 from .pids_config_dump import RDMPIDsConfigComponent
@@ -25,6 +26,7 @@ __all__ = [
     "DepositFormDefaultsComponent",
     "DoiRequiredComponent",
     "EmptyRecordPidsComponent",
+    "FileModificationComponent",
     "FilesEnabledComponent",
     "InjectParentDoiComponent",
     "RDMPIDsConfigComponent",

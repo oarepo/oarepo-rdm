@@ -9,8 +9,8 @@ export const RDMFiles = {
   label: i18next.t("Upload files"),
   component: (tabConfig) => {
     const { record, formConfig } = tabConfig;
-    const { filesLocked, permissions } = formConfig.config;
-    const { overridableIdPrefix } = formConfig;
+    const { filesLocked, permissions, overridableIdPrefix, fileModification } =
+      formConfig;
     return (
       <Overridable id={buildUID(overridableIdPrefix, "Files")} {...tabConfig}>
         <UppyUploader
@@ -22,6 +22,7 @@ export const RDMFiles = {
           fileUploadConcurrency={formConfig.file_upload_concurrency}
           showMetadataOnlyToggle={permissions?.can_manage_files}
           filesLocked={filesLocked}
+          fileModification={fileModification}
         />
       </Overridable>
     );
