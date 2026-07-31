@@ -204,7 +204,7 @@ class DelegationToSpecializedServiceMixin(InvenioService):
         return MultiplexingLinks()
 
     # search is common for all rdm services, that is why it is declared here
-    def _search(  # noqa: PLR0913, PLR0917
+    def _search(  # noqa: PLR0913,PLR0917
         self,
         action: str,
         identity: Identity,
