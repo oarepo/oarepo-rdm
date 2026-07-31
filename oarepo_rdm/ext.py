@@ -144,4 +144,4 @@ def finalize_app(_app: Flask) -> None:
     )
 
     # patch review_to_draft_statuses to include 'cancelled' status
-    DraftStatus.review_to_draft_statuses["cancelled"] = "cancelled"
+    DraftStatus.review_to_draft_statuses.setdefault("cancelled", "cancelled")
