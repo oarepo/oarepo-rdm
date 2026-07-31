@@ -26,7 +26,7 @@ class OARepoPIDFieldContext(PIDFieldContext):
     """
 
     @override
-    def resolve(self, pid_value: str, registered_only: bool = False, with_deleted: bool = False) -> Record:
+    def resolve(self, pid_value: str, registered_only: bool = True, with_deleted: bool = False) -> Record:
         """Resolve identifier."""
         record_cls = current_runtime.record_class_by_pid_type[current_runtime.find_pid_type_from_pid(pid_value)]
         return record_cls.pid.resolve(pid_value, registered_only=registered_only, with_deleted=with_deleted)

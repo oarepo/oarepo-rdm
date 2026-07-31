@@ -12,6 +12,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
+from invenio_rdm_records.records.systemfields import DraftStatus
 from invenio_records_resources.records.systemfields import IndexField
 from invenio_records_resources.records.systemfields.pid import PIDField
 
@@ -141,3 +142,6 @@ def finalize_app(_app: Flask) -> None:
         "never-used-for-indexing-drafts-search-alias-used-instead",
         search_alias=[*current_runtime.draft_indices],
     )
+
+    # patch review_to_draft_statuses to include 'cancelled' status
+    DraftStatus.review_to_draft_statuses.setdefault("cancelled", "cancelled")
