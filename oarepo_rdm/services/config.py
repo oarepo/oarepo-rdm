@@ -47,9 +47,9 @@ class MultiplexingLinks(LinksTemplate):
     Based on the record being serialized, the expansion is delegated
     to the appropriate service.
     """
-
+    # REVIEW: obj typing?
     @override
-    def expand(self, identity: Identity, obj: Any, **kwargs: Any) -> dict[str, str]:
+    def expand(self, identity: Identity, obj: Any) -> dict[str, str]:
         """Expand links for the given record."""
         if obj is None:
             return {}
@@ -59,7 +59,8 @@ class MultiplexingLinks(LinksTemplate):
         delegated_service = delegated_model.service
         return cast(
             "dict[str, str]",
-            # TODO: seems to be correct but what to do with kwargs?
+            # TODO: seems to be correct but what to do with kwargs? # REVIEW: kwargs do not seem as input to any links template - deleting
+            # note - invenio_requests.services.requests.links.RequestLinksTemplate seems to exist only in stubs
             delegated_service.links_item_tpl.expand(identity, obj),
         )
 
@@ -109,6 +110,7 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     schema = MultiplexingSchema  # type: ignore[assignment]
 
     # TODO: add proper links here, not just this subset
+    # REVIEW: review state of links now
     links_item: Mapping[str, Any] = {
         # Record
         "self": ConditionalLink(

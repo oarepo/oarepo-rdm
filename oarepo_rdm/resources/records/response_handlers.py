@@ -88,7 +88,7 @@ class DelegatedSerializer(BaseSerializer):
 
         # 1. get exporters for all objects
         possible_exporters = [(obj, self._get_exporter(obj)) for obj in obj_list_data]
-        exporters = [(obj, exporter) for obj, exporter in possible_exporters if exporter is not None]
+        exporters = [(obj, exporter) for obj, exporter in possible_exporters if exporter is not None] # REVIEW: confusing naming
 
         # 2. if no exporters found, return empty list serialization
         if not exporters:
@@ -105,18 +105,24 @@ class DelegatedSerializer(BaseSerializer):
             )
 
         # TODO: will need to be changed when Christoph's changes are merged
+        # REVIEW: using claude git archeology, this refers to marshmallow deprecating context
+        #   - fb28daaf refactor(schema): make object_key class property — BaseObjectSchema.object_key becomes a class attribute instead of a context key.
+        #   - 7d9e98c8 refactor: move object_schema_cls to constructor — BaseListSchema.__init__(object_schema_cls=None, **kwargs); MarshmallowSerializer now passes object_schema_cls= as a kwarg instead of stuffing it into context.
         serialized_objects = [
             cast("MarshmallowSerializer", exporter[1]).dump_obj(exporter[0]) for exporter in exporters
         ]
 
         serializer = cast("MarshmallowSerializer", copy.copy(exporters[0][1]))
         if serializer.list_schema:
-            new_list_schema = type(serializer.list_schema)(
+            # REVIEW: context is deprecated
+            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)
+            """
                 context={
                     **serializer.list_schema.context,
                     "object_schema_cls": NoOpSchema,
                 }
             )
+            """
             serializer.list_schema = new_list_schema
         else:
             raise NotImplementedError(  # pragma: no cover

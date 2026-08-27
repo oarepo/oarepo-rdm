@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
 
-
+# REVIEW: why is it here instead of in model
 class OAIMappingAliasPreset(Preset):
     """Add oaisource alias to record mapping."""
 
@@ -59,7 +59,7 @@ class OAIDraftMappingAliasPreset(Preset):
         builder: InvenioModelBuilder,
         model: InvenioModel,
         dependencies: dict[str, Any],
-    ) -> Generator[Customization]:
+    ) -> Generator[Customization]: # REVIEW: why is explicitly removed and added in the other case? (is it good idea to copy draft mapping at a point when they have divergent fields and remove it here - instead of the place they were copied?)
         def remove_oaisource(mapping: dict[str, Any]) -> dict[str, Any]:
             mapping.get("aliases", {}).pop("oaisource", None)
             return mapping

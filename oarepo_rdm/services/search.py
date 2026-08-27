@@ -89,7 +89,7 @@ def update_param_interpreters(
     existing_list.remove(FacetsParam)
     existing_list.append(GroupedFacetsParam)
     existing_list.append(DelegatedQueryParam)
-    existing_list.append(SharedOrMyDraftsParam)
+    existing_list.append(SharedOrMyDraftsParam) # REVIEW: not added on model! (look whether others matter too)
     existing_list.append(MetricsParam)
     return tuple(existing_list)
 

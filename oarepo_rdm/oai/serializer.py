@@ -17,7 +17,7 @@ from oarepo_runtime import current_runtime
 if TYPE_CHECKING:
     from flask_resources.serializers import BaseSerializer
 
-
+# REVIEW: check the logic for invenio updates
 def multiplexing_oai_serializer(
     pid: Any,  # noqa: ARG001 # invenio callback api needs this
     record: dict[str, Any],
