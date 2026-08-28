@@ -381,7 +381,7 @@ RDMDate:
     cs: Datum
   properties:
     date:
-      type: edtf
+      type: edtf-date-or-interval
       label:
         en: Date
         cs: Datum
