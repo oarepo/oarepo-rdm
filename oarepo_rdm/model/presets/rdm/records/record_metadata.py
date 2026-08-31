@@ -45,7 +45,7 @@ class RDMRecordMetadataWithFilesPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        yield AddClassField(
+        yield AddClassField( # REVIEW: why? (instead of replacing base class); also we have this on draft, rdm doesn't
             "RecordMetadata",
             "deletion_status",
             db.Column(

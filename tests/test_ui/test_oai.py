@@ -83,7 +83,7 @@ def check_record(tree, pid_value):
     _datestamp = tree.xpath(
         "/x:OAI-PMH/x:GetRecord/x:record/x:header/x:datestamp/text()",
         namespaces=NAMESPACES,
-    )
+    ) # REVIEW: for what is the _datestamp used?
     assert (
         len(
             tree.xpath(

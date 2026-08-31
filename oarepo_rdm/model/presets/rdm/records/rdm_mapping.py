@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class RDMMappingPreset(Preset):
     """Preset for record service class."""
 
-    modifies = ("draft-mapping",)
+    modifies = ("draft-mapping",) # REVIEW: modifies both record and draft mapping? copy-pasting it seems unoptimal?
 
     @override
     def apply(

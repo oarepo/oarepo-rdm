@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
 
-
+# REVIEW: can we just throw out the few things we don't want and reuse invenio_rdm_records.services.schemas.record.RDMRecordSchema?
 class RDMRecordSchemaMixin(FieldPermissionsMixin):
     """Record schema."""
 

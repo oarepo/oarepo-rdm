@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
 
-
+# REVIEW: wouldn't it be possible to automate using rdm exports?
 class RDMCompleteExportsPreset(Preset):
     """Preset for exporting RDM-complete models."""
 

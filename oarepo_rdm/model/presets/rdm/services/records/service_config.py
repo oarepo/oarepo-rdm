@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
 
-
+# REVIEW: look into this
 class RDMRecordServiceConfigWithoutLinks(RDMRecordServiceConfig):
     """TODO: this is just a quick hack before we have links working."""
 

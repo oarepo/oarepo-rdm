@@ -7,5 +7,6 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 #
 """OS v2 mappings for the percolators index."""
-
+# REVIEW: this seems dead, see invenio_search/ext.py:152 - should be in oarepo_rdm_oai directory
+# might be relevant at invenio_oaiserver/percolator.py:30 - but it would have to somehow get the real mapping file
 from __future__ import annotations

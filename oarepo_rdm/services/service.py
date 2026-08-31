@@ -175,7 +175,8 @@ def pass_to_specialized_service(
 class DelegationToSpecializedServiceMixin(InvenioService):
     """Mixin for delegating running components and permission checks to specialized model services."""
 
-    attribute_on_base_service: str = ""
+    attribute_on_base_service: str = "" # Used when the specialized service is a subservice of the base RDMRecordsService
+                                        # eg. ReviewService, AccessService
 
     def _get_specialized_service(self, pid_value: str) -> InvenioService:
         """Get a specialized service based on the pid_value of the record."""
@@ -342,14 +343,24 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         service: RDMRecordService = cast("RDMRecordService", model.service)
         return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
 
+    # REVIEW: alternatively, move them out similarly to delegate/pass through
+    def _run_in_all_specialized_services(self, method: str, *args: Any, **kwargs: Any) -> None:
+        """Run the method in all specialized services.
+
+        Support is checked for every model up front so that an unsupported model
+        does not leave the call applied to only some of them.
+        """
+        models = list(current_runtime.rdm_models)
+        for model in models:
+            if not hasattr(model.service, method):
+                raise NotImplementedError(f"Model {model} does not support {method}.") # REVIEW: since we are running this on rdm_models and the base RDMRecordsService has these implmented, this might be unnecessary
+        for model in models:
+            getattr(model.service, method)(*args, **kwargs)
+
     @override
     def rebuild_index(self, identity: Identity) -> Literal[True]:
         """Rebuild the search index for all records."""
-        for model in current_runtime.rdm_models:
-            if hasattr(model.service, "rebuild_index"):
-                model.service.rebuild_index(identity)
-            else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        self._run_in_all_specialized_services("rebuild_index", identity)
         return True
 
     @unit_of_work()
@@ -360,12 +371,12 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         uow: UnitOfWork | None = None,
         search_gc_deletes: int = 60,
     ) -> None:
-        for model in current_runtime.rdm_models:
-            cleanup_drafts = getattr(model.service, "cleanup_drafts", None)
-            if cleanup_drafts:
-                cleanup_drafts(timedelta, uow=uow, search_gc_deletes=search_gc_deletes)
-            else:
-                raise NotImplementedError(f"Model {model} does not support cleaning up drafts.")
+        self._run_in_all_specialized_services(
+            "cleanup_drafts",
+            timedelta,
+            uow=uow,
+            search_gc_deletes=search_gc_deletes,
+        )
 
     @unit_of_work()
     @override
@@ -377,19 +388,14 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         uow: UnitOfWork | None = None,
         **kwargs: Any,
     ) -> Literal[True]:
-        for model in current_runtime.rdm_models:
-            reindex_latest_first = getattr(model.service, "reindex_latest_first", None)
-            if reindex_latest_first:
-                reindex_latest_first(
-                    identity,
-                    search_preference=search_preference,
-                    extra_filter=extra_filter,
-                    uow=uow,
-                    **kwargs,
-                )
-            else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
-
+        self._run_in_all_specialized_services(
+            "reindex_latest_first",
+            identity,
+            search_preference=search_preference,
+            extra_filter=extra_filter,
+            uow=uow,
+            **kwargs,
+        )
         return True
 
     @override
@@ -402,18 +408,15 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         extra_filter: Any | None = None,
         **kwargs: Any,
     ) -> Literal[True]:
-        for model in current_runtime.rdm_models:
-            if hasattr(model.service, "reindex"):
-                model.service.reindex(
-                    identity,
-                    params=params,
-                    search_preference=search_preference,
-                    search_query=search_query,
-                    extra_filter=extra_filter,
-                    **kwargs,
-                )
-            else:
-                raise NotImplementedError(f"Model {model} does not support rebuilding index.")
+        self._run_in_all_specialized_services(
+            "reindex",
+            identity,
+            params=params,
+            search_preference=search_preference,
+            search_query=search_query,
+            extra_filter=extra_filter,
+            **kwargs,
+        )
         return True
 
     @override
@@ -425,17 +428,14 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         notif_time: str,
         limit: int = 100,
     ) -> Literal[True]:
-        for model in current_runtime.rdm_models:
-            if hasattr(model.service, "on_relation_update"):
-                model.service.on_relation_update(
-                    identity,
-                    record_type,
-                    records_info,
-                    notif_time,
-                    limit=limit,
-                )
-            else:
-                raise NotImplementedError(f"Model {model} does not support relation updates.")  # or pass or to do?
+        self._run_in_all_specialized_services(
+            "on_relation_update",
+            identity,
+            record_type,
+            records_info,
+            notif_time,
+            limit=limit,
+        )
         return True
 
 

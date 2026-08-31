@@ -9,3 +9,4 @@
 """OS v2 index templates."""
 
 from __future__ import annotations
+# REVIEW: if i get this correctly, this is just a dumb hack to get around the invenio_oaiserver.percolator._new_percolator line 60?

@@ -24,6 +24,8 @@ if TYPE_CHECKING:
 class MultiplexingResultList(RDMRecordList):
     """Multiplexing result list for the RDM service."""
 
+    # REVIEW: alternative to avoid duplicate code would be instantiating lists of the delegated models and merging them
+    # though that is probably too wild
     @property
     def hits(self) -> Generator[dict[str, Any]]:
         """Iterator over the hits."""
