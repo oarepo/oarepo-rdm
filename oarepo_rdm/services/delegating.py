@@ -34,7 +34,19 @@ if TYPE_CHECKING:
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
     from invenio_records_resources.services.records.results import RecordItem
 
-pass_through_service_access = {
+# The sub-services subclass the generic record service.
+# None of these belong to a review/access/pids service; they are never called on one.
+# Unlike OARepoRDMService, which redefines them.
+pass_through_record_service = {
+    "cleanup_drafts",
+    "on_relation_update",
+    "rebuild_index",
+    "reindex",
+    "reindex_latest_first",
+}
+
+pass_through_service_access = pass_through_record_service | {
+    "create",  # RecordService.create; access entries are created by the methods below
     "link_result_item",
     "link_result_list",
     "grant_result_item",
@@ -68,7 +80,7 @@ delegate_to_specialized_service_review = {
     "submit",
 }
 
-pass_through_service_pids = {
+pass_through_service_pids = pass_through_record_service | {
     "invalidate",  # not implemented
 }
 
@@ -82,7 +94,7 @@ delegate_to_specialized_service_pids = {
 
 @pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_review)
 @check_fully_overridden(
-    pass_through,
+    pass_through | pass_through_record_service,
     delegate_to_specialized_service | delegate_to_specialized_service_review,
     ReviewService,
 )
