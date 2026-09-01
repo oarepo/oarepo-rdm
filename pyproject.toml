@@ -73,9 +73,6 @@ oarepo_rdm_i18n = "oarepo_rdm.i18n.webpack:theme"
 [project.entry-points."invenio_i18n.translations"]
 oarepo_rdm_messages = "oarepo_rdm"
 
-[project.entry-points."invenio_search.mappings"]
-oarepo_rdm_oai = "oarepo_rdm.oai.mappings"
-
 [project.entry-points."oarepo.cli.search.init"]
 install_percollators = "oarepo_rdm.oai.percolator:init_percolators"
 
