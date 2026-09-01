@@ -44,9 +44,9 @@ from oarepo_rdm.services.delegating import (
     delegate_to_specialized_service_access,
     delegate_to_specialized_service_pids,
     delegate_to_specialized_service_review,
+    pass_through_record_service,
     pass_through_service_access,
     pass_through_service_pids,
-    pass_through_service_review,
 )
 from oarepo_rdm.services.service import (
     OARepoRDMService,
@@ -127,7 +127,7 @@ def test_guard_looks_past_the_immediate_base_class():
         (
             DelegatingReviewService,
             ReviewService,
-            pass_through | pass_through_service_review,
+            pass_through | pass_through_record_service,
             delegate_to_specialized_service | delegate_to_specialized_service_review,
         ),
         (
