@@ -10,8 +10,35 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from typing import Any, ClassVar
+
+import marshmallow as ma
+from flask_principal import Identity
+from invenio_access.permissions import system_identity
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from marshmallow_utils.context import context_schema
+from marshmallow_utils.permissions import FieldPermissionsMixin
+
+import oarepo_rdm.services.config as service_config
 from oarepo_rdm.services.config import MultiplexingSchema
 from tests.models import modela, modelb
+
+
+class _ProtectedRecordSchema(FieldPermissionsMixin, ma.Schema):
+    schema = ma.fields.String(data_key="$schema")
+    internal_notes = ma.fields.List(ma.fields.String())
+
+    field_dump_permissions: ClassVar[dict[str, str]] = {"internal_notes": "manage_internal"}
+
+
+class _SystemOnlyPermissionPolicy:
+    def __init__(self, action: str, **kwargs: Any) -> None:
+        self.action = action
+        self.context = kwargs
+
+    def allows(self, identity: Identity) -> bool:
+        return identity is system_identity
 
 
 def test_multiplexing_schema_load_single(db, identity_simple, search_clear):
@@ -33,8 +60,12 @@ def test_multiplexing_schema_load_single(db, identity_simple, search_clear):
         "metadata": {"title": "Test Load", "adescription": "load desc"},
     }
 
-    schema = MultiplexingSchema(context={"identity": identity_simple})
-    result = schema.load(data)
+    schema = MultiplexingSchema()
+    token = context_schema.set({"identity": identity_simple})
+    try:
+        result = schema.load(data)
+    finally:
+        context_schema.reset(token)
 
     # The result should be the loaded data (tuple from ServiceSchemaWrapper)
     assert result is not None
@@ -53,8 +84,12 @@ def test_multiplexing_schema_load_many(db, identity_simple, search_clear):
         },
     ]
 
-    schema = MultiplexingSchema(context={"identity": identity_simple})
-    result = schema.load(data_list, many=True)
+    schema = MultiplexingSchema()
+    token = context_schema.set({"identity": identity_simple})
+    try:
+        result = schema.load(data_list, many=True)
+    finally:
+        context_schema.reset(token)
 
     assert isinstance(result, list)
     assert len(result) == 2
@@ -76,8 +111,12 @@ def test_multiplexing_schema_dump_single(db, identity_simple, search_clear):
     # Get the actual record object
     record = draft._record  # noqa: SLF001
 
-    schema = MultiplexingSchema(context={"identity": identity_simple})
-    result = schema.dump(record)
+    schema = MultiplexingSchema()
+    token = context_schema.set({"identity": identity_simple})
+    try:
+        result = schema.dump(record)
+    finally:
+        context_schema.reset(token)
 
     assert isinstance(result, dict)
     assert "$schema" in result
@@ -107,10 +146,64 @@ def test_multiplexing_schema_dump_many(db, identity_simple, search_clear):
 
     records = [draft_a._record, draft_b._record]  # noqa: SLF001
 
-    schema = MultiplexingSchema(context={"identity": identity_simple})
-    result = schema.dump(records, many=True)
+    schema = MultiplexingSchema()
+    token = context_schema.set({"identity": identity_simple})
+    try:
+        result = schema.dump(records, many=True)
+    finally:
+        context_schema.reset(token)
 
     assert isinstance(result, list)
     assert len(result) == 2
     assert result[0]["$schema"] == "local://modela-v1.0.0.json"
     assert result[1]["$schema"] == "local://modelb-v1.0.0.json"
+
+
+def test_multiplexing_schema_dump_uses_service_context(monkeypatch):
+    """Do not expose a protected field when dumping through the multiplexing service schema.
+
+    ServiceSchemaWrapper supplies the caller context through context_schema rather
+    than the Marshmallow schema constructor.  This is the path used in production
+    and differs from the direct MultiplexingSchema(context=...) calls above.
+    """
+    delegated_service = SimpleNamespace(
+        config=SimpleNamespace(permission_policy_cls=_SystemOnlyPermissionPolicy),
+    )
+    delegated_service.schema = ServiceSchemaWrapper(delegated_service, _ProtectedRecordSchema)
+    monkeypatch.setattr(
+        service_config,
+        "current_runtime",
+        SimpleNamespace(
+            rdm_models_by_schema={
+                "local://protected-v1.0.0.json": SimpleNamespace(service=delegated_service),
+            }
+        ),
+    )
+
+    multiplexing_service = SimpleNamespace(
+        config=SimpleNamespace(permission_policy_cls=_SystemOnlyPermissionPolicy),
+    )
+    multiplexing_schema_service_wrapped = ServiceSchemaWrapper(multiplexing_service, MultiplexingSchema)
+    identity = Identity("ordinary-user")
+    record = {
+        "$schema": "local://protected-v1.0.0.json",
+        "internal_notes": ["visible only to repository managers"],
+    }
+
+    delegated_dump = delegated_service.schema.dump(
+        record,
+        context={"identity": identity},
+    )
+    multiplexed_dump = multiplexing_schema_service_wrapped.dump(
+        record,
+        context={"identity": identity},
+    )
+
+    multiplexed_dump_system_identity = multiplexing_schema_service_wrapped.dump(
+        record,
+        context={"identity": system_identity},
+    )
+
+    assert "internal_notes" not in delegated_dump
+    assert "internal_notes" not in multiplexed_dump
+    assert "internal_notes" in multiplexed_dump_system_identity

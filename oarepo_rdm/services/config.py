@@ -26,6 +26,7 @@ from invenio_records_resources.services.records.links import (
     RecordEndpointLink,
 )
 from marshmallow import types
+from marshmallow_utils.context import context_schema
 from oarepo_runtime import current_runtime
 
 from oarepo_rdm.proxies import current_oarepo_rdm
@@ -88,7 +89,7 @@ class MultiplexingSchema(ma.Schema):
         return delegated_service.schema.load(
             data,  # type: ignore[arg-type]
             schema_args={},  # type: ignore[arg-type]
-            context=self.context,
+            context=context_schema.get(),
             raise_errors=True,
         )
 
@@ -99,7 +100,7 @@ class MultiplexingSchema(ma.Schema):
         schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.dump(obj, schema_args={}, context={**self.context, "record": obj})  # type: ignore[arg-type]
+        return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})  # type: ignore[arg-type]
 
 
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
