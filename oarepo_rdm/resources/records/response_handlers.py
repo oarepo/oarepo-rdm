@@ -87,36 +87,34 @@ class DelegatedSerializer(BaseSerializer):
         obj_list_data = self._extract_hits(obj_list)
 
         # 1. get exporters for all objects
-        possible_exporters = [(obj, self._get_exporter(obj)) for obj in obj_list_data]
-        exporters = [(obj, exporter) for obj, exporter in possible_exporters if exporter is not None]
-
+        possible_obj_exporter_tuples = [(obj, self._get_exporter(obj)) for obj in obj_list_data]
+        obj_exporter_tuples = [
+            (obj, exporter) for obj, exporter in possible_obj_exporter_tuples if exporter is not None
+        ]
+        # REVIEW: we might be losing hits total by leaving the unserialized ones
         # 2. if no exporters found, return empty list serialization
-        if not exporters:
+        if not obj_exporter_tuples:
             return self.serializers[0].serialize_object_list(self._update_hits(obj_list, []))
-
+        first_exporter = obj_exporter_tuples[0][1]
         # 3. if all exporters are the same instance, use it
-        if all(exporter[1] is exporters[0][1] for exporter in exporters):
-            return exporters[0][1].serialize_object_list(self._update_hits(obj_list, [x[0] for x in exporters]))
+        if all(exporter is first_exporter for _, exporter in obj_exporter_tuples):
+            return first_exporter.serialize_object_list(
+                self._update_hits(obj_list, [x[0] for x in obj_exporter_tuples])
+            )
 
         # 4. if not, check if all exporters are instance of MarshmallowSerializer
-        if not all(isinstance(exporter[1], MarshmallowSerializer) for exporter in exporters):
+        if not all(isinstance(exporter, MarshmallowSerializer) for _, exporter in obj_exporter_tuples):
             raise NotAcceptable(  # pragma: no cover
                 "Cannot serialize list with multiple different non-marshmallow serializers."
             )
 
-        # TODO: will need to be changed when Christoph's changes are merged
         serialized_objects = [
-            cast("MarshmallowSerializer", exporter[1]).dump_obj(exporter[0]) for exporter in exporters
+            cast("MarshmallowSerializer", exporter).dump_obj(obj) for obj, exporter in obj_exporter_tuples
         ]
 
-        serializer = cast("MarshmallowSerializer", copy.copy(exporters[0][1]))
+        serializer = cast("MarshmallowSerializer", copy.copy(first_exporter))
         if serializer.list_schema:
-            new_list_schema = type(serializer.list_schema)(
-                context={
-                    **serializer.list_schema.context,
-                    "object_schema_cls": NoOpSchema,
-                }
-            )
+            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # type: ignore[reportCallIssue]
             serializer.list_schema = new_list_schema
         else:
             raise NotImplementedError(  # pragma: no cover
