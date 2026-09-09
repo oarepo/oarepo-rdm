@@ -66,14 +66,18 @@ class DelegatedQueryParam(ParamInterpreter):
         post_filter = {}
         sort = []
 
-        for pid_type, query_data in queries_list.items():
+        for schema, query_data in queries_list.items():
             schema_query = query_data.get("query", {})
-            shoulds.append({"bool": {"must": [{"term": {"$schema": pid_type}}, schema_query]}})
+            shoulds.append({"bool": {"must": [{"term": {"$schema": schema}}, schema_query]}})
 
             if "aggs" in query_data:
                 aggs.update(query_data["aggs"])
             if "post_filter" in query_data:
                 post_filter.update(query_data["post_filter"])
+            # REVIEW: every model's sort is collected but only sort[0] is applied below, so the
+            #   dict iteration order decides which model's sort wins. Also aggs/post_filter are
+            #   merged by plain dict.update - same-named facets from different models silently
+            #   overwrite each other.
             if "sort" in query_data:
                 sort.extend(query_data["sort"])
 
@@ -133,7 +137,7 @@ class MultiplexedSearchOptions(SearchOptions):
             "facets": facets,
             "facet_groups": facet_groups,
             "sort_options": sort_options,
-            "sort_default": sort_default,
+            "sort_default": sort_default, # REVIEW: it could make more sense to allow defining explicitly rather than this "the last of the models win"
             "sort_default_no_query": sort_default_no_query,
         }
 
