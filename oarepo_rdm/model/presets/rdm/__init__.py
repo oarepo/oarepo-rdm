@@ -17,9 +17,6 @@ from __future__ import annotations
 
 from oarepo_rdm.model.presets.rdm.ext import RDMExtPreset
 from oarepo_rdm.model.presets.rdm.records.draft_record import RDMDraftRecordPreset
-from oarepo_rdm.model.presets.rdm.records.draft_record_metadata import (
-    RDMDraftRecordMetadataWithFilesPreset,
-)
 from oarepo_rdm.model.presets.rdm.records.parent_record import RDMParentRecordPreset
 from oarepo_rdm.model.presets.rdm.records.rdm_mapping import RDMMappingPreset
 from oarepo_rdm.model.presets.rdm.records.record import RDMRecordPreset
@@ -81,9 +78,6 @@ from oarepo_rdm.model.presets.rdm.services.records.service_config import (
 from oarepo_rdm.model.presets.rdm.services.records.service_config_links import (
     RDMServiceConfigLinks,
 )
-from oarepo_rdm.model.presets.rdm.services.records.service_config_ui_links import (
-    RDMServiceConfigUILinks,
-)
 from oarepo_rdm.model.presets.rdm_metadata.rdm_record_root_labels import (
     RDMRecordRootLabelsPreset,
 )
@@ -101,7 +95,6 @@ rdm_static_preset = [
     RDMDraftFileServiceConfigPreset,
     RDMFileServicePreset,
     RDMFileServiceConfigPreset,
-    RDMDraftRecordMetadataWithFilesPreset,
     RDMRecordMetadataWithFilesPreset,
     RDMDraftFileResourceConfigPreset,
     RDMDraftMediaFileResourceConfigPreset,
@@ -112,7 +105,6 @@ rdm_static_preset = [
     RDMRecordSchemaPreset,
     RDMParentRecordSchemaPreset,
     RDMServiceConfigLinks,
-    RDMServiceConfigUILinks,
     RDMPermissionPolicyPreset,
     RDMRecordUISchemaPreset,
     RDMRecordRootLabelsPreset,
