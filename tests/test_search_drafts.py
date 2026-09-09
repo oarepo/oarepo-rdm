@@ -44,3 +44,35 @@ def test_description_search(app, db, search_clear, identity_simple):
     assert rec_id == results["hits"]["hits"][0]["id"]
     assert results["links"]["self"] == "/user/records?page=1&q=jej&size=10&sort=bestmatch"
     assert results["hits"]["hits"][0]["links"]["self"] == f"/modelc/{rec_id}/draft"
+
+
+def test_drafts_search_shared_with_me_param(app, db, search_clear, users):
+    """Test whether search_drafts() works with shared_with_me param."""
+    owner, other = users[0], users[1]
+
+    shared = modelc_service.create(
+        owner.identity,
+        {"metadata": {"title": "blah", "cdescription": "bbb"}},
+    )
+    own = modelc_service.create(
+        other.identity,
+        {"metadata": {"title": "blah", "cdescription": "kch"}},
+    )
+    modelc_service.access.bulk_create_grants(
+        owner.identity,
+        shared.id,
+        {"grants": [{"subject": {"type": "user", "id": str(other.id)}, "permission": "preview"}]},
+    )
+    modelc_service.draft_indexer.refresh()
+
+    assert modelc_service.read_draft(other.identity, shared.id).id == shared.id
+
+    no_param_uploads = modelc_service.search_drafts(other.identity)
+    assert len(no_param_uploads.to_dict()["hits"]["hits"]) == 2
+
+    # this - confusingly named - parameter is used in invenio ui to limit drafts to those owned by the user
+    my_uploads = modelc_service.search_drafts(other.identity, {"shared_with_me": False})
+    assert [hit["id"] for hit in my_uploads.to_dict()["hits"]["hits"]] == [own.id]
+
+    shared_with_me = modelc_service.search_drafts(other.identity, {"shared_with_me": True})
+    assert [hit["id"] for hit in shared_with_me.to_dict()["hits"]["hits"]] == [shared.id]
