@@ -90,6 +90,15 @@ def update_param_interpreters(
     existing_list.append(GroupedFacetsParam)
     existing_list.append(DelegatedQueryParam)
     existing_list.append(SharedOrMyDraftsParam)
+    # REVIEW: this one list is shared by all four MultiplexedSearchOptions instances (search,
+    #   search_drafts, search_versions, search_all), so SharedOrMyDraftsParam and MetricsParam are
+    #   applied to published and versions search too. Upstream scopes them per search kind.
+    # REVIEW: MultiplexedSearchOptions also inherits query_parser_cls = plain QueryParser, while
+    #   every model uses QueryParser.factory(tree_transformer_cls=SearchQueryValidator). The
+    #   outer QueryStrParam therefore parses `q` unvalidated - and re-applies it on top of the
+    #   merged delegated query, which already contains it per model.
+
+    # TODO: We should make this search-kind aware and consider query interpretation per service
     existing_list.append(MetricsParam)
     return tuple(existing_list)
 
