@@ -239,13 +239,17 @@ class DelegationToSpecializedServiceMixin(InvenioService):
         queries_list: dict[str, dict] = {}
 
         for jsonschema, service in services.items():
+            service_search_opts = getattr(service.config, search_opts.config_field) if search_opts else None
             search = service._search(  # noqa: SLF001 # calling the same method on delegated
                 action=action,
                 identity=identity,
                 params=copy.deepcopy(params),
                 search_preference=search_preference,
                 record_cls=record_cls,
-                search_opts=search_opts,
+                # REVIEW: on normal search this resolves into the service's own search opts but search_drafts etc. sends
+                # self.config.search_drafts which resolves into the (draft unspecific) multiplexing search options,
+                # potentially resulting in unexpectedly different results
+                search_opts=service_search_opts,
                 extra_filter=extra_filter,
                 permission_action=permission_action,
                 versioning=versioning,
@@ -253,7 +257,7 @@ class DelegationToSpecializedServiceMixin(InvenioService):
             )
             queries_list[jsonschema] = search.to_dict()
 
-        params["delegated_query"] = [queries_list, search_opts or self.config.search]
+        params["delegated_query"] = [queries_list, search_opts or self.config.search] # REVIEW: what is the point of "search_opts or self.config.search"? - delegated query parser leaves this out
 
         return super()._search(  # type: ignore[reportAttributeAccessIssue]
             action=action,
