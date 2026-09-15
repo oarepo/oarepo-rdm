@@ -102,15 +102,13 @@ def update_param_interpreters(
     #   outer QueryStrParam therefore parses `q` unvalidated - and re-applies it on top of the
     #   merged delegated query, which already contains it per model.
 
-    # TODO: We should make this search-kind aware and consider query interpretation per service
+    # TODO: We should make this search-kind aware
     existing_list.append(MetricsParam)
     return tuple(existing_list)
 
 
 class MultiplexedSearchOptions(SearchOptions):
     """Search options."""
-
-    params_interpreters_cls = update_param_interpreters(SearchOptions.params_interpreters_cls)
 
     def __init__(self, config_field: str) -> None:
         """Initialize search options."""
@@ -122,6 +120,12 @@ class MultiplexedSearchOptions(SearchOptions):
         self.sort_options = search_opts["sort_options"]  # type: ignore[assignment]
         self.sort_default = search_opts["sort_default"]  # type: ignore[assignment]
         self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
+
+        # TODO: specify param interpreter - config mapping exact configuration
+        self.params_interpreters_cls = update_param_interpreters(SearchOptions.params_interpreters_cls)
+
+        self.config_field = config_field
+        print()
 
     def _search_opts_from_search_obj(self, search: Any) -> dict[str, Any]:
         facets = copy.deepcopy(search.facets)
@@ -139,6 +143,7 @@ class MultiplexedSearchOptions(SearchOptions):
             "sort_options": sort_options,
             "sort_default": sort_default, # REVIEW: it could make more sense to allow defining explicitly rather than this "the last of the models win"
             "sort_default_no_query": sort_default_no_query,
+            "params_interpreters_cls": params_interpreters_cls,
         }
 
     def _search_opts(self, config_field: str) -> dict:
