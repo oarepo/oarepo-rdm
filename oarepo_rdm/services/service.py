@@ -348,21 +348,13 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         service: RDMRecordService = cast("RDMRecordService", model.service)
         return cast("RecordItem", service.oai_result_item(identity, oai_record_source))
 
-    # REVIEW: alternatively, move them out similarly to delegate/pass through
     def _run_in_all_specialized_services(self, method: str, *args: Any, **kwargs: Any) -> None:
         """Run the method in all specialized services.
 
         Support is checked for every model up front so that an unsupported model
         does not leave the call applied to only some of them.
         """
-        models = list(current_runtime.rdm_models)
-        for model in models:
-            if not hasattr(model.service, method):
-                raise NotImplementedError(
-                    f"Model {model} does not support {method}."
-                )  # REVIEW: since we are running this on rdm_models and the base RDMRecordsService has these implmented
-                # might be unnecessary
-        for model in models:
+        for model in current_runtime.rdm_models:
             getattr(model.service, method)(*args, **kwargs)
 
     @override
