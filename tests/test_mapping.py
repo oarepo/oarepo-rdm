@@ -44,4 +44,3 @@ def test_mapping_rdm_complete(app, model_c):
         "funding",
         "references",
     }
-
