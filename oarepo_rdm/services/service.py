@@ -251,7 +251,10 @@ class DelegationToSpecializedServiceMixin(InvenioService):
             )
             queries_list[jsonschema] = search.to_dict()
 
-        params["delegated_query"] = [queries_list, search_opts or self.config.search] # REVIEW: what is the point of "search_opts or self.config.search"? - delegated query parser leaves this out
+        params["delegated_query"] = [
+            queries_list,
+            search_opts or self.config.search,
+        ]  # REVIEW: what is the point of "search_opts or self.config.search"? - delegated query parser leaves this out
 
         return super()._search(  # type: ignore[reportAttributeAccessIssue]
             action=action,
