@@ -15,14 +15,16 @@ import logging
 from typing import TYPE_CHECKING, Any, override
 
 from deepmerge import always_merger
+from flask import current_app
+from invenio_rdm_records.services.config import RDMRecordServiceConfig
 from invenio_rdm_records.services.search_params import (
     MetricsParam,
-    SharedOrMyDraftsParam,
 )
 from invenio_records_resources.services.records.config import SearchOptions
 from invenio_records_resources.services.records.params import (
     FacetsParam,
     ParamInterpreter,
+    QueryStrParam,
 )
 from oarepo_runtime import current_runtime
 from oarepo_runtime.services.facets.params import GroupedFacetsParam
@@ -84,26 +86,19 @@ class DelegatedQueryParam(ParamInterpreter):
         return query, aggs, post_filter, sort
 
 
+# TODO: double check this is correct
 def update_param_interpreters(
     existing: tuple[type[ParamInterpreter], ...],
 ) -> tuple[type[ParamInterpreter], ...]:
     """Update the list of parameter interpreters."""
     existing_list = list(existing)
     # remove FacetsParam
+    existing_list.remove(QueryStrParam)
     existing_list.remove(FacetsParam)
     existing_list.append(GroupedFacetsParam)
     existing_list.append(DelegatedQueryParam)
-    existing_list.append(SharedOrMyDraftsParam)
-    # REVIEW: this one list is shared by all four MultiplexedSearchOptions instances (search,
-    #   search_drafts, search_versions, search_all), so SharedOrMyDraftsParam and MetricsParam are
-    #   applied to published and versions search too. Upstream scopes them per search kind.
-    # REVIEW: MultiplexedSearchOptions also inherits query_parser_cls = plain QueryParser, while
-    #   every model uses QueryParser.factory(tree_transformer_cls=SearchQueryValidator). The
-    #   outer QueryStrParam therefore parses `q` unvalidated - and re-applies it on top of the
-    #   merged delegated query, which already contains it per model.
 
-    # TODO: We should make this search-kind aware
-    existing_list.append(MetricsParam)
+    existing_list.append(MetricsParam)  # ?
     return tuple(existing_list)
 
 
@@ -120,12 +115,9 @@ class MultiplexedSearchOptions(SearchOptions):
         self.sort_options = search_opts["sort_options"]  # type: ignore[assignment]
         self.sort_default = search_opts["sort_default"]  # type: ignore[assignment]
         self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
-
-        # TODO: specify param interpreter - config mapping exact configuration
-        self.params_interpreters_cls = update_param_interpreters(SearchOptions.params_interpreters_cls)
+        self.params_interpreters_cls = search_opts["params_interpreters_cls"]
 
         self.config_field = config_field
-        print()
 
     def _search_opts_from_search_obj(self, search: Any) -> dict[str, Any]:
         facets = copy.deepcopy(search.facets)
@@ -137,13 +129,15 @@ class MultiplexedSearchOptions(SearchOptions):
         facet_groups = copy.deepcopy(search.facet_groups) if hasattr(search, "facet_groups") else {}
         sort_default = search.sort_default
         sort_default_no_query = search.sort_default_no_query
+
         return {
             "facets": facets,
             "facet_groups": facet_groups,
             "sort_options": sort_options,
-            "sort_default": sort_default, # REVIEW: it could make more sense to allow defining explicitly rather than this "the last of the models win"
+            # REVIEW: it could make more sense to allow defining explicitly rather than this
+            # "the last of the models win"
+            "sort_default": sort_default,
             "sort_default_no_query": sort_default_no_query,
-            "params_interpreters_cls": params_interpreters_cls,
         }
 
     def _search_opts(self, config_field: str) -> dict:
@@ -156,4 +150,8 @@ class MultiplexedSearchOptions(SearchOptions):
                     self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
                 )
 
+        param_interpreters = copy.deepcopy(
+            getattr(RDMRecordServiceConfig.build(current_app), config_field).params_interpreters_cls
+        )  # can't be called on current_rdm_records_service
+        ret["params_interpreters_cls"] = update_param_interpreters(param_interpreters)
         return ret
