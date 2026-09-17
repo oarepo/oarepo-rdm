@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import json
 
+from oarepo_model.utils import resolve_file_content
+
 
 def test_mapping_rdm_complete(app, model_c):
     """Check that RDM mapping contains all expected fields."""
     mapping_key = "mappings/os-v2/modelc/metadata-v1.0.0.json"
-    mapping_content = json.loads(model_c.__files__[mapping_key])
+    mapping_content = json.loads(resolve_file_content(model_c.__files__[mapping_key]))
     assert set(mapping_content["mappings"]["properties"]["metadata"]["properties"].keys()) == {
         "cdescription",
         "resource_type",
@@ -42,3 +44,4 @@ def test_mapping_rdm_complete(app, model_c):
         "funding",
         "references",
     }
+
