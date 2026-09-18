@@ -22,7 +22,7 @@ from oarepo_model.presets.relations import relations_preset
 from oarepo_model.presets.ui import ui_preset
 from oarepo_model.presets.ui_links import ui_links_preset
 
-from oarepo_rdm.oai import oai_preset
+from oarepo_rdm.model.presets.oai import oai_preset
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

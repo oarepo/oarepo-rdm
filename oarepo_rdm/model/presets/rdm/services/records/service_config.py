@@ -27,20 +27,10 @@ from oarepo_model.model import ModelMixin
 from oarepo_model.presets import Preset
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping
+    from collections.abc import Generator
 
-    from invenio_records_resources.services.base.links import (
-        NestedLinks,
-    )
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
-
-
-class RDMRecordServiceConfigWithoutLinks(RDMRecordServiceConfig):
-    """TODO: this is just a quick hack before we have links working."""
-
-    links_item: Mapping[str, Any] = {}
-    nested_links_item: tuple[NestedLinks, ...] = ()
 
 
 class RDMDraftFilesComponent(InvenioRDMDraftFilesComponent):
@@ -81,6 +71,6 @@ class RDMRecordServiceConfigPreset(Preset):
         yield ReplaceBaseClass(
             "RecordServiceConfig",
             DraftRecordServiceConfig,
-            RDMRecordServiceConfigWithoutLinks,
+            RDMRecordServiceConfig,
         )
         yield PrependMixin("RecordServiceConfig", RDMSearchItemsUseFullLinksMixin)
