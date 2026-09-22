@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o.
+# SPDX-License-Identifier: MIT
 #
 # This script sets up a Python virtual environment, installs necessary packages,
 # runs tests and other tasks for libraries which are part of the OARepo Invenio RDM
@@ -7,9 +9,6 @@
 # Usage: ./run.sh --help
 #
 #
-# (C) 2025 CESNET, z.s.p.o.
-# OARepo is free software; you can redistribute it and/or modify
-# it under the terms of the MIT License; see LICENSE file for more details.
 #
 set -euo pipefail
 
