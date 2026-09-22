@@ -38,10 +38,4 @@ class RDMRecordSchemaPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-
-        # REVIEW: consideration - removing copy-pasted code
-        # the only issue i see might be that we consider review only in communities; but we could do marshmallow no-op for now?
-        # metadata and parent should be overwritten by previous mixin
-        # review = fields.Nested(GenericRequestSchema, allow_none=False)
         yield ReplaceBaseClass("RecordSchema", BaseRecordSchema, RDMRecordSchema)
-        # yield PrependMixin("RecordSchema", RDMRecordSchemaMixin)

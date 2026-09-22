@@ -13,6 +13,8 @@ This module provides a preset that modifies search mapping to RDM compatibility.
 
 from __future__ import annotations
 
+import json
+from importlib.resources import files
 from typing import TYPE_CHECKING, Any, override
 
 from oarepo_model.customizations import Customization, PatchJSONFile
@@ -37,411 +39,59 @@ class RDMMappingPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
-        parent_mapping = {
+
+        def filter_rdm_mapping(path: str):
+            mapping = json.loads(
+            files("invenio_rdm_records")
+            .joinpath(path)
+            .read_text(encoding="utf-8")
+        )
+            del mapping["mappings"]["properties"]["metadata"]
+            del mapping["mappings"]["properties"]["$schema"]["index"]
+            if "settings" in mapping and "index.query.default_field" in mapping["settings"]:
+                del mapping["settings"]["index.query.default_field"]
+            return mapping
+
+
+        rdm_draft_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/drafts/draft-v6.0.0.json")
+        rdm_record_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/records/record-v7.0.0.json")
+
+        local_mapping = {
             "mappings": {
-                "dynamic_templates": [
-                    {
-                        "pids": {
-                            "path_match": "pids.*",
-                            "match_mapping_type": "object",
-                            "mapping": {
-                                "type": "object",
-                                "properties": {
-                                    "identifier": {
-                                        "type": "text",
-                                        "fields": {
-                                            "keyword": {
-                                                "type": "keyword",
-                                                "ignore_above": 256,
-                                            }
-                                        },
-                                    },
-                                    "provider": {"type": "keyword"},
-                                    "client": {"type": "keyword"},
-                                },
-                            },
-                        }
-                    },
-                    {
-                        "parent_pids": {
-                            "path_match": "parent.pids.*",
-                            "match_mapping_type": "object",
-                            "mapping": {
-                                "type": "object",
-                                "properties": {
-                                    "identifier": {
-                                        "type": "text",
-                                        "fields": {
-                                            "keyword": {
-                                                "type": "keyword",
-                                                "ignore_above": 256,
-                                            }
-                                        },
-                                    },
-                                    "provider": {"type": "keyword"},
-                                    "client": {"type": "keyword"},
-                                },
-                            },
-                        }
-                    },
-                    {
-                        "i18n_title": {
-                            "path_match": "*.title.*",
-                            "unmatch": "(metadata.title)|(metadata.additional_titles.title)",
-                            "match_mapping_type": "object",
-                            "mapping": {
-                                "type": "text",
-                                "fields": {"keyword": {"type": "keyword", "ignore_above": 256}},
-                            },
-                        }
-                    },
-                ],
                 "properties": {
-                    "is_published": {"type": "boolean"},
-                    "custom_fields": {"type": "object", "dynamic": "true"},
                     "access": {
                         "type": "object",
                         "properties": {
                             "embargo": {
                                 "type": "object",
-                                "properties": {
-                                    "active": {"type": "boolean"},
-                                    "reason": {"type": "text"},
-                                    "until": {
-                                        "type": "date",
-                                        "format": "basic_date||strict_date",
-                                    },
-                                },
+                                "properties": {"until": {"format": "basic_date||strict_date"}},
                             },
-                            "files": {"type": "keyword", "ignore_above": 1024},
-                            "record": {"type": "keyword", "ignore_above": 1024},
-                            "status": {"type": "keyword", "ignore_above": 1024},
+                            "files": {"ignore_above": 1024},
+                            "record": {"ignore_above": 1024},
+                            "status": {"ignore_above": 1024},
                         },
                     },
-                    "deletion_status": {"type": "keyword", "ignore_above": 1024},
-                    "is_deleted": {"type": "boolean"},
-                    "pids": {"type": "object", "dynamic": "true"},
-                    "files": {
-                        "type": "object",
-                        "properties": {
-                            "default_preview": {"type": "keyword"},
-                            "count": {"type": "integer"},
-                            "totalbytes": {"type": "long"},
-                            "mimetypes": {"type": "keyword"},
-                            "types": {"type": "keyword"},
-                            "entries": {
-                                "type": "object",
-                                "properties": {
-                                    "uuid": {"enabled": False},
-                                    "version_id": {"enabled": False},
-                                    "metadata": {"type": "object", "dynamic": "true"},
-                                    "checksum": {"type": "keyword"},
-                                    "key": {"type": "keyword"},
-                                    "mimetype": {"type": "keyword"},
-                                    "size": {"type": "long"},
-                                    "ext": {"type": "keyword"},
-                                    "object_version_id": {"enabled": False},
-                                    "file_id": {"enabled": False},
-                                    "access": {
-                                        "type": "object",
-                                        "properties": {"hidden": {"type": "boolean"}},
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    "parent": {
-                        "properties": {
-                            "access": {
-                                "properties": {
-                                    "owned_by": {"properties": {"user": {"type": "keyword"}}},
-                                    "grants": {
-                                        "properties": {
-                                            "subject": {
-                                                "properties": {
-                                                    "type": {"type": "keyword"},
-                                                    "id": {"type": "keyword"},
-                                                }
-                                            },
-                                            "permission": {"type": "keyword"},
-                                            "origin": {"type": "keyword"},
-                                        }
-                                    },
-                                    "grant_tokens": {"type": "keyword"},
-                                    "links": {"properties": {"id": {"type": "keyword"}}},
-                                    "settings": {
-                                        "properties": {
-                                            "allow_user_requests": {"type": "boolean"},
-                                            "allow_guest_requests": {"type": "boolean"},
-                                            "accept_conditions_text": {"type": "text"},
-                                            "secret_link_expiration": {"type": "integer"},
-                                        }
-                                    },
-                                }
-                            },
-                            "communities": {
-                                "properties": {
-                                    "ids": {"type": "keyword"},
-                                    "default": {"type": "keyword"},
-                                    "entries": {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {"type": "keyword"},
-                                            "created": {"type": "date"},
-                                            "updated": {"type": "date"},
-                                            "version_id": {"type": "long"},
-                                            "id": {"type": "keyword"},
-                                            "is_verified": {"type": "boolean"},
-                                            "@v": {"type": "keyword"},
-                                            "slug": {"type": "keyword"},
-                                            "children": {"properties": {"allow": {"type": "boolean"}}},
-                                            "metadata": {
-                                                "properties": {
-                                                    "title": {"type": "text"},
-                                                    "type": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "@v": {"type": "keyword"},
-                                                            "id": {"type": "keyword"},
-                                                            "title": {
-                                                                "type": "object",
-                                                                "dynamic": "true",
-                                                                "properties": {"en": {"type": "text"}},
-                                                            },
-                                                        },
-                                                    },
-                                                    "organizations": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "@v": {"type": "keyword"},
-                                                            "id": {"type": "keyword"},
-                                                            "name": {"type": "text"},
-                                                        },
-                                                    },
-                                                    "funding": {
-                                                        "properties": {
-                                                            "award": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "title": {
-                                                                        "type": "object",
-                                                                        "dynamic": "true",
-                                                                    },
-                                                                    "number": {
-                                                                        "type": "text",
-                                                                        "fields": {"keyword": {"type": "keyword"}},
-                                                                    },
-                                                                    "program": {"type": "keyword"},
-                                                                    "acronym": {
-                                                                        "type": "keyword",
-                                                                        "fields": {"text": {"type": "text"}},
-                                                                    },
-                                                                    "identifiers": {
-                                                                        "properties": {
-                                                                            "identifier": {"type": "keyword"},
-                                                                            "scheme": {"type": "keyword"},
-                                                                        }
-                                                                    },
-                                                                },
-                                                            },
-                                                            "funder": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "name": {"type": "text"},
-                                                                },
-                                                            },
-                                                        }
-                                                    },
-                                                    "website": {"type": "keyword"},
-                                                }
-                                            },
-                                            "theme": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "enabled": {"type": "boolean"},
-                                                    "brand": {"type": "keyword"},
-                                                    "style": {
-                                                        "type": "object",
-                                                        "enabled": False,
-                                                    },
-                                                },
-                                            },
-                                            "parent": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {"type": "keyword"},
-                                                    "created": {"type": "date"},
-                                                    "updated": {"type": "date"},
-                                                    "version_id": {"type": "long"},
-                                                    "id": {"type": "keyword"},
-                                                    "is_verified": {"type": "boolean"},
-                                                    "@v": {"type": "keyword"},
-                                                    "slug": {"type": "keyword"},
-                                                    "children": {"properties": {"allow": {"type": "boolean"}}},
-                                                    "metadata": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "title": {"type": "text"},
-                                                            "type": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "title": {
-                                                                        "type": "object",
-                                                                        "dynamic": "true",
-                                                                        "properties": {"en": {"type": "text"}},
-                                                                    },
-                                                                },
-                                                            },
-                                                            "website": {"type": "keyword"},
-                                                            "organizations": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "@v": {"type": "keyword"},
-                                                                    "id": {"type": "keyword"},
-                                                                    "name": {"type": "text"},
-                                                                },
-                                                            },
-                                                            "funding": {
-                                                                "properties": {
-                                                                    "award": {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "@v": {"type": "keyword"},
-                                                                            "id": {"type": "keyword"},
-                                                                            "title": {
-                                                                                "type": "object",
-                                                                                "dynamic": "true",
-                                                                            },
-                                                                            "number": {
-                                                                                "type": "text",
-                                                                                "fields": {
-                                                                                    "keyword": {"type": "keyword"}
-                                                                                },
-                                                                            },
-                                                                            "program": {"type": "keyword"},
-                                                                            "acronym": {
-                                                                                "type": "keyword",
-                                                                                "fields": {"text": {"type": "text"}},
-                                                                            },
-                                                                            "identifiers": {
-                                                                                "properties": {
-                                                                                    "identifier": {"type": "keyword"},
-                                                                                    "scheme": {"type": "keyword"},
-                                                                                }
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    "funder": {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "@v": {"type": "keyword"},
-                                                                            "id": {"type": "keyword"},
-                                                                            "name": {"type": "text"},
-                                                                        },
-                                                                    },
-                                                                }
-                                                            },
-                                                        },
-                                                    },
-                                                    "theme": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "enabled": {"type": "boolean"},
-                                                            "brand": {"type": "keyword"},
-                                                            "style": {
-                                                                "type": "object",
-                                                                "enabled": False,
-                                                            },
-                                                        },
-                                                    },
-                                                },
-                                            },
-                                        },
-                                    },
-                                }
-                            },
-                            "pids": {"type": "object", "dynamic": "true"},
-                            "is_verified": {"type": "boolean"},
-                        }
-                    },
-                    "internal_notes": {  # only published?
-                        "type": "object",
-                        "properties": {
-                            "id": {"type": "keyword"},
-                            "note": {"type": "text"},
-                            "timestamp": {"type": "date"},
-                            "added_by": {
-                                "type": "object",
-                                "properties": {"user": {"type": "keyword"}},
-                            },
-                        },
-                    },
-                },
-            }
-        }
-
-        record_mapping = {
-            "mappings": {
-                "properties": {
-                    "tombstone": {
-                        "properties": {
-                            "removal_reason": {
-                                "properties": {
-                                    "@v": {"type": "keyword"},
-                                    "id": {"type": "keyword"},
-                                    "title": {"type": "object", "dynamic": "true"},
-                                }
-                            },
-                            "note": {"type": "text"},
-                            "removed_by": {"properties": {"user": {"type": "keyword"}}},
-                            "removal_date": {"type": "date"},
-                            "citation_text": {"type": "text"},
-                            "is_visible": {"type": "boolean"},
-                        }
-                    },
-                    "stats": {
-                        "properties": {
-                            "this_version": {
-                                "properties": {
-                                    "views": {"type": "integer"},
-                                    "unique_views": {"type": "integer"},
-                                    "downloads": {"type": "integer"},
-                                    "unique_downloads": {"type": "integer"},
-                                    "data_volume": {"type": "double"},
-                                }
-                            },
-                            "all_versions": {
-                                "properties": {
-                                    "views": {"type": "integer"},
-                                    "unique_views": {"type": "integer"},
-                                    "downloads": {"type": "integer"},
-                                    "unique_downloads": {"type": "integer"},
-                                    "data_volume": {"type": "double"},
-                                }
-                            },
-                        }
-                    },
+                    "deletion_status": {"ignore_above": 1024},
                 }
             }
         }
 
         yield PatchJSONFile(
             "draft-mapping",
-            parent_mapping,
+            rdm_draft_mapping,
         )
 
         yield PatchJSONFile(
             "record-mapping",
-            parent_mapping,
+            rdm_record_mapping,
+        )
+
+        yield PatchJSONFile(
+            "draft-mapping",
+            local_mapping,
         )
 
         yield PatchJSONFile(
             "record-mapping",
-            record_mapping,
+            local_mapping,
         )
