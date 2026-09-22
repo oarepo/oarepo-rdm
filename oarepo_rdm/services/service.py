@@ -246,9 +246,6 @@ class DelegationToSpecializedServiceMixin(InvenioService):
                 params=copy.deepcopy(params),
                 search_preference=search_preference,
                 record_cls=record_cls,
-                # REVIEW: on normal search this resolves into the service's own search opts but search_drafts etc. sends
-                # self.config.search_drafts which resolves into the (draft unspecific) multiplexing search options,
-                # potentially resulting in unexpectedly different results
                 search_opts=service_search_opts,
                 extra_filter=extra_filter,
                 permission_action=permission_action,
@@ -257,10 +254,7 @@ class DelegationToSpecializedServiceMixin(InvenioService):
             )
             queries_list[jsonschema] = search.to_dict()
 
-        params["delegated_query"] = [
-            queries_list,
-            search_opts or self.config.search,
-        ]  # REVIEW: what is the point of "search_opts or self.config.search"? - delegated query parser leaves this out
+        params["delegated_query"] = queries_list
 
         return super()._search(  # type: ignore[reportAttributeAccessIssue]
             action=action,
