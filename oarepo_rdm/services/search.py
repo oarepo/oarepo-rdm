@@ -76,29 +76,22 @@ class DelegatedQueryParam(ParamInterpreter):
                 aggs.update(query_data["aggs"])
             if "post_filter" in query_data:
                 post_filter.update(query_data["post_filter"])
-            # REVIEW: every model's sort is collected but only sort[0] is applied below, so the
-            #   dict iteration order decides which model's sort wins. Also aggs/post_filter are
-            #   merged by plain dict.update - same-named facets from different models silently
-            #   overwrite each other.
             if "sort" in query_data:
                 sort.extend(query_data["sort"])
 
         return query, aggs, post_filter, sort
 
 
-# TODO: double check this is correct
 def update_param_interpreters(
     existing: tuple[type[ParamInterpreter], ...],
 ) -> tuple[type[ParamInterpreter], ...]:
     """Update the list of parameter interpreters."""
     existing_list = list(existing)
     # remove FacetsParam
-    existing_list.remove(QueryStrParam)
     existing_list.remove(FacetsParam)
     existing_list.append(GroupedFacetsParam)
+    existing_list.remove(QueryStrParam)
     existing_list.append(DelegatedQueryParam)
-
-    existing_list.append(MetricsParam)  # ?
     return tuple(existing_list)
 
 
@@ -129,13 +122,10 @@ class MultiplexedSearchOptions(SearchOptions):
         facet_groups = copy.deepcopy(search.facet_groups) if hasattr(search, "facet_groups") else {}
         sort_default = search.sort_default
         sort_default_no_query = search.sort_default_no_query
-
         return {
             "facets": facets,
             "facet_groups": facet_groups,
             "sort_options": sort_options,
-            # REVIEW: it could make more sense to allow defining explicitly rather than this
-            # "the last of the models win"
             "sort_default": sort_default,
             "sort_default_no_query": sort_default_no_query,
         }
@@ -149,9 +139,8 @@ class MultiplexedSearchOptions(SearchOptions):
                     ret,
                     self._search_opts_from_search_obj(getattr(model.service.config, config_field)),
                 )
+        # can't be called on current_rdm_records_service
+        param_interpreters = getattr(RDMRecordServiceConfig.build(current_app), config_field).params_interpreters_cls
 
-        param_interpreters = copy.deepcopy(
-            getattr(RDMRecordServiceConfig.build(current_app), config_field).params_interpreters_cls
-        )  # can't be called on current_rdm_records_service
         ret["params_interpreters_cls"] = update_param_interpreters(param_interpreters)
         return ret
