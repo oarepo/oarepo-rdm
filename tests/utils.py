@@ -12,4 +12,4 @@ if TYPE_CHECKING:
 
 def record_from_result(result: RecordItem) -> Record:
     """Convert a service result to a record."""
-    return result._record  # type: ignore[no-any-return]  # noqa SLF001 access private member
+    return result._record  # type: ignore[no-any-return]

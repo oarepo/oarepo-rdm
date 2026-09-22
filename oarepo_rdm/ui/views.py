@@ -232,14 +232,11 @@ def deposit_create() -> ResponseReturnValue:
 
     def get_deposit_url(model: Model) -> str:
         if community_slug:
-            return cast(
-                "str",
-                url_for(
-                    f"{model.ui_blueprint_name}.deposit_create",
-                    community=community_slug,
-                ),
+            return url_for(
+                f"{model.ui_blueprint_name}.deposit_create",
+                community=community_slug,
             )
-        return cast("str", url_for(f"{model.ui_blueprint_name}.deposit_create"))
+        return url_for(f"{model.ui_blueprint_name}.deposit_create")
 
     if len(models) == 1:
         model = models[0]

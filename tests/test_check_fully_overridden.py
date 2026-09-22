@@ -155,7 +155,7 @@ class _RecordingQuotaPolicy:
     def __init__(self) -> None:
         self.calls: list[str] = []
 
-    def evaluate(self, identity: Identity, record: Record) -> dict[str, Any]:  # noqa ARG002
+    def evaluate(self, identity: Identity, record: Record) -> dict[str, Any]:
         self.calls.append(record.pid.pid_value)
         return {"immediate_quota_increase": SimpleNamespace(enabled=False, allowed=False)}
 

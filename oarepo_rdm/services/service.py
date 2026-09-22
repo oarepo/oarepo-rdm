@@ -12,7 +12,6 @@ from flask import current_app
 from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_rdm_records.services import CommunityRecordsService
 from invenio_rdm_records.services.services import RDMRecordService
-from invenio_records_resources.services import Service as InvenioService
 from oarepo_runtime.proxies import current_runtime
 from werkzeug.exceptions import Forbidden
 
@@ -28,11 +27,14 @@ if TYPE_CHECKING:
 
     from invenio_access.permissions import Identity
     from invenio_records_permissions.policies.base import BasePermissionPolicy
+    from invenio_records_resources.services import RecordService as InvenioRecordServiceT
     from invenio_records_resources.services.records.results import (
         RecordItem,
     )
     from invenio_search import RecordsSearchV2
     from oarepo_runtime.api import Model
+else:
+    InvenioRecordServiceT = object
 
 pass_through = {
     # These methods are from the base Invenio Service class
@@ -165,12 +167,12 @@ def pass_to_specialized_service(
             if not hasattr(cls, name):
                 raise TypeError(f"Method {name} is not implemented in {cls.__name__}")
             overriden_methods[name] = make_delegate(name)
-        return type(cls.__name__, (cls,), overriden_methods)  # type: ignore[return-value]
+        return cast("_T", type(cls.__name__, (cls,), overriden_methods))  # REVIEW: i'm not sure with this
 
     return wrapper
 
 
-class DelegationToSpecializedServiceMixin(InvenioService):
+class DelegationToSpecializedServiceMixin(InvenioRecordServiceT):
     """Mixin for delegating running components and permission checks to specialized model services."""
 
     attribute_on_base_service: str = (
@@ -178,7 +180,7 @@ class DelegationToSpecializedServiceMixin(InvenioService):
     )
     # eg. ReviewService, AccessService
 
-    def _get_specialized_service(self, pid_value: str) -> InvenioService:
+    def _get_specialized_service(self, pid_value: str) -> InvenioRecordServiceT:
         """Get a specialized service based on the pid_value of the record."""
         pid_type = current_runtime.find_pid_type_from_pid(pid_value)
         base_service = current_runtime.model_by_pid_type[pid_type].service
@@ -205,8 +207,8 @@ class DelegationToSpecializedServiceMixin(InvenioService):
         return MultiplexingLinks()
 
     # search is common for all rdm services, that is why it is declared here
-
-    def _search(  # noqa: PLR0913, PLR0917
+    @override
+    def _search(
         self,
         action: str,
         identity: Identity,
@@ -251,7 +253,7 @@ class DelegationToSpecializedServiceMixin(InvenioService):
 
         params["delegated_query"] = queries_list
 
-        return super()._search(  # type: ignore[reportAttributeAccessIssue]
+        return super()._search(
             action=action,
             identity=identity,
             params=params,
@@ -315,10 +317,7 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
         It does NOT eagerly create the associated record.
         """
         model = self._get_model_from_record_data(data, schema=schema)
-        return cast(
-            "RecordItem",
-            model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs),
-        )
+        return model.service.create(identity=identity, data=data, uow=uow, expand=expand, **kwargs)
 
     def _get_model_from_record_data(self, data: dict[str, Any], schema: str | None = None) -> Model:
         """Get the model from the record data."""

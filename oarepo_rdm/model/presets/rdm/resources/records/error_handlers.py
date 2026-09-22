@@ -36,6 +36,6 @@ class RDMErrorHandlersPreset(Preset):
         yield AddToDictionary(
             "record_error_handlers",
             {
-                **error_handlers,  # type: ignore[arg-type]
+                **error_handlers,
             },
         )

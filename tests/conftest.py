@@ -90,7 +90,7 @@ def finalization_called():
 class MockReviewInRDMServiceComponent(ServiceComponent):
     """Add review service component."""
 
-    def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
+    def create_review(self, identity, **kwargs: Any):
         """Mock create review."""
         print("review created in original rdm service component")  # noqa T201
 

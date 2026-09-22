@@ -53,11 +53,7 @@ class MultiplexingLinks(LinksTemplate):
         schema = obj["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return cast(
-            "dict[str, str]",
-            # TODO: seems to be correct but what to do with kwargs?
-            delegated_service.links_item_tpl.expand(identity, obj),
-        )
+        return delegated_service.links_item_tpl.expand(identity, obj)
 
 
 class MultiplexingSchema(ma.Schema):
@@ -73,17 +69,21 @@ class MultiplexingSchema(ma.Schema):
         data: Mapping[str, Any] | Iterable[Mapping[str, Any]],
         *,
         many: bool | None = None,
-        partial: bool | types.StrSequenceOrSet | None = None,  # type: ignore[assignment]
+        partial: bool | types.StrSequenceOrSet | None = None,
         unknown: str | None = None,
     ) -> Any:
         if many:
-            return [self.load(item, many=False, partial=partial, unknown=unknown) for item in data]  # type: ignore[union-attr, arg-type]
+            return [
+                self.load(item, many=False, partial=partial, unknown=unknown)
+                for item in cast("Iterable[Mapping[str, Any]]", data)
+            ]
         schema = cast("Mapping[str, Any]", data)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
         return delegated_service.schema.load(
-            data,  # type: ignore[arg-type]
-            schema_args={},  # type: ignore[arg-type]
+            data,
+            # REVIEW: typing error, schema_args defined as None
+            schema_args={},  # ty: ignore[invalid-argument-type]
             context=context_schema.get(),
             raise_errors=True,
         )
@@ -91,18 +91,19 @@ class MultiplexingSchema(ma.Schema):
     @override
     def dump(self, obj: Any, *, many: bool | None = None) -> Any:
         if many:
-            return [self.dump(item, many=False) for item in obj]  # type: ignore[union-attr]
+            return [self.dump(item, many=False) for item in obj]
         schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})  # type: ignore[arg-type]
+        # REVIEW: typing error, schema_args defined as None
+        return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})  # ty: ignore[invalid-argument-type]
 
 
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     """OARepo extension to RDM record service configuration."""
 
     result_list_cls = MultiplexingResultList
-    schema = MultiplexingSchema  # type: ignore[assignment]
+    schema = MultiplexingSchema
 
     # TODO: add proper links here, not just this subset
     links_item: Mapping[str, Any] = {
@@ -121,29 +122,29 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:  # type: ignore[override]
+    def search(self) -> SearchOptions:
         return current_oarepo_rdm.search_options
 
     @search.setter
-    def search(self, _value: Any) -> None:  # type: ignore[override]
+    def search(self, _value: Any) -> None:
         raise AttributeError("search is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_drafts(self) -> SearchOptions:  # type: ignore[override]
+    def search_drafts(self) -> SearchOptions:
         return current_oarepo_rdm.draft_search_options
 
     @search_drafts.setter
-    def search_drafts(self, _value: Any) -> None:  # type: ignore[override]
+    def search_drafts(self, _value: Any) -> None:
         raise AttributeError("search_drafts is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:  # type: ignore[override]
+    def search_versions(self) -> SearchOptions:
         return current_oarepo_rdm.versions_search_options
 
     @search_versions.setter
-    def search_versions(self, _value: Any) -> None:  # type: ignore[override]
+    def search_versions(self, _value: Any) -> None:
         raise AttributeError("search_versions is read-only")  # pragma: no cover
 
     @property
@@ -165,22 +166,22 @@ class OARepoCommunityRecordsConfig(RDMCommunityRecordsConfig):
     """
 
     result_list_cls = MultiplexingResultList
-    schema = MultiplexingSchema  # type: ignore[assignment]
+    schema = MultiplexingSchema
 
     @property
     @override
-    def search(self) -> SearchOptions:  # type: ignore[override]
+    def search(self) -> SearchOptions:
         return current_oarepo_rdm.search_options
 
     @search.setter
-    def search(self, _value: Any) -> None:  # type: ignore[override]
+    def search(self, _value: Any) -> None:
         raise AttributeError("search is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:  # type: ignore[override]
+    def search_versions(self) -> SearchOptions:
         return current_oarepo_rdm.versions_search_options
 
     @search_versions.setter
-    def search_versions(self, _value: Any) -> None:  # type: ignore[override]
+    def search_versions(self, _value: Any) -> None:
         raise AttributeError("search_versions is read-only")  # pragma: no cover

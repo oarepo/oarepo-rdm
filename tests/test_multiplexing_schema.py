@@ -104,7 +104,7 @@ def test_multiplexing_schema_dump_single(db, identity_simple, search_clear):
     )
 
     # Get the actual record object
-    record = draft._record  # noqa: SLF001
+    record = draft._record
 
     schema = MultiplexingSchema()
     token = context_schema.set({"identity": identity_simple})
@@ -139,7 +139,7 @@ def test_multiplexing_schema_dump_many(db, identity_simple, search_clear):
         },
     )
 
-    records = [draft_a._record, draft_b._record]  # noqa: SLF001
+    records = [draft_a._record, draft_b._record]
 
     schema = MultiplexingSchema()
     token = context_schema.set({"identity": identity_simple})

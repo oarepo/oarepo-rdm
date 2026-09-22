@@ -109,7 +109,7 @@ class DelegatedSerializer(BaseSerializer):
 
         serializer = cast("MarshmallowSerializer", copy.copy(first_exporter))
         if serializer.list_schema:
-            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # type: ignore[reportCallIssue]
+            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)
             serializer.list_schema = new_list_schema
         else:
             raise NotImplementedError(  # pragma: no cover

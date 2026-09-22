@@ -54,8 +54,9 @@ OAISERVER_METADATA_FORMATS = OAIServerMetadataFormats()
 RDM_RECORDS_ERROR_HANDLERS = error_handlers
 APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
 
+# REVIEW: what to do with the noqa?
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
-    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
+    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa DTZ005
 }
 """Default values pre-filled in the deposit form for new records."""
 

@@ -18,7 +18,7 @@ modelb_service = modelb.proxies.current_service
 def published_records(identity_simple, vocab_fixtures, required_rdm_metadata):
     """Create and publish one record from modela and one from modelb."""
 
-    def _publish(service, metadata):  # noqa: ANN202
+    def _publish(service, metadata):
         data = {
             "metadata": {**required_rdm_metadata, **metadata},
             "files": {"enabled": False},
@@ -45,8 +45,8 @@ def test_permission_policy_delegates_to_model(
     """
     rec_a, rec_b = published_records
 
-    record_a = rec_a._record  # noqa: SLF001
-    record_b = rec_b._record  # noqa: SLF001
+    record_a = rec_a._record
+    record_b = rec_b._record
 
     assert rdm_records_service.review.check_permission(
         identity_simple,
@@ -76,7 +76,7 @@ def test_component_delegates_to_model(
     rdm_records_service.review.run_components(
         "create_review",
         identity_simple,
-        record=draft._record,  # noqa: SLF001
+        record=draft._record,
     )
 
     captured = capsys.readouterr()
