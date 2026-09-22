@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 from importlib.resources import files
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from oarepo_model.customizations import Customization, PatchJSONFile
 from oarepo_model.presets import Preset
@@ -46,7 +46,7 @@ class RDMMappingPreset(Preset):
             del mapping["mappings"]["properties"]["$schema"]["index"]
             if "settings" in mapping and "index.query.default_field" in mapping["settings"]:
                 del mapping["settings"]["index.query.default_field"]
-            return mapping
+            return cast("dict[str, Any]", mapping)
 
         rdm_draft_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/drafts/draft-v6.0.0.json")
         rdm_record_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/records/record-v7.0.0.json")
