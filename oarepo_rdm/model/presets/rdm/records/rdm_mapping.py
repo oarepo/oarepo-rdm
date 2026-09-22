@@ -40,18 +40,13 @@ class RDMMappingPreset(Preset):
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
 
-        def filter_rdm_mapping(path: str):
-            mapping = json.loads(
-            files("invenio_rdm_records")
-            .joinpath(path)
-            .read_text(encoding="utf-8")
-        )
+        def filter_rdm_mapping(path: str) -> dict[str, Any]:
+            mapping = json.loads(files("invenio_rdm_records").joinpath(path).read_text(encoding="utf-8"))
             del mapping["mappings"]["properties"]["metadata"]
             del mapping["mappings"]["properties"]["$schema"]["index"]
             if "settings" in mapping and "index.query.default_field" in mapping["settings"]:
                 del mapping["settings"]["index.query.default_field"]
             return mapping
-
 
         rdm_draft_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/drafts/draft-v6.0.0.json")
         rdm_record_mapping = filter_rdm_mapping("records/mappings/os-v2/rdmrecords/records/record-v7.0.0.json")
