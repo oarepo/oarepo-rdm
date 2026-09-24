@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Test for RDM metadata schema."""
 
 from __future__ import annotations
@@ -36,8 +31,8 @@ def test_schema():
 def test_rdm_complete_metadata():
     schema = modelc.RecordSchema()
 
-    rdm_fields = RDMMetadataSchema._declared_fields  # noqa SLF001
-    model_fields = schema.fields["metadata"].nested()._declared_fields  # noqa SLF001
+    rdm_fields = RDMMetadataSchema._declared_fields
+    model_fields = schema.fields["metadata"].nested()._declared_fields
 
     assert set(rdm_fields.items()) <= set(model_fields.items())
     assert "cdescription" in model_fields

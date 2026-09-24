@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """UI serializer for RDM records."""
 
 from __future__ import annotations
@@ -29,7 +24,7 @@ class OARepoRDMRecordResourceConfigMixin(RDMRecordResourceConfig_Typing):
     """Mixin for RDM record resource configuration."""
 
     @property
-    def routes(self) -> Mapping[str, str]:  # type: ignore[reportIncompatibleVariableOverride]
+    def routes(self) -> Mapping[str, str]:
         """Override routes to use path instead of default converter for pid_value.
 
         This was causing a problem when PID contained slashes (doi:1234/zenodo.12345 for example).
@@ -41,7 +36,7 @@ class OARepoRDMRecordResourceConfigMixin(RDMRecordResourceConfig_Typing):
         return routes
 
 
-class OARepoRDMRecordResourceConfig(OARepoRDMRecordResourceConfigMixin, RDMRecordResourceConfig):  # type: ignore[reportIncompatibleVariableOverride]
+class OARepoRDMRecordResourceConfig(OARepoRDMRecordResourceConfigMixin, RDMRecordResourceConfig):
     """OARepo extension to RDM record resource configuration."""
 
-    response_handlers = LazyProxy(get_response_handlers)  # type: ignore[reportAssignmentType]
+    response_handlers = LazyProxy(get_response_handlers)

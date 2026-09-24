@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """UI blueprints for invenio-app-rdm."""
 
 from __future__ import annotations
@@ -237,14 +232,11 @@ def deposit_create() -> ResponseReturnValue:
 
     def get_deposit_url(model: Model) -> str:
         if community_slug:
-            return cast(
-                "str",
-                url_for(
-                    f"{model.ui_blueprint_name}.deposit_create",
-                    community=community_slug,
-                ),
+            return url_for(
+                f"{model.ui_blueprint_name}.deposit_create",
+                community=community_slug,
             )
-        return cast("str", url_for(f"{model.ui_blueprint_name}.deposit_create"))
+        return url_for(f"{model.ui_blueprint_name}.deposit_create")
 
     if len(models) == 1:
         model = models[0]

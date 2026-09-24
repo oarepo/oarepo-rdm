@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see http://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Preset for adding resource error handlers."""
 
 from __future__ import annotations
@@ -41,6 +36,6 @@ class RDMErrorHandlersPreset(Preset):
         yield AddToDictionary(
             "record_error_handlers",
             {
-                **error_handlers,  # type: ignore[arg-type]
+                **error_handlers,
             },
         )

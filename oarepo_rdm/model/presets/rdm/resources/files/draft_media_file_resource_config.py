@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see http://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-model is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Preset for configuring RDM draft media file resource."""
 
 from __future__ import annotations
@@ -48,5 +43,6 @@ class RDMDraftMediaFileResourceConfigPreset(Preset):
 
         yield AddToDictionary(
             "media_file_response_handlers",
-            RDMDraftMediaFilesResourceConfig.response_handlers,  # type:ignore[reportArgumentType]
+            # REVIEW: mapping vs. dict conflict
+            RDMDraftMediaFilesResourceConfig.response_handlers,  # ty: ignore[invalid-argument-type]
         )

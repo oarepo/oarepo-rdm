@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see http://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-model is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Preset for configuring RDM draft file resource."""
 
 from __future__ import annotations
@@ -47,4 +42,5 @@ class RDMDraftFileResourceConfigPreset(Preset):
         )
 
         # file_response_handlers are shared between drafts and published
-        yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # type:ignore[reportArgumentType]
+        # REVIEW: mapping vs. dict conflict
+        yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # ty: ignore[invalid-argument-type]

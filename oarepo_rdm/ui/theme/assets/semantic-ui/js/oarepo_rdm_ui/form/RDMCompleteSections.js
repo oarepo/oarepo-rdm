@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 CESNET z.s.p.o.
+// SPDX-License-Identifier: MIT
+
 import { RDMCommunityAndAccess } from "./sections/RDMCommunityAndAccess";
 import { RDMFiles } from "./sections/RDMFiles";
 import { RDMGeneralInformationComplete } from "./sections/RDMGeneralInformationComplete";

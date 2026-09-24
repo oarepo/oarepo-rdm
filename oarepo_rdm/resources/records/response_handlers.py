@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Response handlers for RDM records."""
 
 from __future__ import annotations
@@ -114,7 +109,8 @@ class DelegatedSerializer(BaseSerializer):
 
         serializer = cast("MarshmallowSerializer", copy.copy(first_exporter))
         if serializer.list_schema:
-            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # type: ignore[reportCallIssue]
+            # typing error imo, list_schema_cls: type[Schema] | None
+            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # ty: ignore[unknown-argument]
             serializer.list_schema = new_list_schema
         else:
             raise NotImplementedError(  # pragma: no cover

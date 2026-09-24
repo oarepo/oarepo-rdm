@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Initial configuration which replaces RDM service with oarepo extensions."""
 
 from __future__ import annotations
@@ -59,8 +54,9 @@ OAISERVER_METADATA_FORMATS = OAIServerMetadataFormats()
 RDM_RECORDS_ERROR_HANDLERS = error_handlers
 APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
 
+# REVIEW: what to do with the noqa?
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
-    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
+    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa DTZ005
 }
 """Default values pre-filled in the deposit form for new records."""
 

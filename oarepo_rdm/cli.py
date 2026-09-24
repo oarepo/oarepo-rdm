@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """CLI commands for managing RDM records."""
 
 from __future__ import annotations
@@ -22,6 +17,7 @@ from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_rdm_records.cli import rdm_records
 from invenio_rdm_records.proxies import current_rdm_records_service
 from oarepo_runtime.proxies import current_runtime
+from oarepo_runtime.typing import record_from_result
 from sqlalchemy import func
 
 if TYPE_CHECKING:
@@ -34,17 +30,17 @@ if TYPE_CHECKING:
 def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     """Get the record from its persistent identifier - might be published or draft."""
     record: RDMRecord | RDMDraft
-    try:
-        record = current_rdm_records_service.read(system_identity, record_id)._record  # noqa: SLF001
+    try:  # REVIEW: typing - current_rdm_records_service imo should return RDMRecord;
+        record = record_from_result(current_rdm_records_service.read(system_identity, record_id))  # ty: ignore[invalid-assignment]
     except Exception:  # noqa: BLE001
-        record = current_rdm_records_service.read_draft(system_identity, record_id)._record  # noqa: SLF001
+        record = record_from_result(current_rdm_records_service.read_draft(system_identity, record_id))  # ty: ignore[invalid-assignment]
 
     specialized_service = cast("RDMRecordService", current_runtime.get_record_service_for_record(record))
 
     return record, specialized_service
 
 
-@rdm_records.command("replace-owner")  # type: ignore[reportFunctionMemberAccess]
+@rdm_records.command("replace-owner")  # ty: ignore[unresolved-attribute]
 @click.argument("record-id")
 @click.argument("owner-email")
 @with_appcontext
@@ -76,7 +72,7 @@ def replace_owner(record_id: str, owner_email: str) -> None:
         uow.commit()
 
 
-@rdm_records.command("merge-records")  # type: ignore[reportFunctionMemberAccess]
+@rdm_records.command("merge-records")
 @click.argument("old-record-id")
 @click.argument("new-record-id")
 @click.option(
@@ -156,7 +152,7 @@ def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> No
         )
 
         # update versions_model_cls
-        versions_objects = db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
+        versions_objects = db.session.query(destination_record.versions_model_cls).filter_by(
             parent_id=destination_parent_id
         )
         versions_objects.update({"latest_id": latest_id, "latest_index": latest_index})
@@ -266,7 +262,7 @@ def print_after_move(
     for draft in db.session.query(draft_class).filter_by(parent_id=destination_parent_id).order_by("index"):
         click.echo(f"  - {(draft.json or {}).get('id')} {draft.id} {draft.index}")
         click.echo("")
-    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
+    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(
         parent_id=destination_parent_id
     ):
         click.echo(f"  -version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}")
