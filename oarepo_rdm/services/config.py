@@ -81,7 +81,8 @@ class MultiplexingSchema(ma.Schema):
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
         return delegated_service.schema.load(
-            data,
+            # REVIEW: Expected `dict[str, Any]`, found `Mapping[str, Any] | Iterable[Mapping[str, Any]]`
+            data,  # ty: ignore[invalid-argument-type]
             # REVIEW: typing error, schema_args defined as None
             schema_args={},  # ty: ignore[invalid-argument-type]
             context=context_schema.get(),

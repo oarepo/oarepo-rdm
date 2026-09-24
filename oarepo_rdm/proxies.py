@@ -16,4 +16,4 @@ if TYPE_CHECKING:
     current_oarepo_rdm: OARepoRDM
 
 
-current_oarepo_rdm = LocalProxy(lambda: current_app.extensions["oarepo-rdm"])
+current_oarepo_rdm = LocalProxy(lambda: current_app.extensions["oarepo-rdm"])  # ty: ignore[invalid-assignment]

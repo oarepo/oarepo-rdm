@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import pytest
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_records_resources.services.errors import PermissionDeniedError
 
 from .models import modela, modelb
@@ -59,6 +60,28 @@ def test_permission_policy_delegates_to_model(
         "model_a_specific_action",
         record=record_b,
     )
+
+
+def test_pid_resolve_delegates_to_model(
+    db,
+    rdm_records_service,
+    identity_simple,
+    published_records,
+    search_clear,
+):
+    rec_a, _rec_b = published_records
+    doi = PersistentIdentifier.create(
+        pid_type="doi",
+        pid_value="10.1234/model-a",
+        status=PIDStatus.REGISTERED,
+        object_type="rec",
+        object_uuid=rec_a._record.id,
+    )
+
+    resolved = rdm_records_service.pids.resolve(identity_simple, doi.pid_value, doi.pid_type)
+
+    assert resolved.id == rec_a.id
+    assert isinstance(resolved._record, modela.Record)
 
 
 # these would be better tested by adding some specific component/action to the parent

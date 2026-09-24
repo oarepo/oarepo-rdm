@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     """Get the record from its persistent identifier - might be published or draft."""
     record: RDMRecord | RDMDraft
-    try:  # REVIEW: typing - current_rdm_records_service imo should return RDMRecord
+    try:  # REVIEW: typing - current_rdm_records_service imo should return RDMRecord;
         record = record_from_result(current_rdm_records_service.read(system_identity, record_id))  # ty: ignore[invalid-assignment]
     except Exception:  # noqa: BLE001
         record = record_from_result(current_rdm_records_service.read_draft(system_identity, record_id))  # ty: ignore[invalid-assignment]
@@ -40,7 +40,7 @@ def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     return record, specialized_service
 
 
-@rdm_records.command("replace-owner")
+@rdm_records.command("replace-owner")  # ty: ignore[unresolved-attribute]
 @click.argument("record-id")
 @click.argument("owner-email")
 @with_appcontext

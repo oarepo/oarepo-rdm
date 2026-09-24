@@ -43,5 +43,6 @@ class RDMMediaFileResourceConfigPreset(Preset):
 
         yield AddToDictionary(
             "media_file_response_handlers",
-            RDMRecordMediaFilesResourceConfig.response_handlers,  # type:ignore[reportArgumentType]
+            # REVIEW: mapping vs. dict conflict
+            RDMRecordMediaFilesResourceConfig.response_handlers,  # ty: ignore[invalid-argument-type]
         )

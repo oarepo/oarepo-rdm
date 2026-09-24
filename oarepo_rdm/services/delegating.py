@@ -25,6 +25,8 @@ from oarepo_rdm.services.service import (
 )
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from flask_principal import Identity
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
     from invenio_records_resources.services.records.results import RecordItem
@@ -137,9 +139,12 @@ class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
     def resolve(self, identity: Identity, id_: str, scheme: str, expand: bool = False) -> RecordItem:
         """Resolve any PID through the service of the model owning its object UUID."""
         pid = PersistentIdentifier.get(pid_type=scheme, pid_value=id_)
-        record_pid = current_runtime.find_pid_from_uuid(pid.object_uuid)
+        object_uuid = cast("UUID | None", pid.object_uuid)  # REVIEW: SQLAlchemy column vs. the type
+        if object_uuid is None:
+            raise ValueError(f"PID {scheme}:{id_} does not have an object UUID")
+        record_pid = current_runtime.find_pid_from_uuid(object_uuid)
 
-        specialized_service = cast("PIDsService", self._get_specialized_service(record_pid.pid_value))
+        specialized_service = cast("PIDsService", self._get_specialized_service(cast("str", record_pid.pid_value)))
 
         if specialized_service is self:
             return super().resolve(identity, id_, scheme, expand=expand)
