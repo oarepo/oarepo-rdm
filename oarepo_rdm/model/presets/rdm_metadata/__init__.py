@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast, override
 
 from deepmerge import always_merger
 from oarepo_model import from_yaml
-from oarepo_model.api import FunctionalPreset
+from oarepo_model.api import FunctionalPreset, PresetList
 from oarepo_model.presets.drafts import drafts_preset
 from oarepo_model.presets.records_resources import records_resources_preset
 from oarepo_model.presets.relations import relations_preset
@@ -25,11 +25,10 @@ from oarepo_model.presets.ui_links import ui_links_preset
 from oarepo_rdm.model.presets.oai import oai_preset
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from oarepo_model.customizations import Customization
     from oarepo_model.model import InvenioModel
-    from oarepo_model.presets import Preset
 
 
 def rdm_model_types() -> dict[str, Any]:
@@ -71,12 +70,13 @@ class RDMMetadataPreset(FunctionalPreset):
     def before_populate_type_registry(
         self,
         model: InvenioModel,
-        types: list[dict[str, Any]],
-        presets: list[type[Preset] | list[type[Preset]] | tuple[type[Preset]]],
-        customizations: list[Customization],
+        types: Sequence[dict[str, Any]],
+        presets: PresetList,
+        customizations: Sequence[Customization],
         params: dict[str, Any],
     ) -> None:
         """Perform extra action before populating the type registry."""
+        types = cast("list", types)
         types.append(rdm_model_types())
         metadata_type = params["metadata_type"]
         merge_metadata(types, metadata_type, self.metadata_types[self.kind])
