@@ -1,9 +1,6 @@
 #
 # Metadata elements used in InvenioRDM.
 #
-#
-# WIP: do not use yet!
-#
 
 RDMPublicationDate:
   type: edtf

@@ -48,5 +48,4 @@ class RDMRecordRootLabelsPreset(Preset):
         yield AddToDictionary(
             "ui_model",
             {"children": from_yaml("ui_labels.yaml", __file__)},
-            patch=True,
         )
