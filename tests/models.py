@@ -49,7 +49,7 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
 class MockReviewServiceComponent(ServiceComponent):
     """Add review service component."""
 
-    def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
+    def create_review(self, identity, **kwargs: Any):
         """Mock create review."""
         print("review created in specialized service component")  # noqa T201
 

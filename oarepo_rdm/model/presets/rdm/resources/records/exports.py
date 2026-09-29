@@ -9,18 +9,18 @@ from typing import TYPE_CHECKING, Any, override
 
 from invenio_i18n import lazy_gettext as _
 from invenio_rdm_records.resources.config import csl_url_args_retriever
-from invenio_rdm_records.resources.serializers import (  # type: ignore[reportAttributeAccessIssue]
-    BibtexSerializer,  # type: ignore[reportAttributeAccessIssue]
-    CSLJSONSerializer,  # type: ignore[reportAttributeAccessIssue]
-    CSVRecordSerializer,  # type: ignore[reportAttributeAccessIssue]
-    DataCite43XMLSerializer,  # type: ignore[reportAttributeAccessIssue]
-    DataPackageSerializer,  # type: ignore[reportAttributeAccessIssue]
-    DCATSerializer,  # type: ignore[reportAttributeAccessIssue]
-    DublinCoreXMLSerializer,  # type: ignore[reportAttributeAccessIssue]
-    GeoJSONSerializer,  # type: ignore[reportAttributeAccessIssue]
-    MARCXMLSerializer,  # type: ignore[reportAttributeAccessIssue]
-    SchemaorgJSONLDSerializer,  # type: ignore[reportAttributeAccessIssue]
-    StringCitationSerializer,  # type: ignore[reportAttributeAccessIssue]
+from invenio_rdm_records.resources.serializers import (
+    BibtexSerializer,
+    CSLJSONSerializer,
+    CSVRecordSerializer,
+    DataCite43XMLSerializer,
+    DataPackageSerializer,
+    DCATSerializer,
+    DublinCoreXMLSerializer,
+    GeoJSONSerializer,
+    MARCXMLSerializer,
+    SchemaorgJSONLDSerializer,
+    StringCitationSerializer,
 )
 from oarepo_model.customizations import AddMetadataExport, Customization
 from oarepo_model.presets import Preset

@@ -16,13 +16,16 @@ from invenio_db.uow import UnitOfWork
 from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_rdm_records.cli import rdm_records
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 from oarepo_runtime.proxies import current_runtime
+from oarepo_runtime.typing import record_from_result
 from sqlalchemy import func
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from invenio_rdm_records.records.api import RDMDraft, RDMParent, RDMRecord
+    from invenio_rdm_records.records.api import RDMParent
+    from invenio_rdm_records.records.models import RDMDraftMetadata, RDMRecordMetadata
     from invenio_rdm_records.services import RDMRecordService
 
 
@@ -30,16 +33,18 @@ def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     """Get the record from its persistent identifier - might be published or draft."""
     record: RDMRecord | RDMDraft
     try:
-        record = current_rdm_records_service.read(system_identity, record_id)._record  # noqa: SLF001
+        record = record_from_result(current_rdm_records_service.read(system_identity, record_id), record_cls=RDMRecord)
     except Exception:  # noqa: BLE001
-        record = current_rdm_records_service.read_draft(system_identity, record_id)._record  # noqa: SLF001
+        record = record_from_result(
+            current_rdm_records_service.read_draft(system_identity, record_id), record_cls=RDMDraft
+        )
 
     specialized_service = cast("RDMRecordService", current_runtime.get_record_service_for_record(record))
 
     return record, specialized_service
 
 
-@rdm_records.command("replace-owner")  # type: ignore[reportFunctionMemberAccess]
+@rdm_records.command("replace-owner")  # ty: ignore[unresolved-attribute]
 @click.argument("record-id")
 @click.argument("owner-email")
 @with_appcontext
@@ -71,7 +76,7 @@ def replace_owner(record_id: str, owner_email: str) -> None:
         uow.commit()
 
 
-@rdm_records.command("merge-records")  # type: ignore[reportFunctionMemberAccess]
+@rdm_records.command("merge-records")  # ty: ignore[unresolved-attribute]
 @click.argument("old-record-id")
 @click.argument("new-record-id")
 @click.option(
@@ -151,7 +156,7 @@ def merge_records(old_record_id: str, new_record_id: str, direction: bool) -> No
         )
 
         # update versions_model_cls
-        versions_objects = db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
+        versions_objects = db.session.query(destination_record.versions_model_cls).filter_by(
             parent_id=destination_parent_id
         )
         versions_objects.update({"latest_id": latest_id, "latest_index": latest_index})
@@ -249,7 +254,10 @@ def confirm_before_move(  # noqa: PLR0913,PLR0917
 
 
 def print_after_move(
-    model_class: type, draft_class: type, destination_parent_id: UUID, destination_record: RDMRecord | RDMDraft
+    model_class: type[RDMRecordMetadata],
+    draft_class: type[RDMDraftMetadata],
+    destination_parent_id: UUID,
+    destination_record: RDMRecord | RDMDraft,
 ) -> None:
     """Confirm that the user wants to move the record to the destination parent."""
     click.secho("After the move, we will have the following published records:")
@@ -261,7 +269,8 @@ def print_after_move(
     for draft in db.session.query(draft_class).filter_by(parent_id=destination_parent_id).order_by("index"):
         click.echo(f"  - {(draft.json or {}).get('id')} {draft.id} {draft.index}")
         click.echo("")
-    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(  # type: ignore[reportArgumentType]
+    # REVIEW: typing error? (versions_model_cls = ClassVar[type | None])
+    for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(
         parent_id=destination_parent_id
     ):
         click.echo(f"  -version: latest_id={version_obj.latest_id} latest_index={version_obj.latest_index}")

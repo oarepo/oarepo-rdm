@@ -31,8 +31,8 @@ def test_schema():
 def test_rdm_complete_metadata():
     schema = modelc.RecordSchema()
 
-    rdm_fields = RDMMetadataSchema._declared_fields  # noqa SLF001
-    model_fields = schema.fields["metadata"].nested()._declared_fields  # noqa SLF001
+    rdm_fields = RDMMetadataSchema._declared_fields
+    model_fields = schema.fields["metadata"].nested()._declared_fields
 
     assert set(rdm_fields.items()) <= set(model_fields.items())
     assert "cdescription" in model_fields

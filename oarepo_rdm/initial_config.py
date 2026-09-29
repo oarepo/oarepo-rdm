@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import datetime
 
 from invenio_rdm_records.resources.config import error_handlers
 from werkzeug.local import LocalProxy
@@ -55,7 +55,7 @@ RDM_RECORDS_ERROR_HANDLERS = error_handlers
 APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "oarepo_rdm/record_detail_iframe.html"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
-    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),  # noqa: DTZ005
+    "publication_date": lambda: datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d"),
 }
 """Default values pre-filled in the deposit form for new records."""
 

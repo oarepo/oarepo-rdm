@@ -40,6 +40,4 @@ class RDMFileResourceConfigPreset(Preset):
             FileResourceConfig,
             RDMRecordFilesResourceConfig,
         )
-
-        # RDMRecordFilesResourceConfig doesn't have vnd.inveniordm.v1+json so the drafts config is used instead
-        yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # type:ignore[reportArgumentType]
+        yield AddToDictionary("file_response_handlers", {**RDMDraftFilesResourceConfig.response_handlers})  # or cast
