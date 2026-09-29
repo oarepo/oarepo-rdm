@@ -14,7 +14,7 @@ from invenio_rdm_records.services.access.service import RecordAccessService
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_rdm_records.services.review.service import ReviewService
 from oarepo_runtime.proxies import current_runtime
-from sqlalchemy.orm.exc import NoResultFound  # type: ignore[reportPrivateImportUsage]
+from sqlalchemy.orm.exc import NoResultFound
 
 from oarepo_rdm.services.service import (
     DelegationToSpecializedServiceMixin,
@@ -25,6 +25,8 @@ from oarepo_rdm.services.service import (
 )
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from flask_principal import Identity
     from invenio_rdm_records.records.api import RDMDraft, RDMRecord
     from invenio_records_resources.services.records.results import RecordItem
@@ -137,24 +139,27 @@ class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
     def resolve(self, identity: Identity, id_: str, scheme: str, expand: bool = False) -> RecordItem:
         """Resolve any PID through the service of the model owning its object UUID."""
         pid = PersistentIdentifier.get(pid_type=scheme, pid_value=id_)
-        record_pid = current_runtime.find_pid_from_uuid(pid.object_uuid)  # type: ignore[reportArgumentType]
+        object_uuid = cast("UUID | None", pid.object_uuid)
+        if object_uuid is None:
+            raise ValueError(f"PID {scheme}:{id_} does not have an object UUID")
+        record_pid = current_runtime.find_pid_from_uuid(object_uuid)
 
-        specialized_service = cast("PIDsService", self._get_specialized_service(record_pid.pid_value))  # type: ignore[reportArgumentType]
+        specialized_service = cast("PIDsService", self._get_specialized_service(cast("str", record_pid.pid_value)))
 
         if specialized_service is self:
             return super().resolve(identity, id_, scheme, expand=expand)
         try:
             return specialized_service.resolve(identity, id_, scheme, expand=expand)
         except NoResultFound:
-            record_cls = specialized_service.record_cls
+            record_cls = cast("type[RDMRecord]", specialized_service.record_cls)
             parent_record_cls = getattr(record_cls, "parent_record_cls", None)
             if parent_record_cls is None:
                 raise
             parent = parent_record_cls.get_record(pid.object_uuid)
-            record = record_cls.get_latest_published_by_parent(parent)  # type: ignore[reportAttributeAccessIssue]
+            record = record_cls.get_latest_published_by_parent(parent)
 
             if record is None:
-                raise PIDDoesNotExistError(scheme, id_)  # noqa: B904
+                raise PIDDoesNotExistError(scheme, id_) from None
             specialized_service.require_permission(identity, "read", record=record)
             return specialized_service.result_item(
                 specialized_service,

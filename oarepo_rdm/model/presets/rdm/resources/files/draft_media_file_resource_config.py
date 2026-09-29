@@ -43,5 +43,5 @@ class RDMDraftMediaFileResourceConfigPreset(Preset):
 
         yield AddToDictionary(
             "media_file_response_handlers",
-            RDMDraftMediaFilesResourceConfig.response_handlers,  # type:ignore[reportArgumentType]
+            {**RDMDraftMediaFilesResourceConfig.response_handlers},
         )

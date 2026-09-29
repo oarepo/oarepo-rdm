@@ -367,7 +367,7 @@ def test_facets(db, rdm_records_service, identity_simple, vocab_fixtures, requir
 
 
 def test_search_eligible_services_permissions(rdm_records_service, identity_simple, search_clear):
-    eligible_services = rdm_records_service._search_eligible_services(  # noqa: SLF001  # because in tests
+    eligible_services = rdm_records_service._search_eligible_services(  # because in tests
         identity_simple, permission_action="model_a_specific_action"
     )
     assert "local://modela-v1.0.0.json" in eligible_services

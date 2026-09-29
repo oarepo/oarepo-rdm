@@ -86,7 +86,6 @@ class DelegatedSerializer(BaseSerializer):
         obj_exporter_tuples = [
             (obj, exporter) for obj, exporter in possible_obj_exporter_tuples if exporter is not None
         ]
-        # REVIEW: we might be losing hits total by leaving the unserialized ones
         # 2. if no exporters found, return empty list serialization
         if not obj_exporter_tuples:
             return self.serializers[0].serialize_object_list(self._update_hits(obj_list, []))
@@ -109,7 +108,8 @@ class DelegatedSerializer(BaseSerializer):
 
         serializer = cast("MarshmallowSerializer", copy.copy(first_exporter))
         if serializer.list_schema:
-            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # type: ignore[reportCallIssue]
+            # typing error imo, list_schema_cls: type[Schema] | None
+            new_list_schema = type(serializer.list_schema)(object_schema_cls=NoOpSchema)  # ty: ignore[unknown-argument]
             serializer.list_schema = new_list_schema
         else:
             raise NotImplementedError(  # pragma: no cover

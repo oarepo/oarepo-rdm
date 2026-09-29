@@ -759,7 +759,7 @@ def test_search_pattern_change_percolators(
         # check record is in set
         current_search_client.indices.refresh(index=percolator_index)
         sets_before_change = current_oaiserver.record_list_sets_fetcher(
-            [record1._record.dumps(), record2._record.dumps()]  # noqa: SLF001
+            [record1._record.dumps(), record2._record.dumps()]
         )
 
         oaiset.search_pattern = "metadata.title:tralala"
@@ -768,7 +768,7 @@ def test_search_pattern_change_percolators(
 
         current_search_client.indices.refresh(index=percolator_index)
         sets_after_change = current_oaiserver.record_list_sets_fetcher(
-            [record1._record.dumps(), record2._record.dumps()]  # noqa: SLF001
+            [record1._record.dumps(), record2._record.dumps()]
         )
 
         assert sets_before_change == [["test2"], []]

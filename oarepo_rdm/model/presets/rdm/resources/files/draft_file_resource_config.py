@@ -40,6 +40,4 @@ class RDMDraftFileResourceConfigPreset(Preset):
             FileResourceConfig,
             RDMDraftFilesResourceConfig,
         )
-
-        # file_response_handlers are shared between drafts and published
-        yield AddToDictionary("file_response_handlers", RDMDraftFilesResourceConfig.response_handlers)  # type:ignore[reportArgumentType]
+        yield AddToDictionary("file_response_handlers", {**RDMDraftFilesResourceConfig.response_handlers})

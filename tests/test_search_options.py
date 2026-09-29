@@ -17,7 +17,7 @@ from .models import modela, modelb
 @pytest.mark.parametrize("config_field", [None, "search", "search_drafts", "search_versions"])
 def test_delegated_search_uses_model_parsers_once(app, rdm_records_service, monkeypatch, config_field):
     """The selected model options parse q once within each schema's query."""
-    global_service = rdm_records_service._get_current_object()  # noqa: SLF001 # monkeypatch the resolved service
+    global_service = rdm_records_service._get_current_object()  # monkeypatch the resolved service
     options_field = config_field or "search"
     global_options = getattr(global_service.config, options_field)
     global_parser = Mock(side_effect=AssertionError("The global query must use the delegated model queries"))
@@ -27,7 +27,7 @@ def test_delegated_search_uses_model_parsers_once(app, rdm_records_service, monk
     parsers = []
     expected_queries = {}
     for model, field in [(modela, "metadata.adescription"), (modelb, "metadata.bdescription")]:
-        service = model.proxies.current_service._get_current_object()  # noqa: SLF001 # monkeypatch the resolved service
+        service = model.proxies.current_service._get_current_object()  # monkeypatch the resolved service
         schema = model.Record.schema.value
         services[schema] = service
         options = getattr(service.config, options_field)
@@ -40,7 +40,7 @@ def test_delegated_search_uses_model_parsers_once(app, rdm_records_service, monk
         expected_queries[schema] = {"term": {field: "needle"}}
 
     monkeypatch.setattr(global_service, "_search_eligible_services", lambda *_args, **_kwargs: services)
-    search = global_service._search(  # noqa: SLF001 # inspect the generated DSL without executing a search
+    search = global_service._search(  # inspect the generated DSL without executing a search
         options_field,
         system_identity,
         {"q": "needle"},
@@ -68,13 +68,13 @@ def test_sharing_flags_do_not_filter_published_or_version_queries(
     app, rdm_records_service, users, config_field, shared_with_me
 ):
     """Draft sharing flags leave published and version queries unchanged."""
-    service = rdm_records_service._get_current_object()  # noqa: SLF001 # access the resolved service
+    service = rdm_records_service._get_current_object()  # access the resolved service
     options = getattr(service.config, config_field)
     identity = users[0].identity
-    baseline = service._search(  # noqa: SLF001 # compare the generated DSL without executing a search
+    baseline = service._search(  # compare the generated DSL without executing a search
         config_field, identity, {}, None, search_opts=options
     )
-    with_flag = service._search(  # noqa: SLF001 # compare the generated DSL without executing a search
+    with_flag = service._search(  # compare the generated DSL without executing a search
         config_field, identity, {"shared_with_me": shared_with_me}, None, search_opts=options
     )
     assert with_flag.to_dict() == baseline.to_dict()
