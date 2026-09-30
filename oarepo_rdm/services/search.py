@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Multiplexed search options and delegated query parameter."""
 
 from __future__ import annotations
@@ -100,11 +95,11 @@ class MultiplexedSearchOptions(SearchOptions):
         search_opts = self._search_opts(config_field)
 
         # TODO: we need to have a look at ClassVar typing !!!
-        self.facets = search_opts["facets"]  # type: ignore[assignment]
-        self.facet_groups = search_opts["facet_groups"]  # type: ignore[assignment]
-        self.sort_options = search_opts["sort_options"]  # type: ignore[assignment]
-        self.sort_default = search_opts["sort_default"]  # type: ignore[assignment]
-        self.sort_default_no_query = search_opts["sort_default_no_query"]  # type: ignore[assignment]
+        self.facets = search_opts["facets"]
+        self.facet_groups = search_opts["facet_groups"]
+        self.sort_options = search_opts["sort_options"]
+        self.sort_default = search_opts["sort_default"]
+        self.sort_default_no_query = search_opts["sort_default_no_query"]
         self.params_interpreters_cls = search_opts["params_interpreters_cls"]
 
         self.config_field = config_field

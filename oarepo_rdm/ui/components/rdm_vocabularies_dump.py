@@ -1,16 +1,11 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """UI Resource component for vocabulary search."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from invenio_app_rdm.records_ui.views.deposits import (
     VocabulariesOptions,
@@ -25,16 +20,17 @@ if TYPE_CHECKING:
 class RDMVocabularyOptionsComponent(UIResourceComponent):
     """Pass RDM vocabulary fixtures to form config."""
 
-    def form_config(  # noqa: PLR0913  too many arguments
+    @override
+    def form_config(
         self,
         *,
-        api_record: RecordItem,  # noqa: ARG002
-        record: dict,  # noqa: ARG002
-        identity: Identity,  # noqa: ARG002
+        api_record: RecordItem,
+        record: dict,
+        identity: Identity,
         form_config: dict,
-        ui_links: dict,  # noqa: ARG002
-        extra_context: dict,  # noqa: ARG002
-        **kwargs: Any,  # noqa: ARG002
+        ui_links: dict,
+        extra_context: dict,
+        **kwargs: Any,
     ) -> None:
         """Add smaller RDM vocabularies to form config."""
         form_config["vocabularies"] = VocabulariesOptions().dump()  # pragma: no cover

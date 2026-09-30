@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Preset for creating RDM search mapping.
 
 This module provides a preset that modifies search mapping to RDM compatibility.
@@ -46,7 +41,10 @@ class RDMMappingPreset(Preset):
     ) -> Generator[Customization]:
 
         def check_latest_version(path: Traversable, file: str) -> None:
-            grps = re.compile(r"(.*)-v(\d+)\.(\d+)\.(\d+)").match(file).groups()  # type: ignore[union-attr]
+            file_match = re.match(r"(.*)-v(\d+)\.(\d+)\.(\d+)", file)
+            if file_match is None:
+                raise ValueError(f"Unexpected RDM mapping file name: {file}")
+            grps = file_match.groups()
             type_ = grps[0]
             version = [int(v) for v in grps[1:]]
             version_pattern = re.compile(rf"{type_}-v(\d+)\.(\d+)\.(\d+)$")

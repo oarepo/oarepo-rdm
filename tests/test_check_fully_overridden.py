@@ -1,11 +1,5 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
 
 """What ``check_fully_overridden`` covers.
 
@@ -161,7 +155,7 @@ class _RecordingQuotaPolicy:
     def __init__(self) -> None:
         self.calls: list[str] = []
 
-    def evaluate(self, identity: Identity, record: Record) -> dict[str, Any]:  # noqa ARG002
+    def evaluate(self, identity: Identity, record: Record) -> dict[str, Any]:
         self.calls.append(record.pid.pid_value)
         return {"immediate_quota_increase": SimpleNamespace(enabled=False, allowed=False)}
 

@@ -1,10 +1,6 @@
-#
-# Copyright (C) 2024 CESNET z.s.p.o.
-#
-# oarepo-rdm is free software; you can redistribute it and/or
-# modify it under the terms of the MIT License; see LICENSE file for more
-# details.
-#
+# SPDX-FileCopyrightText: 2024 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """OARepo-Requests extension."""
 
 from __future__ import annotations
@@ -132,13 +128,13 @@ def finalize_app(_app: Flask) -> None:
     #
     # if this was not the case, we could have just set draft_cls and record_cls
     # on our service config.
-    InvenioRDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)  # type: ignore[assignment]
-    InvenioRDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)  # type: ignore[assignment]
-    InvenioRDMRecord.index = IndexField(  # type: ignore[assignment]
+    InvenioRDMRecord.pid = PIDField(context_cls=OARepoPIDFieldContext)
+    InvenioRDMDraft.pid = PIDField(context_cls=OARepoDraftPIDFieldContext)
+    InvenioRDMRecord.index = IndexField(
         "never-used-for-indexing-records-search-alias-used-instead",
         search_alias=[*current_runtime.published_indices],
     )
-    InvenioRDMDraft.index = IndexField(  # type: ignore[assignment]
+    InvenioRDMDraft.index = IndexField(
         "never-used-for-indexing-drafts-search-alias-used-instead",
         search_alias=[*current_runtime.draft_indices],
     )

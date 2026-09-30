@@ -1,16 +1,12 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Tests for delegating service classes."""
 
 from __future__ import annotations
 
 import pytest
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_records_resources.services.errors import PermissionDeniedError
 
 from .models import modela, modelb
@@ -23,7 +19,7 @@ modelb_service = modelb.proxies.current_service
 def published_records(identity_simple, vocab_fixtures, required_rdm_metadata):
     """Create and publish one record from modela and one from modelb."""
 
-    def _publish(service, metadata):  # noqa: ANN202
+    def _publish(service, metadata):
         data = {
             "metadata": {**required_rdm_metadata, **metadata},
             "files": {"enabled": False},
@@ -50,8 +46,8 @@ def test_permission_policy_delegates_to_model(
     """
     rec_a, rec_b = published_records
 
-    record_a = rec_a._record  # noqa: SLF001
-    record_b = rec_b._record  # noqa: SLF001
+    record_a = rec_a._record
+    record_b = rec_b._record
 
     assert rdm_records_service.review.check_permission(
         identity_simple,
@@ -64,6 +60,28 @@ def test_permission_policy_delegates_to_model(
         "model_a_specific_action",
         record=record_b,
     )
+
+
+def test_pid_resolve_delegates_to_model(
+    db,
+    rdm_records_service,
+    identity_simple,
+    published_records,
+    search_clear,
+):
+    rec_a, _rec_b = published_records
+    doi = PersistentIdentifier.create(
+        pid_type="doi",
+        pid_value="10.1234/model-a",
+        status=PIDStatus.REGISTERED,
+        object_type="rec",
+        object_uuid=rec_a._record.id,
+    )
+
+    resolved = rdm_records_service.pids.resolve(identity_simple, doi.pid_value, doi.pid_type)
+
+    assert resolved.id == rec_a.id
+    assert isinstance(resolved._record, modela.Record)
 
 
 # these would be better tested by adding some specific component/action to the parent
@@ -81,7 +99,7 @@ def test_component_delegates_to_model(
     rdm_records_service.review.run_components(
         "create_review",
         identity_simple,
-        record=draft._record,  # noqa: SLF001
+        record=draft._record,
     )
 
     captured = capsys.readouterr()

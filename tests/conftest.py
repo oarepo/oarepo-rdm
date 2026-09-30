@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of oarepo-rdm (see https://github.com/oarepo/oarepo-rdm).
-#
-# oarepo-rdm is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 from __future__ import annotations
 
 import os
@@ -95,7 +90,7 @@ def finalization_called():
 class MockReviewInRDMServiceComponent(ServiceComponent):
     """Add review service component."""
 
-    def create_review(self, identity, **kwargs: Any):  # noqa: ARG002
+    def create_review(self, identity, **kwargs: Any):
         """Mock create review."""
         print("review created in original rdm service component")  # noqa T201
 
