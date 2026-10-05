@@ -94,7 +94,6 @@ class MultiplexingSchema(ma.Schema):
         schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        # REVIEW: typing error, schema_args defined as None
         return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})  # ty: ignore[invalid-argument-type]
 
 

@@ -269,7 +269,6 @@ def print_after_move(
     for draft in db.session.query(draft_class).filter_by(parent_id=destination_parent_id).order_by("index"):
         click.echo(f"  - {(draft.json or {}).get('id')} {draft.id} {draft.index}")
         click.echo("")
-    # REVIEW: typing error? (versions_model_cls = ClassVar[type | None])
     for version_obj in db.session.query(destination_record.versions_model_cls).filter_by(
         parent_id=destination_parent_id
     ):
