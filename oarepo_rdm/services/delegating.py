@@ -151,7 +151,7 @@ class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
         try:
             return specialized_service.resolve(identity, id_, scheme, expand=expand)
         except NoResultFound:
-            record_cls = cast("type[RDMRecord]", specialized_service.record_cls)
+            record_cls = specialized_service.record_cls
             parent_record_cls = getattr(record_cls, "parent_record_cls", None)
             if parent_record_cls is None:
                 raise

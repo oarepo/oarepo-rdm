@@ -13,6 +13,7 @@ from invenio_rdm_records.resources.serializers import (
     BibtexSerializer,
     CSLJSONSerializer,
     CSVRecordSerializer,
+    DataCite43JSONSerializer,
     DataCite43XMLSerializer,
     DataPackageSerializer,
     DCATSerializer,
@@ -107,6 +108,12 @@ class RDMCompleteExportsPreset(Preset):
             oai_namespace="http://datacite.org/schema/kernel-4",
         )
         yield AddMetadataExport(
+            code="datacite-json",
+            name=_("DataCite JSON"),
+            mimetype="application/vnd.datacite.datacite+json",
+            serializer=DataCite43JSONSerializer(),
+        )
+        yield AddMetadataExport(
             code="datapackage",
             name=_("Data Package"),
             mimetype="application/vnd.datapackage.ld+json",
@@ -138,7 +145,4 @@ class RDMCompleteExportsPreset(Preset):
             name=_("DCAT XML"),
             mimetype="application/dcat+xml",
             serializer=DCATSerializer(),
-            oai_metadata_prefix="dcat",
-            oai_schema="http://schema.datacite.org/meta/kernel-4/metadata.xsd",
-            oai_namespace="https://www.w3.org/ns/dcat",
         )

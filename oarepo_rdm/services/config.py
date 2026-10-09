@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
     from flask_principal import Identity
+    from invenio_rdm_records.services.schemas import RDMRecordSchema
     from invenio_records_resources.services.records.config import (
         SearchOptions,
     )
@@ -82,7 +83,7 @@ class MultiplexingSchema(ma.Schema):
         delegated_service = delegated_model.service
         return delegated_service.schema.load(
             data,
-            schema_args={},  # ty: ignore[invalid-argument-type]
+            schema_args={},
             context=context_schema.get(),
             raise_errors=True,
         )
@@ -94,14 +95,14 @@ class MultiplexingSchema(ma.Schema):
         schema = cast("Mapping[str, Any]", obj)["$schema"]
         delegated_model = current_runtime.rdm_models_by_schema[schema]
         delegated_service = delegated_model.service
-        return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})  # ty: ignore[invalid-argument-type]
+        return delegated_service.schema.dump(obj, schema_args={}, context={**context_schema.get(), "record": obj})
 
 
 class OARepoRDMServiceConfig(RDMRecordServiceConfig):
     """OARepo extension to RDM record service configuration."""
 
     result_list_cls = MultiplexingResultList
-    schema = MultiplexingSchema
+    schema = cast("type[RDMRecordSchema]", MultiplexingSchema)
 
     # TODO: add proper links here, not just this subset
     links_item: Mapping[str, Any] = {
@@ -164,7 +165,7 @@ class OARepoCommunityRecordsConfig(RDMCommunityRecordsConfig):
     """
 
     result_list_cls = MultiplexingResultList
-    schema = MultiplexingSchema
+    schema = cast("type[RDMRecordSchema]", MultiplexingSchema)
 
     @property
     @override
