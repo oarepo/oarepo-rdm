@@ -53,7 +53,7 @@ class RDMRecordsUIResourceConfig(RecordsUIResourceConfig):
             )
     """
 
-    components = (
+    components = (  # ty: ignore[invalid-assignment]
         AllowedHtmlTagsComponent,
         BabelComponent,
         PermissionsComponent,
