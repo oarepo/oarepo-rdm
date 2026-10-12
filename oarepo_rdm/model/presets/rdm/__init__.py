@@ -15,7 +15,7 @@ from oarepo_rdm.model.presets.rdm.records.draft_record_metadata import (
     RDMDraftRecordMetadataWithFilesPreset,
 )
 from oarepo_rdm.model.presets.rdm.records.parent_record import RDMParentRecordPreset
-from oarepo_rdm.model.presets.rdm.records.rdm_mapping import RDMMappingPreset
+from oarepo_rdm.model.presets.rdm.records.rdm_mapping import RDMDraftMappingPreset, RDMMappingPreset
 from oarepo_rdm.model.presets.rdm.records.record import RDMRecordPreset
 from oarepo_rdm.model.presets.rdm.records.record_metadata import (
     RDMRecordMetadataWithFilesPreset,
@@ -81,6 +81,7 @@ from oarepo_rdm.model.presets.rdm_metadata.rdm_record_root_labels import (
 
 rdm_static_preset = [
     RDMMappingPreset,
+    RDMDraftMappingPreset,
     RDMDraftRecordPreset,
     RDMParentRecordPreset,
     RDMRecordPreset,

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class RDMFileResourceConfigPreset(Preset):
     """Preset for RDM files resource config class."""
 
-    modifies = ("FileResourceConfig",)
+    modifies = ("FileResourceConfig", "file_response_handlers")
 
     @override
     def apply(

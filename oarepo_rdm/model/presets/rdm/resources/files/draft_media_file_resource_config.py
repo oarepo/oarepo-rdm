@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class RDMDraftMediaFileResourceConfigPreset(Preset):
     """Preset for RDM draft media files resource config class."""
 
-    modifies = ("DraftMediaFileResourceConfig",)
+    modifies = ("DraftMediaFileResourceConfig", "media_file_response_handlers")
 
     @override
     def apply(

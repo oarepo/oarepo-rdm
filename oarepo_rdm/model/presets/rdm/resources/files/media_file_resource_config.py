@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class RDMMediaFileResourceConfigPreset(Preset):
     """Preset for RDM media files resource config class."""
 
-    modifies = ("MediaFileResourceConfig",)
+    modifies = ("MediaFileResourceConfig", "media_file_response_handlers")
 
     @override
     def apply(
