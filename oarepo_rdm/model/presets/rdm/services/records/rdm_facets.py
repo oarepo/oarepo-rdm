@@ -25,8 +25,7 @@ if TYPE_CHECKING:
 class RDMFacetsPreset(Preset):
     """Preset for RDM-specific facets (access_status)."""
 
-    provides = ("RDMFacets",)
-    modifies = ("RecordFacets",)
+    modifies = ("RecordFacets", "facets")
 
     @override
     def apply(
