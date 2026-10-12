@@ -22,7 +22,7 @@ from .config import MultiplexingLinks
 _T = TypeVar("_T", bound=type)
 
 if TYPE_CHECKING:
-    import datetime
+    import datetime as dt
     from collections.abc import Callable, Iterable
 
     from invenio_access.permissions import Identity
@@ -362,7 +362,7 @@ class OARepoRDMService(DelegationToSpecializedServiceMixin, RDMRecordService):
     @override
     def cleanup_drafts(
         self,
-        timedelta: datetime.timedelta,
+        timedelta: dt.timedelta,
         uow: UnitOfWork | None = None,
         search_gc_deletes: int = 60,
     ) -> None:
