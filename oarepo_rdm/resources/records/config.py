@@ -24,7 +24,7 @@ class OARepoRDMRecordResourceConfigMixin(RDMRecordResourceConfig_Typing):
     """Mixin for RDM record resource configuration."""
 
     @property
-    def routes(self) -> Mapping[str, str]:
+    def routes(self) -> Mapping[str, str]:  # ty: ignore[invalid-property-type-override]
         """Override routes to use path instead of default converter for pid_value.
 
         This was causing a problem when PID contained slashes (doi:1234/zenodo.12345 for example).

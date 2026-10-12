@@ -121,30 +121,18 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:
+    def search(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
         return current_oarepo_rdm.search_options
 
-    @search.setter
-    def search(self, _value: Any) -> None:
-        raise AttributeError("search is read-only")  # pragma: no cover
-
     @property
     @override
-    def search_drafts(self) -> SearchOptions:
+    def search_drafts(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
         return current_oarepo_rdm.draft_search_options
 
-    @search_drafts.setter
-    def search_drafts(self, _value: Any) -> None:
-        raise AttributeError("search_drafts is read-only")  # pragma: no cover
-
     @property
     @override
-    def search_versions(self) -> SearchOptions:
+    def search_versions(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
         return current_oarepo_rdm.versions_search_options
-
-    @search_versions.setter
-    def search_versions(self, _value: Any) -> None:
-        raise AttributeError("search_versions is read-only")  # pragma: no cover
 
     @property
     def search_all(self) -> SearchOptions:
@@ -169,18 +157,10 @@ class OARepoCommunityRecordsConfig(RDMCommunityRecordsConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:
+    def search(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
         return current_oarepo_rdm.search_options
-
-    @search.setter
-    def search(self, _value: Any) -> None:
-        raise AttributeError("search is read-only")  # pragma: no cover
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:
+    def search_versions(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
         return current_oarepo_rdm.versions_search_options
-
-    @search_versions.setter
-    def search_versions(self, _value: Any) -> None:
-        raise AttributeError("search_versions is read-only")  # pragma: no cover
