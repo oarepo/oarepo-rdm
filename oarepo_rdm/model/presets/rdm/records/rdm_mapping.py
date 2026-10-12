@@ -26,8 +26,94 @@ if TYPE_CHECKING:
     from oarepo_model.builder import InvenioModelBuilder
     from oarepo_model.model import InvenioModel
 
+local_mapping = {
+    "mappings": {
+        "properties": {
+            "access": {
+                "type": "object",
+                "properties": {
+                    "embargo": {
+                        "type": "object",
+                        "properties": {"until": {"format": "basic_date||strict_date"}},
+                    },
+                    "files": {"ignore_above": 1024},
+                    "record": {"ignore_above": 1024},
+                    "status": {"ignore_above": 1024},
+                },
+            },
+            "deletion_status": {"ignore_above": 1024},
+        }
+    }
+}
+
+
+def check_latest_version(path: Traversable, file: str) -> None:
+    """Check whether invenio hasn't released a newer version of RDM mapping."""
+    file_match = re.match(r"(.*)-v(\d+)\.(\d+)\.(\d+)", file)
+    if file_match is None:
+        raise ValueError(f"Unexpected RDM mapping file name: {file}")
+    grps = file_match.groups()
+    type_ = grps[0]
+    version = [int(v) for v in grps[1:]]
+    version_pattern = re.compile(rf"{type_}-v(\d+)\.(\d+)\.(\d+)$")
+    files_ = [
+        entry.name.removesuffix(".json") for entry in path.iterdir() if entry.is_file() and entry.name.endswith(".json")
+    ]
+    versions = [
+        [int(part) for part in match.groups()]
+        for mapping_file in files_
+        if (match := version_pattern.fullmatch(mapping_file))
+    ]
+    latest_version = max(versions)
+    if latest_version != version:
+        logger.warning(
+            "Invenio RDM mapping version of %s is not up to date, use %s",
+            type_,
+            latest_version,
+        )
+    if len(files_) > len(versions):
+        logger.warning("New mapping file type found in invenio rdm mappings.")
+
+
+def filter_rdm_mapping(path: Traversable) -> dict[str, Any]:
+    """Filter RDM mapping options that are not used in our models."""
+    mapping = json.loads(path.read_text(encoding="utf-8"))
+    del mapping["mappings"]["properties"]["metadata"]
+    del mapping["mappings"]["properties"]["$schema"]["index"]
+    if "settings" in mapping and "index.query.default_field" in mapping["settings"]:
+        del mapping["settings"]["index.query.default_field"]
+    return cast("dict[str, Any]", mapping)
+
 
 class RDMMappingPreset(Preset):
+    """Preset for record service class."""
+
+    modifies = ("record-mapping",)
+
+    @override
+    def apply(
+        self,
+        builder: InvenioModelBuilder,
+        model: InvenioModel,
+        dependencies: dict[str, Any],
+    ) -> Generator[Customization]:
+
+        record_folder = files("invenio_rdm_records") / "records/mappings/os-v2/rdmrecords/records"
+        check_latest_version(record_folder, "record-v7.0.0.json")
+        rdm_record_mapping = filter_rdm_mapping(record_folder / "record-v7.0.0.json")
+
+        yield PatchJSONFile(
+            "record-mapping",
+            rdm_record_mapping,
+        )
+
+        yield PatchJSONFile(
+            "record-mapping",
+            local_mapping,
+        )
+
+
+class RDMDraftMappingPreset(Preset):
     """Preset for record service class."""
 
     modifies = ("draft-mapping",)
@@ -40,86 +126,13 @@ class RDMMappingPreset(Preset):
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
 
-        def check_latest_version(path: Traversable, file: str) -> None:
-            file_match = re.match(r"(.*)-v(\d+)\.(\d+)\.(\d+)", file)
-            if file_match is None:
-                raise ValueError(f"Unexpected RDM mapping file name: {file}")
-            grps = file_match.groups()
-            type_ = grps[0]
-            version = [int(v) for v in grps[1:]]
-            version_pattern = re.compile(rf"{type_}-v(\d+)\.(\d+)\.(\d+)$")
-            files_ = [
-                entry.name.removesuffix(".json")
-                for entry in path.iterdir()
-                if entry.is_file() and entry.name.endswith(".json")
-            ]
-            versions = [
-                [int(part) for part in match.groups()]
-                for mapping_file in files_
-                if (match := version_pattern.fullmatch(mapping_file))
-            ]
-            latest_version = max(versions)
-            if latest_version != version:
-                logger.warning(
-                    "Invenio RDM mapping version of %s is not up to date, use %s",
-                    type_,
-                    latest_version,
-                )
-            if len(files_) > len(versions):
-                logger.warning("New mapping file type found in invenio rdm mappings.")
-
-        def filter_rdm_mapping(path: Traversable) -> dict[str, Any]:
-            mapping = json.loads(path.read_text(encoding="utf-8"))
-            del mapping["mappings"]["properties"]["metadata"]
-            del mapping["mappings"]["properties"]["$schema"]["index"]
-            if "settings" in mapping and "index.query.default_field" in mapping["settings"]:
-                del mapping["settings"]["index.query.default_field"]
-            return cast("dict[str, Any]", mapping)
-
         draft_folder = files("invenio_rdm_records") / "records/mappings/os-v2/rdmrecords/drafts"
-        record_folder = files("invenio_rdm_records") / "records/mappings/os-v2/rdmrecords/records"
-
         check_latest_version(draft_folder, "draft-v6.0.0.json")
-        check_latest_version(record_folder, "record-v7.0.0.json")
         rdm_draft_mapping = filter_rdm_mapping(draft_folder / "draft-v6.0.0.json")
-        rdm_record_mapping = filter_rdm_mapping(record_folder / "record-v7.0.0.json")
-
-        local_mapping = {
-            "mappings": {
-                "properties": {
-                    "access": {
-                        "type": "object",
-                        "properties": {
-                            "embargo": {
-                                "type": "object",
-                                "properties": {"until": {"format": "basic_date||strict_date"}},
-                            },
-                            "files": {"ignore_above": 1024},
-                            "record": {"ignore_above": 1024},
-                            "status": {"ignore_above": 1024},
-                        },
-                    },
-                    "deletion_status": {"ignore_above": 1024},
-                }
-            }
-        }
+        # already inherited from the record mapping; deepmerge would append them a second time
+        del rdm_draft_mapping["mappings"]["dynamic_templates"]
 
         yield PatchJSONFile(
             "draft-mapping",
             rdm_draft_mapping,
-        )
-
-        yield PatchJSONFile(
-            "record-mapping",
-            rdm_record_mapping,
-        )
-
-        yield PatchJSONFile(
-            "draft-mapping",
-            local_mapping,
-        )
-
-        yield PatchJSONFile(
-            "record-mapping",
-            local_mapping,
         )
