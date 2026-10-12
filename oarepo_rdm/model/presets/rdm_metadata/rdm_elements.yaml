@@ -149,41 +149,17 @@ RDMFunding:
         cs: Číslo projektu
         en: Award number
 
-    # subjects seem not to be on funding in RDM
-    # subjects:
-    #   type: array
-    #   items:
-    #     type: vocabulary
-    #     vocabulary-type: subjects
-    #     keys:
-    #       - subject:
-    #           type: keyword
-    #       - scheme:
-    #           type: keyword
-    #       - props:
-    #           type: dynamic-object
-    #   label:
-    #     cs: Předměty
-    #     en: Subjects
-
 RDMSubject:
+  type: vocabulary
+  vocabulary-type: subjects
+  keys:
+    - identifiers:
+        type: array
+        items:
+          type: RDMIdentifier
   label:
     cs: Předmět
     en: Subject
-  marshmallow_schema_class: invenio_vocabularies.contrib.subjects.schema.SubjectRelationSchema
-  properties:
-    id:
-      type: keyword
-      label.cs: Identifikátor předmětu
-      label.en: Subject Identifier
-
-    subject:
-      # TODO: in RDM, subjects are not yet multilingual in their serialization to record
-      # (they are internally), this probably will change in the future
-      # type: multilingual
-      type: keyword
-      label.cs: Předmět
-      label.en: Subject
 
 RDMPersonOrOrg:
   marshmallow_schema_class: invenio_rdm_records.services.schemas.metadata.PersonOrOrganizationSchema
