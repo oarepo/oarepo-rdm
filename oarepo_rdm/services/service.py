@@ -36,8 +36,7 @@ if TYPE_CHECKING:
 else:
     InvenioRecordServiceT = object
 
-pass_through = {
-    # These methods are from the base Invenio Service class
+base_pass_through = {
     "check_permission",
     "permission_policy",
     "require_permission",
@@ -45,6 +44,11 @@ pass_through = {
     "result_list",
     "result_bulk_item",
     "result_bulk_list",
+}
+
+pass_through = {
+    # These methods are from the base Invenio Service class
+    *base_pass_through,
     # RecordIndexerMixin
     "record_to_index",  # return record.index._name if service inherits from RecordIndexerMixin
     # These methods are from the base Invenio records Service class
@@ -175,7 +179,14 @@ def pass_to_specialized_service(
 class DelegationToSpecializedServiceMixin(InvenioRecordServiceT):
     """Mixin for delegating running components and permission checks to specialized model services."""
 
-    attribute_on_base_service: str = (
+    @property
+    def attribute_on_base_service(self) -> str:
+        """Attribute on base service."""
+        if hasattr(self.config, "attribute_on_base_service"):
+            return self.config.attribute_on_base_service
+        return self.default_attribute_on_base_service
+
+    default_attribute_on_base_service: str = (
         ""  # Used when the specialized service is a subservice of the base RDMRecordsService
     )
     # eg. ReviewService, AccessService

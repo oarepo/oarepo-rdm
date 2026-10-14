@@ -28,6 +28,9 @@ RDM_RECORDS_RESOURCE_CLASS = "oarepo_rdm.resources.records.resource:OARepoRDMRec
 RDM_RECORDS_REVIEW_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingReviewService"
 RDM_RECORDS_ACCESS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingRecordAccessService"
 RDM_RECORDS_PIDS_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingPIDsService"
+RDM_RECORDS_FILE_SERVICE_CLASS = "oarepo_rdm.services.delegating.DelegatingRDMFileService"
+RDM_RECORDS_FILE_DRAFT_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.delegating.DelegatingRDMFileDraftServiceConfig"
+
 
 # community records
 RDM_RECORDS_COMMUNITY_RECORDS_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoCommunityRecordsConfig"
