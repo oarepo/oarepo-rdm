@@ -44,6 +44,8 @@ class PermissionPolicyWithModelAPermission(EveryonePermissionPolicy):
     """Permission policy that adds model_a_specific_action for testing."""
 
     can_model_a_specific_action = (SystemProcess(), AnyUser())
+    # checked by the draft files service, which prefixes actions with "draft_"
+    can_draft_model_a_specific_action = (SystemProcess(), AnyUser())
 
 
 class MockReviewServiceComponent(ServiceComponent):

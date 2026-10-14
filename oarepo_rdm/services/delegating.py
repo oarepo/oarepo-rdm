@@ -10,7 +10,9 @@ from typing import TYPE_CHECKING, Any, cast, override
 from invenio_db.uow import UnitOfWork, unit_of_work
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier
+from invenio_rdm_records.services import RDMFileDraftServiceConfig
 from invenio_rdm_records.services.access.service import RecordAccessService
+from invenio_rdm_records.services.files.service import RDMFileService
 from invenio_rdm_records.services.pids.service import PIDsService
 from invenio_rdm_records.services.review.service import ReviewService
 from oarepo_runtime.proxies import current_runtime
@@ -18,6 +20,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from oarepo_rdm.services.service import (
     DelegationToSpecializedServiceMixin,
+    base_pass_through,
     check_fully_overridden,
     delegate_to_specialized_service,
     pass_through,
@@ -77,6 +80,37 @@ delegate_to_specialized_service_review = {
     "submit",
 }
 
+delegate_to_specialized_service_files = {
+    "list_files",
+    "read_archive",
+    "init_files",
+    "update_file_metadata",
+    "read_file_metadata",
+    "extract_file_metadata",
+    "commit_file",
+    "delete_file",
+    "delete_all_files",
+    "set_file_content",
+    "get_file_content",
+    "set_multipart_file_content",
+    "get_transfer_metadata",
+    "update_transfer_metadata",
+    "list_container",
+    "extract_container_item",
+    "open_container_item",
+}
+
+pass_through_service_files = base_pass_through | {
+    "file_links_list_tpl",
+    "file_links_item_tpl",
+    "container_item_links_list_tpl",
+    "file_result_item",
+    "file_result_list",
+    "file_result_container_item",
+    "file_result_container_list",
+}
+
+
 pass_through_service_pids = pass_through_record_service | {
     "invalidate",  # not implemented
 }
@@ -98,7 +132,7 @@ delegate_to_specialized_service_pids = {
 class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService):
     """Delegating review service."""
 
-    attribute_on_base_service = "review"
+    default_attribute_on_base_service = "review"
 
     @unit_of_work()
     @override
@@ -122,7 +156,7 @@ class DelegatingReviewService(DelegationToSpecializedServiceMixin, ReviewService
 class DelegatingRecordAccessService(DelegationToSpecializedServiceMixin, RecordAccessService):
     """Delegating access service."""
 
-    attribute_on_base_service = "access"
+    default_attribute_on_base_service = "access"
 
 
 @pass_to_specialized_service(delegate_to_specialized_service | delegate_to_specialized_service_pids)
@@ -134,7 +168,7 @@ class DelegatingRecordAccessService(DelegationToSpecializedServiceMixin, RecordA
 class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
     """Delegating PIDs service."""
 
-    attribute_on_base_service = "pids"
+    default_attribute_on_base_service = "pids"
 
     def resolve(self, identity: Identity, id_: str, scheme: str, expand: bool = False) -> RecordItem:
         """Resolve any PID through the service of the model owning its object UUID."""
@@ -169,3 +203,21 @@ class DelegatingPIDsService(DelegationToSpecializedServiceMixin, PIDsService):
                 expandable_fields=specialized_service.expandable_fields,
                 expand=expand,
             )
+
+
+@pass_to_specialized_service(delegate_to_specialized_service_files)
+@check_fully_overridden(
+    base_pass_through | pass_through_service_files,
+    delegate_to_specialized_service_files,
+    RDMFileService,
+)
+class DelegatingRDMFileService(DelegationToSpecializedServiceMixin, RDMFileService):
+    """Delegating RDM file service."""
+
+    default_attribute_on_base_service = "files"
+
+
+class DelegatingRDMFileDraftServiceConfig(RDMFileDraftServiceConfig):
+    """Config for delegating RDM file service."""
+
+    attribute_on_base_service = "draft_files"
