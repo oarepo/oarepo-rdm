@@ -16,6 +16,7 @@ from invenio_records_resources.services import (
 )
 from oarepo_model.customizations import (
     Customization,
+    PrependMixin,
     ReplaceBaseClass,
 )
 from oarepo_model.presets import Preset
@@ -39,9 +40,13 @@ class RDMDraftFileServiceConfigPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
+        class RDMDraftFileServiceConfigMixin:
+            # RDM's WithFileLinks metaclass builds file links from this, overriding any file_links_* mixins
+            name_of_file_blueprint = f"{model.blueprint_base}_draft_files"
 
         yield ReplaceBaseClass(
             "DraftFileServiceConfig",
             old_base_class=FileServiceConfig,
             new_base_class=RDMFileDraftServiceConfig,
         )
+        yield PrependMixin("DraftFileServiceConfig", RDMDraftFileServiceConfigMixin)
