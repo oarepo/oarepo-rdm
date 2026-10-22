@@ -138,6 +138,8 @@ class RDMCompleteExportsPreset(Preset):
             name=_("Citation"),
             mimetype="text/x-bibliography",
             serializer=StringCitationSerializer(url_args_retriever=csl_url_args_retriever),
+            # csl_url_args_retriever needs a REST request context, so the UI export view fails with 500
+            display=False,
         )
         yield AddMetadataExport(
             code="bibtex",
