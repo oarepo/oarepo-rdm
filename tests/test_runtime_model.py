@@ -51,6 +51,13 @@ def test_runtime_model(
     }
 
 
+def test_complete_preset_hides_citation_export(app, model_c):
+    """Citation export needs a REST request context, so it must stay out of the UI export panel."""
+    exports = {exp.code: exp for exp in current_runtime.models["modelc"].exports}
+    assert exports["citation"].display is False
+    assert exports["bibtex"].display is True
+
+
 def test_record_root_labels_in_ui_model(
     app,
     rdm_model,
