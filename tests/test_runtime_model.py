@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import pytest
 from oarepo_runtime import current_runtime
 
 
@@ -81,3 +82,20 @@ def test_record_root_labels_in_ui_model(
         "en": "Persistent identifiers",
         "cs": "Trvalé identifikátory",
     }
+
+
+@pytest.mark.parametrize(
+    ("code", "extension"),
+    [
+        ("jsonld", ".jsonld"),
+        ("marcxml", ".xml"),
+        ("datacite-xml", ".xml"),
+        ("dublincore", ".xml"),
+        ("bibtex", ".bib"),
+        ("dcat", ".xml"),
+    ],
+)
+def test_complete_preset_export_extensions(app, model_c, code, extension):
+    """Download filenames must not depend on the host's mimetype guess (+xml used to become .xsl)."""
+    exports = {exp.code: exp for exp in current_runtime.models["modelc"].exports}
+    assert exports[code].extension == extension
