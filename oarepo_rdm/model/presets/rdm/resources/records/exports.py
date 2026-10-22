@@ -45,10 +45,12 @@ class RDMCompleteExportsPreset(Preset):
         model: InvenioModel,
         dependencies: dict[str, Any],
     ) -> Generator[Customization]:
+        # Explicit extensions: the mimetype guess depends on the host's mime tables and maps +xml to .xsl
         yield AddMetadataExport(
             code="jsonld",
             name=_("JSON-LD (schema.org)"),
             mimetype="application/ld+json",
+            extension=".jsonld",
             serializer=SchemaorgJSONLDSerializer(),
         )
         yield AddMetadataExport(
@@ -81,6 +83,7 @@ class RDMCompleteExportsPreset(Preset):
             code="marcxml",
             name=_("MARCXML"),
             mimetype="application/marcxml+xml",
+            extension=".xml",
             serializer=MARCXMLSerializer(),
             oai_metadata_prefix="marcxml",
             oai_schema="https://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd",
@@ -102,6 +105,7 @@ class RDMCompleteExportsPreset(Preset):
             code="datacite-xml",
             name=_("DataCite XML"),
             mimetype="application/vnd.datacite.datacite+xml",
+            extension=".xml",
             serializer=DataCite43XMLSerializer(),
             oai_metadata_prefix="datacite",
             oai_schema="http://schema.datacite.org/meta/kernel-4.5/metadata.xsd",
@@ -123,6 +127,7 @@ class RDMCompleteExportsPreset(Preset):
             code="dublincore",
             name=_("Dublin Core XML"),
             mimetype="application/x-dc+xml",
+            extension=".xml",
             serializer=DublinCoreXMLSerializer(),
             oai_metadata_prefix="oai_dc",
             oai_schema="http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
@@ -138,11 +143,13 @@ class RDMCompleteExportsPreset(Preset):
             code="bibtex",
             name=_("BibTeX"),
             mimetype="application/x-bibtex",
+            extension=".bib",
             serializer=BibtexSerializer(),
         )
         yield AddMetadataExport(
             code="dcat",
             name=_("DCAT XML"),
             mimetype="application/dcat+xml",
+            extension=".xml",
             serializer=DCATSerializer(),
         )
