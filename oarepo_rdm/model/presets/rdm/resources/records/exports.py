@@ -134,14 +134,6 @@ class RDMCompleteExportsPreset(Preset):
             oai_namespace="http://www.openarchives.org/OAI/2.0/oai_dc/",
         )
         yield AddMetadataExport(
-            code="citation",
-            name=_("Citation"),
-            mimetype="text/x-bibliography",
-            serializer=StringCitationSerializer(url_args_retriever=csl_url_args_retriever),
-            # csl_url_args_retriever needs a REST request context, so the UI export view fails with 500
-            display=False,
-        )
-        yield AddMetadataExport(
             code="bibtex",
             name=_("BibTeX"),
             mimetype="application/x-bibtex",
