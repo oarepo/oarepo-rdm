@@ -147,3 +147,12 @@ class RDMCompleteExportsPreset(Preset):
             extension=".xml",
             serializer=DCATSerializer(),
         )
+        # formatted citation string used by the record landing page's citation box
+        yield AddMetadataExport(
+            code="bibliography",
+            name=_("Bibliography"),
+            mimetype="text/x-bibliography",
+            extension=".txt",
+            serializer=StringCitationSerializer(url_args_retriever=csl_url_args_retriever),
+            display=False,
+        )
