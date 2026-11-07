@@ -127,11 +127,8 @@ RDMFunding:
         - subjects:
             type: array
             items:
-              properties:
-                id:
-                  type: keyword
-                subject:
-                  type: keyword
+              type: vocabulary
+              vocabulary-type: subjects
         - organizations:
             type: array
             items:
@@ -153,6 +150,8 @@ RDMSubject:
   type: vocabulary
   vocabulary-type: subjects
   keys:
+    - subject:
+        type: fulltext+keyword
     - identifiers:
         type: array
         items:
