@@ -216,6 +216,7 @@ def test_file_limit(app, identity_simple, input_data, upload_file, search, searc
             data=[{"key": f"{i}.jpg", "metadata": {"title": str(i)}} for i in range(6)],
         )
 
+
 def test_file_links(app, identity_simple, input_data, upload_file, search, search_clear, location):
     service = modela.proxies.current_service
     item = service.create(identity_simple, input_data)

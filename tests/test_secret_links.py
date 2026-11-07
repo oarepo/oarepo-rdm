@@ -16,13 +16,13 @@ from invenio_records_resources.services.errors import (
 
 
 @pytest.fixture
-def restricted_record(rdm_records_service, identity_simple):
+def restricted_record(rdm_records_service, identity_simple, vocab_fixtures, required_rdm_metadata):
     """Restricted record fixture."""
     service = rdm_records_service
 
     data = {
-        "$schema": "local://modela-v1.0.0.json",
-        "metadata": {"title": "blah", "cdescription": "bbb"},
+        "$schema": "local://modelc-v1.0.0.json",
+        "metadata": {**required_rdm_metadata, "cdescription": "bbb"},
         "files": {"enabled": True},
         "access": {"record": "restricted", "files": "restricted"},
     }
@@ -44,7 +44,6 @@ def restricted_record(rdm_records_service, identity_simple):
     return record
 
 
-@pytest.mark.skip(reason="not used for now")
 def test_permission_levels(rdm_records_service, restricted_record, identity_simple, search_clear):
     """Test invalid permission level."""
     service = rdm_records_service
@@ -105,7 +104,7 @@ def test_permission_levels(rdm_records_service, restricted_record, identity_simp
     with pytest.raises(PermissionDeniedError):
         service.publish(anon, id_)
     with pytest.raises(PermissionDeniedError):
-        service.draft_files.init_files(anon, id_, {})
+        service.draft_files.init_files(anon, id_, [{"key": "test2.pdf"}])
     with pytest.raises(PermissionDeniedError):
         service.draft_files.update_file_metadata(anon, id_, "test.pdf", {})
     with pytest.raises(PermissionDeniedError):
