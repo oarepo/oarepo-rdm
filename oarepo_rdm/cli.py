@@ -44,7 +44,7 @@ def get_record(record_id: str) -> tuple[RDMRecord | RDMDraft, RDMRecordService]:
     return record, specialized_service
 
 
-@rdm_records.command("replace-owner")  # ty: ignore[unresolved-attribute]
+@rdm_records.command("replace-owner")  # ty: ignore[missing-attribute]
 @click.argument("record-id")
 @click.argument("owner-email")
 @with_appcontext
@@ -76,7 +76,7 @@ def replace_owner(record_id: str, owner_email: str) -> None:
         uow.commit()
 
 
-@rdm_records.command("merge-records")  # ty: ignore[unresolved-attribute]
+@rdm_records.command("merge-records")  # ty: ignore[missing-attribute]
 @click.argument("old-record-id")
 @click.argument("new-record-id")
 @click.option(
