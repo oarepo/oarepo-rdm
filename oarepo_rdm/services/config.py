@@ -121,17 +121,17 @@ class OARepoRDMServiceConfig(RDMRecordServiceConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
+    def search(self) -> SearchOptions:  # ty: ignore[incompatible-property-override]
         return current_oarepo_rdm.search_options
 
     @property
     @override
-    def search_drafts(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
+    def search_drafts(self) -> SearchOptions:  # ty: ignore[incompatible-property-override]
         return current_oarepo_rdm.draft_search_options
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
+    def search_versions(self) -> SearchOptions:  # ty: ignore[incompatible-property-override]
         return current_oarepo_rdm.versions_search_options
 
     @property
@@ -157,10 +157,10 @@ class OARepoCommunityRecordsConfig(RDMCommunityRecordsConfig):
 
     @property
     @override
-    def search(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
+    def search(self) -> SearchOptions:  # ty: ignore[incompatible-property-override]
         return current_oarepo_rdm.search_options
 
     @property
     @override
-    def search_versions(self) -> SearchOptions:  # ty: ignore[invalid-property-type-override]
+    def search_versions(self) -> SearchOptions:  # ty: ignore[incompatible-property-override]
         return current_oarepo_rdm.versions_search_options
