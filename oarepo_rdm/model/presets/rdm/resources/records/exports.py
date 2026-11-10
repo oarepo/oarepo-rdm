@@ -13,8 +13,6 @@ from invenio_rdm_records.resources.serializers import (
     BibtexSerializer,
     CSLJSONSerializer,
     CSVRecordSerializer,
-    DataCite43JSONSerializer,
-    DataCite43XMLSerializer,
     DataPackageSerializer,
     DCATSerializer,
     DublinCoreXMLSerializer,
@@ -25,6 +23,8 @@ from invenio_rdm_records.resources.serializers import (
 )
 from oarepo_model.customizations import AddMetadataExport, Customization
 from oarepo_model.presets import Preset
+
+from oarepo_rdm.resources.records.datacite import DataCite43JSONSerializer, DataCite43XMLSerializer
 
 if TYPE_CHECKING:
     from collections.abc import Generator
