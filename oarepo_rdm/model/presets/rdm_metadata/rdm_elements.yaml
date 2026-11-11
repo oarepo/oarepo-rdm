@@ -11,8 +11,8 @@ RDMPublicationDate:
     en: The date when the resource was or will be made publicly available.
     cs: Datum, kdy byl/bude zdroj zveřejněn.
   help:
-    en: Provide the publication date in ISO 8601 format (YYYY-MM-DD). If the exact date is unknown, use the earliest known date.
-    cs: Uveďte datum publikace ve formátu ISO 8601 (RRRR-MM-DD). Pokud není přesné datum známo, použijte nejdříve známé datum.
+    en: Enter the date as YYYY-MM-DD, or as YYYY-MM or YYYY if you know only the month or the year (e.g. 2024-03 or 2024). If you're unsure, use the earliest known date.
+    cs: Uveďte datum ve tvaru RRRR-MM-DD, nebo RRRR-MM či RRRR, pokud znáte jen měsíc nebo rok (např. 2024-03 nebo 2024). Pokud si nejste jisti, použijte nejdříve známé datum.
 
 RDMPublisher:
   type: fulltext+keyword
