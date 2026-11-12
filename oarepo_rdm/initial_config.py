@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import datetime as dt
 
+from invenio_app_rdm.communities_ui.sitemap import SitemapSectionOfCommunities
 from invenio_rdm_records.resources.config import error_handlers
 from werkzeug.local import LocalProxy
 
 from oarepo_rdm.oai.config import OAIServerMetadataFormats
 from oarepo_rdm.proxies import current_oarepo_rdm
+from oarepo_rdm.sitemap import SitemapSectionOfOARepoRecords
 
 RDM_RECORDS_SERVICE_CONFIG_CLASS = "oarepo_rdm.services.config:OARepoRDMServiceConfig"
 """Service config class."""
@@ -68,3 +70,13 @@ RDM_FACETS = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_facets)
 RDM_SEARCH = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search)
 RDM_SEARCH_DRAFTS = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search_drafts)
 COMMUNITIES_RECORDS_SEARCH = LocalProxy(lambda: current_oarepo_rdm.dynamic_rdm_search)
+
+# Sitemap
+# =======
+# Served at /sitemap_index_0.xml and advertised by /robots.txt; refreshed by the
+# invenio_sitemap.tasks.update_sitemap_cache task.
+SITEMAP_SECTIONS = [
+    SitemapSectionOfOARepoRecords(),
+    SitemapSectionOfCommunities(),
+]
+"""Sitemap of the public records of all models and of the public communities."""
