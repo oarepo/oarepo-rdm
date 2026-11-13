@@ -1,6 +1,6 @@
 [project]
 name = "oarepo-rdm"
-version = "9.3.0"
+version = "9.4.0"
 description = ""
 readme = "README.md"
 authors = [
